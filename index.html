@@ -217,14 +217,11 @@
     /* 진행상황 */
     function useProgress() {
       const [done, setDone] = useState(() => loadLS("mjc.done", []));
-      const [unlockAll, setUnlockAll] = useState(() => loadLS("mjc.unlockAll", true));
       const complete = useCallback((n) => {
         setDone((d) => { if (d.indexOf(n) !== -1) return d; const x = d.concat([n]).sort((a, b) => a - b); saveLS("mjc.done", x); return x; });
       }, []);
-      const toggleUnlock = useCallback(() => setUnlockAll((v) => { saveLS("mjc.unlockAll", !v); return !v; }), []);
       const isDone = useCallback((n) => done.indexOf(n) !== -1, [done]);
-      const isLocked = useCallback((n) => (unlockAll || n <= 1) ? false : done.indexOf(n - 1) === -1, [done, unlockAll]);
-      return { done, isDone, isLocked, complete, unlockAll, toggleUnlock };
+      return { done, isDone, complete };
     }
 
     /* 스플릿스크린 감지 */
@@ -392,8 +389,12 @@
     }
 
     /* 전체 목차 */
+    function mediaCount(dayNum) {
+      const content = DATA.authored[dayNum];
+      if (!content || !content.slides) return 0;
+      return content.slides.filter((s) => (s.img && DATA.SHOTS[s.img]) || s.video).length;
+    }
     function ChapterGrid({ onPick, onClose, currentDay }) {
-      const { isDone, isLocked, unlockAll, toggleUnlock } = useUI();
       const byCode = {};
       DATA.days.forEach((d) => { (byCode[d.chapter] = byCode[d.chapter] || []).push(d); });
       return (
@@ -405,14 +406,11 @@
                 <div className="text-xl font-black text-ink">📚 전체 목차</div>
                 <div className="text-sm text-gray-400 mt-0.5">
                   총 {DATA.product.totalDays}일 중 <b className="text-brand-600">Day 1~{DATA.product.builtDays}</b> 구현됨
+                  <span className="ml-2 text-xs text-gray-400">· 🖼️ N = 첨부된 사진/영상 개수</span>
                 </div>
               </div>
               <button onClick={onClose} className="ml-auto shrink-0 w-9 h-9 rounded-full bg-white border border-gray-200 grid place-items-center text-gray-500 hover:bg-gray-50">✕</button>
             </div>
-            <label className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 cursor-pointer">
-              <input type="checkbox" checked={unlockAll} onChange={toggleUnlock} className="w-3.5 h-3.5 accent-orange-500" />
-              🔓 잠금 해제하고 둘러보기 <span className="font-normal text-gray-400">(프로토타입 전용)</span>
-            </label>
             <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {DATA.chapters.map((ch) => (
                 <div key={ch.code} className={"rounded-2xl border p-4 " + (ch.milestone ? "bg-brand-50 border-brand-300" : "bg-white border-brand-100")}>
@@ -424,17 +422,18 @@
                   <div className="flex flex-col gap-1.5">
                     {(byCode[ch.code] || []).map((d) => {
                       const t = THEME[d.type], cur = d.day === currentDay;
-                      const locked = isLocked(d.day), done = isDone(d.day);
+                      const media = mediaCount(d.day);
                       return (
-                        <button key={d.day} onClick={() => onPick(d.day)} disabled={locked}
+                        <button key={d.day} onClick={() => onPick(d.day)}
                           className={"flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition " +
                             (cur ? "bg-ink border-ink text-white"
-                              : locked ? "bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed"
                               : "bg-white/70 border-gray-100 hover:bg-brand-50 hover:border-brand-200")}>
                           <span className={"text-xs font-black w-12 shrink-0 " + (cur ? "text-white" : "text-gray-400")}>Day {d.day}</span>
                           <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " + (cur ? "bg-white/20 text-white border border-white/30" : t.badge)}>{t.label}</span>
                           <span className={"text-xs truncate " + (cur ? "text-white" : "text-ink")}>{d.name}</span>
-                          <span className="ml-auto shrink-0 text-xs">{locked ? "🔒" : done ? "✅" : ""}</span>
+                          {media > 0 && (
+                            <span className={"ml-auto shrink-0 text-xs " + (cur ? "text-white/80" : "text-gray-400")} title="첨부된 사진/영상 개수">🖼️ {media}</span>
+                          )}
                         </button>
                       );
                     })}
@@ -442,12 +441,25 @@
                 </div>
               ))}
               {DATA.upcoming.map((u) => (
-                <div key={u.code} className="rounded-2xl border border-dashed border-gray-200 bg-white/40 p-4 opacity-60">
+                <div key={u.code} className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-black text-sm text-gray-400">{u.code} · {u.title}</span>
-                    <span className="shrink-0 text-[10px] text-gray-300 font-semibold">{u.range}</span>
+                    <span className="font-black text-sm text-gray-500">{u.code} · {u.title}</span>
+                    <span className="shrink-0 text-[10px] text-gray-400 font-semibold">{u.range}</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-gray-300">준비 중이에요</p>
+                  <p className="mt-2 text-[11px] text-gray-400">아직 준비 중이라 미리보기만 볼 수 있어요</p>
+                  <div className="mt-2.5 flex flex-col gap-1.5">
+                    {(u.days || []).map((d) => {
+                      const t = THEME[d.type];
+                      return (
+                        <div key={d.day}
+                          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
+                          <span className="text-xs font-black w-12 shrink-0 text-gray-400">Day {d.day}</span>
+                          <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " + t.badge}>{t.label}</span>
+                          <span className="text-xs truncate text-gray-500">{d.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}
             </div>
@@ -471,6 +483,10 @@
             <RichInline text={slide.title} name={name} />
           </h2>
           <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
+          {slide.video && (
+            <video src={slide.video} autoPlay muted playsInline
+              className="mt-3.5 mx-auto w-auto max-w-full max-h-[22vh] rounded-2xl" />
+          )}
           <div className="mt-3.5 space-y-2.5">
             {paras.slice(0, reveal).map((p, i) => (
               <p key={i} className="animate-revealUp rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
@@ -1045,7 +1061,7 @@
        미션·제출 단계는 내용이 길어 일반 스크롤을 쓴다.
     ═══════════════════════════════════════════════════════════ */
     function DayScreen({ dayNum }) {
-      const { name, complete, isDone, isLocked, openName } = useUI();
+      const { name, complete, isDone, openName } = useUI();
       const meta = DATA.days.find((d) => d.day === dayNum);
       const idx = DATA.days.findIndex((d) => d.day === dayNum);
       const prev = DATA.days[idx - 1], next = DATA.days[idx + 1];
@@ -1072,23 +1088,6 @@
         setChecked(mission ? mission.checklist.map(() => false) : []);
         setVals(mission && mission.fields ? mission.fields.map(() => "") : []);
       }, [dayNum]);
-
-      if (isLocked(dayNum)) {
-        return (
-          <div className="bg-cream min-h-screen text-ink">
-            <TopHeader subtitle={meta.chapter + " · " + meta.chapterTitle} />
-            <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-              <div className="text-6xl animate-floaty">🔒</div>
-              <h1 className="mt-6 text-2xl font-black">Day {dayNum}은 아직 잠겨 있어요</h1>
-              <p className="mt-3 text-gray-500 leading-relaxed">
-                <b className="text-ink">Day {dayNum - 1}</b>을 완료해야 열려요.<br />하루에 하나씩, 그게 실력이 붙는 유일한 방법이에요 🔥
-              </p>
-              <button onClick={() => go("#/day/" + (dayNum - 1))}
-                className="mt-7 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">Day {dayNum - 1}로 가기 →</button>
-            </div>
-          </div>
-        );
-      }
 
       const missionReady = checked.length > 0 && checked.every(Boolean) && vals.every((v) => v.trim().length > 0);
       const stages = isConcept
