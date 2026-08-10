@@ -3,13 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>멋쟁이 챌린지 · 클로드 배워서 인생 바꾸기</title>
+  <title>멋쟁이 챌린지 · 0부터 배포까지 - Claude 코스</title>
 
-  <!-- 한글 폰트: Pretendard (없으면 시스템 sans-serif 폴백) -->
   <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
-  <!-- Tailwind CSS (Play CDN — 프로토타입 전용) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -19,34 +17,27 @@
             cream: "#FAF8F5",
             ink:   "#1F2937",
             brand: {
-              50:  "#FFF3ED",
-              100: "#FFE4D5",
-              200: "#FFC9AC",
-              300: "#FFA778",
-              400: "#FF8747",
-              500: "#F97316",
-              600: "#EA580C",
-              700: "#C2410C",
+              50:  "#FFF3ED", 100: "#FFE4D5", 200: "#FFC9AC", 300: "#FFA778",
+              400: "#FF8747", 500: "#FF6000", 600: "#E05500", 700: "#B84600",
             },
           },
           fontFamily: {
             sans: ["Pretendard", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
           },
           boxShadow: {
-            card: "0 6px 30px -12px rgba(234,88,12,0.18)",
+            card: "0 6px 30px -12px rgba(224,85,0,0.20)",
             soft: "0 2px 16px -6px rgba(31,41,55,0.10)",
+            lift: "0 18px 50px -20px rgba(31,41,55,0.28)",
           },
         },
       },
     };
   </script>
 
-  <!-- React 18 + Babel (no-build 프로토타입) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script>
-    // 인-브라우저 실행을 위해 JSX 를 classic 런타임(React.createElement)으로 컴파일한다.
     Babel.registerPreset("react-classic", {
       presets: [[Babel.availablePresets.react, { runtime: "classic" }]],
     });
@@ -56,42 +47,94 @@
     html { scroll-behavior: smooth; }
     body { background: #FAF8F5; -webkit-font-smoothing: antialiased; }
     ::selection { background: #FFD9C2; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-    @keyframes popIn  { from { opacity: 0; transform: scale(.96); }      to { opacity: 1; transform: none; } }
-    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .animate-fadeUp { animation: fadeUp .5s ease both; }
-    .animate-popIn  { animation: popIn .18s ease both; }
-    .animate-floaty { animation: floaty 4s ease-in-out infinite; }
+
+    /* 슬라이드 전환 (방향 인식) */
+    @keyframes slideInR  { from { opacity:0; transform: translateX(34px) scale(.985); } to { opacity:1; transform:none; } }
+    @keyframes slideInL  { from { opacity:0; transform: translateX(-34px) scale(.985); } to { opacity:1; transform:none; } }
+    @keyframes fadeUp    { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
+    @keyframes revealUp  { from { opacity:0; transform: translateY(10px); filter: blur(3px); } to { opacity:1; transform:none; filter:none; } }
+    @keyframes popIn     { from { opacity:0; transform: scale(.94); } to { opacity:1; transform:none; } }
+    @keyframes floaty    { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+    @keyframes shake     { 10%,90%{transform:translateX(-2px)} 30%,70%{transform:translateX(4px)} 50%{transform:translateX(-4px)} }
+    @keyframes nudgeR    { 0%,100% { transform: translateX(0); opacity:.5 } 50% { transform: translateX(12px); opacity:1 } }
+    @keyframes bar       { from { width: 0 } to { width: 100% } }
+    @keyframes sheen     { from { background-position: -180% 0 } to { background-position: 220% 0 } }
+    .anim-in-r        { animation: slideInR .34s cubic-bezier(.22,.9,.3,1) both; }
+    .anim-in-l        { animation: slideInL .34s cubic-bezier(.22,.9,.3,1) both; }
+    .animate-fadeUp   { animation: fadeUp .5s ease both; }
+    .animate-revealUp { animation: revealUp .42s cubic-bezier(.22,.9,.3,1) both; }
+    .animate-popIn    { animation: popIn .2s cubic-bezier(.2,.9,.3,1.15) both; }
+    .animate-floaty   { animation: floaty 4s ease-in-out infinite; }
+    .animate-shake    { animation: shake .4s ease both; }
+    .animate-nudgeR   { animation: nudgeR 1.4s ease-in-out infinite; }
+    .sheen { background-image: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.55) 50%, transparent 62%);
+             background-size: 220% 100%; animation: sheen 2.6s ease-in-out infinite; }
+
+    .stagger > * { animation: fadeUp .44s ease both; }
+    .stagger > *:nth-child(1){animation-delay:.04s} .stagger > *:nth-child(2){animation-delay:.10s}
+    .stagger > *:nth-child(3){animation-delay:.16s} .stagger > *:nth-child(4){animation-delay:.22s}
+    .stagger > *:nth-child(5){animation-delay:.28s} .stagger > *:nth-child(6){animation-delay:.34s}
+
+    /* 슬라이드를 같은 그리드 칸에 겹쳐 쌓는다. 덱 높이가 고정되어 아래 컨트롤이 안 튄다. */
+    .deck-stack { display: grid; }
+    .deck-stack > * { grid-area: 1 / 1; min-height: 0; }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .rich b { font-weight: 800; color: #111827; }
+    .rich i { font-style: normal; color: #6B7280; background:#F3F4F6; padding:.05em .35em; border-radius:.3em; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
   </style>
 </head>
 <body>
   <div id="root"></div>
-
-  <!-- 커리큘럼 데이터 모델 -->
+  <!-- 설정 화면 스크린샷(base64). 용량이 커서 커리큘럼 데이터와 분리했다 -->
+  <script src="assets.js"></script>
+  <!-- 커리큘럼 데이터: Day 메타 + 슬라이드/퀴즈/미션 콘텐츠 -->
   <script src="data.js"></script>
 
-  <!-- 애플리케이션 -->
   <script type="text/babel" data-presets="react-classic">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, createContext, useContext } = React;
     const DATA = window.MJC_DATA;
 
-    /* ─────────────────────────────────────────────────────────────
-       공용 유틸
-    ───────────────────────────────────────────────────────────── */
-    function go(hash) {
-      window.location.hash = hash;
-      window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
-    }
-    function scrollToId(id) {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    /* Day 타입별 앰비언트 컬러. 기획안 주석: concept 그린 · practice 앰버 · project 핑크 */
+    const THEME = {
+      concept: {
+        label: "개념", emoji: "🟢", act: "퀴즈",
+        text: "text-emerald-700", textSoft: "text-emerald-600",
+        bg: "bg-emerald-50", border: "border-emerald-200",
+        solid: "bg-emerald-500", solidHover: "hover:bg-emerald-600",
+        badge: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+        chip: "bg-emerald-500 text-white", bar: "bg-emerald-500", ring: "ring-emerald-300",
+      },
+      practice: {
+        label: "실습", emoji: "🟡", act: "미션",
+        text: "text-amber-700", textSoft: "text-amber-600",
+        bg: "bg-amber-50", border: "border-amber-200",
+        solid: "bg-amber-500", solidHover: "hover:bg-amber-600",
+        badge: "bg-amber-100 text-amber-700 border border-amber-200",
+        chip: "bg-amber-500 text-white", bar: "bg-amber-500", ring: "ring-amber-300",
+      },
+      project: {
+        label: "프로젝트", emoji: "🩷", act: "미션",
+        text: "text-pink-700", textSoft: "text-pink-600",
+        bg: "bg-pink-50", border: "border-pink-200",
+        solid: "bg-pink-500", solidHover: "hover:bg-pink-600",
+        badge: "bg-pink-100 text-pink-700 border border-pink-200",
+        chip: "bg-pink-500 text-white", bar: "bg-pink-500", ring: "ring-pink-300",
+      },
+    };
+
+    /* 유틸 */
+    function go(hash) { window.location.hash = hash; window.scrollTo({ top: 0, behavior: "auto" }); }
     function useHashRoute() {
-      const [route, setRoute] = useState(window.location.hash || "#/");
+      const [route, setRoute] = useState(window.location.hash || "#/day/1");
       useEffect(() => {
-        const on = () => setRoute(window.location.hash || "#/");
+        const on = () => setRoute(window.location.hash || "#/day/1");
         window.addEventListener("hashchange", on);
         return () => window.removeEventListener("hashchange", on);
       }, []);
@@ -100,927 +143,1109 @@
     function showToast(msg) {
       const t = document.createElement("div");
       t.textContent = msg;
-      t.className =
-        "fixed left-1/2 -translate-x-1/2 bottom-10 z-[200] px-4 py-2.5 rounded-full " +
-        "bg-ink text-white text-sm font-medium shadow-lg animate-popIn";
+      t.className = "fixed left-1/2 -translate-x-1/2 bottom-10 z-[300] px-4 py-2.5 rounded-full bg-ink text-white text-sm font-bold shadow-lift animate-popIn";
       document.body.appendChild(t);
-      setTimeout(() => { t.style.transition = "opacity .3s"; t.style.opacity = "0"; }, 1300);
-      setTimeout(() => t.remove(), 1700);
+      setTimeout(() => { t.style.transition = "opacity .3s"; t.style.opacity = "0"; }, 1400);
+      setTimeout(() => t.remove(), 1800);
     }
-    function copyText(text, label) {
-      const done = () => showToast(label || "복사됐어요 ✅");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
-      } else {
-        fallbackCopy(text, done);
-      }
-    }
-    function fallbackCopy(text, done) {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand("copy"); } catch (e) {}
-      ta.remove();
-      done();
-    }
-    const statusOf = (day, cur) => (day < cur ? "done" : day === cur ? "current" : "todo");
+    function loadLS(k, f) { try { const v = localStorage.getItem(k); return v == null ? f : JSON.parse(v); } catch (e) { return f; } }
+    function saveLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function fill(t, n) { return (t || "").split("{{name}}").join(n || DATA.DEMO_NAME); }
+    const strip = (s) => (s || "").replace(/<[^>]+>/g, "");
 
-    const TYPE_BADGE = {
-      concept: "bg-gray-100 text-gray-600 border border-gray-200",
-      live:    "bg-brand-500 text-white border border-brand-500",
-      cross:   "bg-brand-50 text-brand-600 border border-brand-200",
-    };
-
-    /* ─────────────────────────────────────────────────────────────
-       공용 프리미티브
-    ───────────────────────────────────────────────────────────── */
-    function SectionCode({ children }) {
-      return (
-        <span className="inline-block rounded-full bg-brand-50 text-brand-600 border border-brand-100
-                         px-3.5 py-1.5 text-sm font-bold tracking-tight">
-          {children}
-        </span>
-      );
+    function RichInline({ text, name, className }) {
+      return <span className={"rich " + (className || "")} dangerouslySetInnerHTML={{ __html: fill(text, name) }} />;
     }
-    function CTA({ children, onClick, size = "lg", className = "" }) {
-      const sizes = {
-        lg: "px-8 py-4 text-lg",
-        md: "px-6 py-3 text-base",
-      };
+
+    /* Day 테마 색으로 채워지는 기본 CTA 버튼. disabled 면 회색으로 빠진다.
+       size: "base" | "lg" · layout: "full" | "flex1" · extra: 추가로 붙일 클래스(애니메이션 등) */
+    function ThemedCTA({ theme, disabled, onClick, size, layout, extra, children }) {
+      const sizeCls = size === "lg" ? "py-4 text-lg" : "py-3.5 text-base";
+      const layoutCls = layout === "flex1" ? "flex-1" : "w-full";
       return (
-        <button
-          onClick={onClick}
-          className={
-            "inline-flex items-center justify-center gap-2 rounded-2xl font-bold text-white " +
-            "bg-brand-500 hover:bg-brand-600 active:scale-[.98] transition shadow-card " +
-            sizes[size] + " " + className
-          }>
+        <button disabled={disabled} onClick={onClick}
+          className={layoutCls + " " + sizeCls + " rounded-2xl font-black shadow-card transition active:scale-[.99] " + (extra || "") + " " +
+            (disabled ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "text-white " + theme.solid + " " + theme.solidHover)}>
           {children}
         </button>
       );
     }
 
-    /* ─────────────────────────────────────────────────────────────
-       페이지 1 · 메인(랜딩)
-    ───────────────────────────────────────────────────────────── */
-    function LandingHeader() {
+    async function copyText(t) {
+      try { await navigator.clipboard.writeText(t); showToast("복사했어요 📋"); }
+      catch (e) { showToast("복사에 실패했어요. 직접 선택해 주세요"); }
+    }
+    function downloadBlob(filename, text, mime) {
+      const blob = new Blob(["﻿" + text], { type: (mime || "text/plain") + ";charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(filename + " 내려받았어요 ⬇️");
+    }
+
+    const UICtx = createContext({});
+    const useUI = () => useContext(UICtx);
+    const PLAN_NOTES = /[?&]notes=1/.test(window.location.search);
+
+    /* 떠 있는 버튼. 항상 보이도록 모든 단계에서 렌더한다.
+       liftForHint 가 켜지면(모바일에서 스플릿스크린 배너가 하단에 떠 있을 때) 배너 위로 자리를 옮긴다. */
+    function Fabs({ liftForHint }) {
+      const { openGrid, openName } = useUI();
       return (
-        <header className="sticky top-0 z-40 backdrop-blur bg-cream/80 border-b border-brand-100/70">
-          <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
-            <button onClick={() => go("#/")} className="flex items-center" aria-label="멋쟁이사자처럼 홈">
-              <img src="likelion-logo.svg" alt="멋쟁이사자처럼" className="h-5 sm:h-6 w-auto" />
-            </button>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => go("#/learn")}
-                className="hidden sm:inline-flex px-4 py-2 rounded-xl text-sm font-semibold text-brand-600 hover:bg-brand-50 transition">
-                미리 둘러보기
-              </button>
-              <button
-                onClick={() => showToast("데모 화면입니다 🙂")}
-                className="px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-ink hover:bg-white transition">
-                로그인
-              </button>
-            </div>
-          </div>
-        </header>
+        <div className={"fixed right-5 z-[150] flex flex-col gap-2.5 transition-[bottom] duration-200 " +
+          (liftForHint ? "bottom-36 lg:bottom-5" : "bottom-5")}>
+          <button onClick={openName} title="내 이름 설정"
+            className="w-11 h-11 rounded-full bg-white border border-gray-200 text-gray-500 grid place-items-center text-lg shadow-soft hover:scale-105 transition">🦁</button>
+          <button onClick={openGrid} title="전체 목차"
+            className="w-14 h-14 rounded-full bg-ink text-white grid place-items-center text-2xl shadow-lift hover:scale-105 transition">📚</button>
+        </div>
       );
     }
 
-    function Hero() {
+    /* 학습 화면 전용 - 화면 높이가 빠듯해서 목차 버튼 하나만, 작게. 이름 설정은 상단 바에 따로 둔다. */
+    function LearnFab({ liftForHint }) {
+      const { openGrid } = useUI();
       return (
-        <section className="relative overflow-hidden">
-          {/* 배경 장식 */}
-          <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand-100/60 blur-3xl" />
-          <div className="pointer-events-none absolute top-40 -left-24 w-80 h-80 rounded-full bg-brand-50 blur-3xl" />
-
-          <div className="relative max-w-6xl mx-auto px-5 pt-16 pb-14 text-center animate-fadeUp">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-100 text-brand-700
-                             px-4 py-2 text-sm font-bold">
-              🚀 {DATA.product.openDate} 오픈
-            </span>
-
-            <h1 className="mt-6 text-5xl sm:text-6xl md:text-7xl font-black tracking-tight text-ink leading-[1.1]">
-              클로드 배워서<br />
-              <span className="text-brand-500">인생 바꾸기</span>
-            </h1>
-
-            <p className="mt-5 text-xl sm:text-2xl font-bold text-ink">
-              챗봇만 써봤다면, 여기가 시작점입니다
-            </p>
-            <p className="mt-3 text-base sm:text-lg text-gray-500 leading-relaxed">
-              60일 동안 매일 하나씩. <b className="text-ink font-semibold">결제한 순간부터</b> 당신의 Day 1이 시작됩니다.
-            </p>
-
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <CTA onClick={() => go("#/day/1")}>
-                지금 시작하기 - {DATA.product.priceLabel}
-              </CTA>
-              <p className="text-sm text-gray-500">
-                완주하면 <b className="text-brand-600">최대 50% 환급</b>
-              </p>
-            </div>
-
-            {/* 신뢰 스트립 */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
-              <span>⭐ 3040 직장인을 위해 설계</span>
-              <span className="hidden sm:inline text-gray-300">·</span>
-              <span>🖥️ PC 분할 화면으로 학습</span>
-              <span className="hidden sm:inline text-gray-300">·</span>
-              <span>🔁 매일 15분이면 충분</span>
-            </div>
-          </div>
-        </section>
+        <button onClick={openGrid} title="전체 목차"
+          className={"fixed right-5 z-[150] w-11 h-11 rounded-full bg-ink text-white grid place-items-center text-xl shadow-lift hover:scale-105 transition-[bottom] duration-200 " +
+            (liftForHint ? "bottom-24 lg:bottom-3" : "bottom-3")}>📚</button>
       );
     }
 
-    function ContrastSection() {
-      const bad = ["“AI로 뭘 해보지?”", "AI 기능부터 공부하고", "쓸 곳을 나중에 찾는다"];
-      const good = ["“이 일을 어떻게 맡기지?”", "내 업무 목록에서 출발해", "위임할 방법을 설계한다"];
-      return (
-        <section className="max-w-6xl mx-auto px-5 py-16">
-          <div className="text-center">
-            <SectionCode>01 · 관점 전환</SectionCode>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink">
-              출발점은 AI가 아니라, <span className="text-brand-500">내 일</span>입니다
-            </h2>
-          </div>
-
-          <div className="mt-10 grid md:grid-cols-2 gap-5">
-            {/* ❌ 박스 */}
-            <div className="rounded-3xl bg-gray-50 border border-gray-200 p-8">
-              <div className="flex items-center gap-2 text-gray-500 font-bold">
-                <span className="text-2xl">❌</span> 흔한 접근
-              </div>
-              <ul className="mt-5 space-y-4">
-                {bad.map((t, i) => (
-                  <li key={i} className="text-lg font-semibold text-gray-500">{t}</li>
-                ))}
-              </ul>
-            </div>
-            {/* ✅ 박스 */}
-            <div className="rounded-3xl bg-white border-2 border-brand-300 p-8 shadow-card">
-              <div className="flex items-center gap-2 text-brand-600 font-bold">
-                <span className="text-2xl">✅</span> 멋쟁이 챌린지
-              </div>
-              <ul className="mt-5 space-y-4">
-                {good.map((t, i) => (
-                  <li key={i} className="text-lg font-bold text-ink">{t}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <p className="mt-8 text-center text-lg text-gray-600 max-w-3xl mx-auto">
-            AI의 가능성은 사실상 <b className="text-ink">무한대</b> — 병목은 위임에 발휘할
-            <b className="text-brand-600"> 내 상상력</b>뿐입니다.
-          </p>
-        </section>
-      );
+    /* 진행상황 */
+    function useProgress() {
+      const [done, setDone] = useState(() => loadLS("mjc.done", []));
+      const [unlockAll, setUnlockAll] = useState(() => loadLS("mjc.unlockAll", true));
+      const complete = useCallback((n) => {
+        setDone((d) => { if (d.indexOf(n) !== -1) return d; const x = d.concat([n]).sort((a, b) => a - b); saveLS("mjc.done", x); return x; });
+      }, []);
+      const toggleUnlock = useCallback(() => setUnlockAll((v) => { saveLS("mjc.unlockAll", !v); return !v; }), []);
+      const isDone = useCallback((n) => done.indexOf(n) !== -1, [done]);
+      const isLocked = useCallback((n) => (unlockAll || n <= 1) ? false : done.indexOf(n - 1) === -1, [done, unlockAll]);
+      return { done, isDone, isLocked, complete, unlockAll, toggleUnlock };
     }
 
-    function BigNumbers() {
-      const badges = [
-        "📁 오가던 파일 → 링크 하나",
-        "✅ 60일 완주 시 환급",
-        "🏃 매일 15분이면 충분",
-      ];
-      return (
-        <section className="bg-white/60 border-y border-brand-100/70">
-          <div className="max-w-6xl mx-auto px-5 py-16">
-            <div className="text-center">
-              <SectionCode>02 · 딱 60일</SectionCode>
-              <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink">
-                이 전부가, 딱 <span className="text-brand-500">60일</span> 안의 일입니다
-              </h2>
-            </div>
+    /* 스플릿스크린 감지 */
+    function isSplitNow() {
+      const avail = (window.screen && window.screen.availWidth) || 0;
+      const w = window.outerWidth || window.innerWidth || 0;
+      if (!avail || !w) return true;
+      return w / avail <= 0.72;
+    }
+    function useSplitScreen() {
+      const [split, setSplit] = useState(isSplitNow);
+      useEffect(() => {
+        const on = () => setSplit(isSplitNow());
+        window.addEventListener("resize", on);
+        const id = setInterval(on, 1200);
+        return () => { window.removeEventListener("resize", on); clearInterval(id); };
+      }, []);
+      return split;
+    }
 
-            <div className="mt-10 grid md:grid-cols-2 gap-5">
-              {/* 60일 카드 */}
-              <div className="rounded-3xl bg-cream border border-brand-100 p-8 flex flex-col items-center justify-center text-center">
-                <div className="text-7xl sm:text-8xl font-black text-brand-500 leading-none">60일</div>
-                <p className="mt-4 text-gray-600 font-medium">
-                  매일 하나씩 · 완주 시 <b className="text-brand-600">최대 50% 환급</b>
+    function SplitScreenHint({ onDismiss }) {
+      return (
+        <>
+          <div className="hidden lg:block fixed inset-y-0 right-0 z-[160] w-[38vw] max-w-[560px] pointer-events-none">
+            <div className="absolute inset-4 rounded-3xl border-[3px] border-dashed border-brand-400/70 bg-brand-500/[.06] grid place-items-center">
+              <div className="text-center px-6 pointer-events-auto">
+                <div className="text-5xl animate-floaty">🖥️</div>
+                <div className="mt-4 text-xl font-black text-brand-700 leading-snug">오른쪽 화면에<br />Claude 데스크탑을 띄워주세요</div>
+                <p className="mt-3 text-sm text-brand-600/80 leading-relaxed">
+                  실습·프로젝트 Day는 <b>스플릿스크린</b>이 기본 자세예요.<br />왼쪽 = 이 챌린지 페이지 · 오른쪽 = 클로드
                 </p>
-              </div>
-              {/* before → after 카드 */}
-              <div className="rounded-3xl bg-cream border border-brand-100 p-8 flex flex-col items-center justify-center text-center">
-                <div className="flex items-center gap-3 sm:gap-5">
-                  <span className="text-4xl sm:text-6xl font-black text-gray-300 line-through decoration-4">4시간</span>
-                  <span className="text-3xl sm:text-4xl text-brand-400">→</span>
-                  <span className="text-5xl sm:text-7xl font-black text-brand-500">40분</span>
+                <div className="mt-4 text-xs text-brand-500/70 font-bold">
+                  Windows <span className="px-1.5 py-0.5 rounded bg-white/70 border border-brand-200">⊞ + ←</span>
+                  <span className="mx-1.5">/</span>
+                  Mac <span className="px-1.5 py-0.5 rounded bg-white/70 border border-brand-200">초록 버튼 길게</span>
                 </div>
-                <p className="mt-4 text-gray-600 font-medium">
-                  매일 반복하던 일, 이렇게 <b className="text-ink">줄어듭니다</b>
-                </p>
+                <button onClick={onDismiss} className="mt-5 rounded-xl bg-white border border-brand-200 px-4 py-2 text-xs font-bold text-brand-600 hover:bg-brand-50 transition">알겠어요, 닫기</button>
               </div>
             </div>
-
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              {badges.map((b, i) => (
-                <span key={i} className="rounded-full bg-white border border-brand-100 px-4 py-2 text-sm font-semibold text-ink shadow-soft">
-                  {b}
-                </span>
-              ))}
-            </div>
           </div>
-        </section>
-      );
-    }
-
-    function UnitPreview() {
-      // 10개 영역 중 핵심 5개만 미니 카드로
-      const picks = DATA.unitAreas.filter((a) => ["progress", "oneline", "mission", "verify", "output"].includes(a.key));
-      const copy = {
-        progress: "지금 어디쯤인지 늘 보입니다",
-        oneline:  "‘이럴 때 씁니다’, 상황으로 시작",
-        mission:  "오늘 해낼 딱 한 가지",
-        verify:   "결과물이 진짜로 남습니다",
-        output:   "복붙 가능한 템플릿 제공",
-      };
-      return (
-        <section className="max-w-6xl mx-auto px-5 py-16">
-          <div className="text-center">
-            <SectionCode>03 · 이렇게 배웁니다</SectionCode>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink">
-              실제로 <span className="text-brand-500">이 흐름</span>을 매일 따라갑니다
-            </h2>
-            <p className="mt-3 text-gray-500">이론이 아니라, 오늘 써먹을 결과물 하나로 끝납니다.</p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-5 gap-4">
-            {picks.map((a, i) => (
-              <div key={a.key} className="relative rounded-2xl bg-white border border-brand-100 p-5 shadow-soft">
-                <div className="text-brand-400 font-black text-sm">{a.n}</div>
-                <div className="mt-1 text-3xl">{a.icon}</div>
-                <div className="mt-2 font-bold text-ink">{a.name}</div>
-                <div className="mt-1 text-sm text-gray-500 leading-snug">{copy[a.key]}</div>
-              </div>
+          <div className="hidden lg:flex fixed top-1/2 -translate-y-1/2 right-[38vw] z-[161] items-center gap-1 pointer-events-none" style={{ marginRight: "8px" }}>
+            {[0, 1, 2].map((n) => (
+              <span key={n} className="text-3xl text-brand-500 animate-nudgeR" style={{ animationDelay: n * 0.16 + "s" }}>›</span>
             ))}
           </div>
-
-          <p className="mt-6 text-center text-sm text-gray-400">
-            전체 10개 영역(진행바 · 오늘의 한 줄 · 영상 · 개념 · 선택가이드 · 미션 · 인증 · 퀴즈 · 결과물 · 네비)으로 구성됩니다.
-          </p>
-        </section>
-      );
-    }
-
-    function SplitScreen() {
-      return (
-        <section className="bg-white/60 border-y border-brand-100/70">
-          <div className="max-w-6xl mx-auto px-5 py-16 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-              <SectionCode>04 · 분할 화면 학습</SectionCode>
-              <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink leading-tight">
-                화면을 나눠서,<br />바로 옆에서 <span className="text-brand-500">배웁니다</span>
-              </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
-                한쪽엔 멋쟁이 챌린지, 다른 한쪽엔 <b className="text-ink">진짜 Claude</b>.
-                배운 걸 바로 옆에서 써봅니다.
-                가짜 실습이 아니라 <b className="text-brand-600">진짜 결과물</b>이 남습니다.
-              </p>
-            </div>
-
-            {/* 2분할 목업 */}
-            <div className="rounded-3xl border border-brand-100 bg-gray-900 p-3 shadow-card">
-              <div className="grid grid-cols-2 gap-3 h-72">
-                {/* 왼쪽: 멋쟁이 챌린지 */}
-                <div className="rounded-2xl bg-cream p-3 flex flex-col">
-                  <div className="text-[11px] font-bold text-brand-500">✳ 멋쟁이 챌린지</div>
-                  <div className="mt-2 h-1.5 rounded-full bg-brand-100 overflow-hidden">
-                    <div className="h-full w-1/5 bg-brand-500" />
-                  </div>
-                  <div className="mt-1 text-[10px] text-gray-500">Day 12 / 60</div>
-                  <div className="mt-3 rounded-lg bg-white border border-brand-100 p-2 text-[11px] text-ink">
-                    🎯 <b>미션</b><br />내 반복 업무를 프로젝트로 만들기
-                  </div>
-                  <div className="mt-2 rounded-lg bg-brand-50 border border-brand-100 p-2 text-[10px] text-brand-700">
-                    📋 오늘의 결과물 템플릿 복사
-                  </div>
-                </div>
-                {/* 오른쪽: Claude */}
-                <div className="rounded-2xl bg-[#1f1e1d] p-3 flex flex-col">
-                  <div className="text-[11px] font-bold text-brand-300">✳ Claude</div>
-                  <div className="mt-2 self-end max-w-[85%] rounded-xl rounded-br-sm bg-brand-500 text-white p-2 text-[10px]">
-                    내 주간보고 양식으로 프로젝트 만들어줘
-                  </div>
-                  <div className="mt-2 self-start max-w-[90%] rounded-xl rounded-bl-sm bg-white/10 text-gray-100 p-2 text-[10px]">
-                    좋아요. 먼저 보고서에 항상 들어가는 항목을 알려주시면, 커스텀 지시로 저장해 둘게요…
-                  </div>
-                  <div className="mt-auto rounded-lg bg-white/10 p-1.5 text-[10px] text-gray-400">＋ 메시지 입력…</div>
-                </div>
+          <div className="lg:hidden fixed bottom-0 inset-x-0 z-[160] p-3">
+            <div className="rounded-2xl bg-ink text-white p-4 shadow-lift flex items-start gap-3">
+              <span className="text-2xl shrink-0">🖥️</span>
+              <div className="flex-1">
+                <div className="font-black text-sm">오른쪽 화면에 Claude 데스크탑을 띄워주세요</div>
+                <p className="mt-1 text-xs text-white/70 leading-relaxed">화면을 반으로 나눠서 진행해요. 왼쪽 = 이 페이지 · 오른쪽 = 클로드</p>
               </div>
+              <button onClick={onDismiss} className="shrink-0 rounded-lg bg-white/15 px-2.5 py-1 text-xs font-bold hover:bg-white/25 transition">닫기</button>
             </div>
           </div>
-        </section>
+        </>
       );
     }
 
-    function RotatingCurriculumPhrase() {
-      const phrases = ["를 제대로 씁니다", "가 인생을 바꿉니다", "가 야근을 없앱니다"];
-      const [i, setI] = useState(0);
-      useEffect(() => {
-        const t = setInterval(() => setI((v) => (v + 1) % phrases.length), 2600);
-        return () => clearInterval(t);
-      }, []);
-      return (
-        <span key={i} className="inline-block text-brand-500 animate-fadeUp">{phrases[i]}</span>
-      );
-    }
+    /* 내 노트 */
+    const noteKey = (d) => "mjc.note." + d;
 
-    function CurriculumTeaser() {
-      return (
-        <section className="max-w-6xl mx-auto px-5 py-16">
-          <div className="text-center">
-            <SectionCode>05 · 커리큘럼</SectionCode>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink">
-              60일이면, Claude<RotatingCurriculumPhrase />
-            </h2>
-            <p className="mt-4 text-lg font-bold text-ink">
-              저희만 믿고 따라오세요, <span className="text-brand-500">본인만의 페이스로</span>.
-            </p>
-            <p className="mt-2 text-gray-500">몇 주차에 뭘 하는지는 미리 알려드리지 않아요. 매일 하나씩, 그날 열립니다.</p>
-          </div>
+    function NotePanel({ day, meta, onClose }) {
+      const [text, setText] = useState(() => loadLS(noteKey(day), ""));
+      const [flash, setFlash] = useState(false);
+      const taRef = useRef(null);
+      const panelRef = useRef(null);
+      const dragRef = useRef(null);
+      const [pos, setPos] = useState(null); // null = 기본 위치(우하단), 드래그하면 픽셀 좌표로 고정
+      const [dragging, setDragging] = useState(false);
 
-          <div className="mt-10 max-w-xl mx-auto rounded-3xl bg-white border border-brand-100 p-8 shadow-soft text-center">
-            <div className="text-4xl">🗺️</div>
-            <p className="mt-3 text-gray-600 leading-relaxed">
-              전체 지도를 미리 보여드리지 않는 이유가 있어요.<br />
-              오늘 것에만 집중할 때, 끝까지 갈 힘이 생기거든요.
-            </p>
-          </div>
+      useEffect(() => { setText(loadLS(noteKey(day), "")); }, [day]);
+      useEffect(() => { if (taRef.current) taRef.current.focus(); }, []);
 
-          <div className="mt-8 text-center">
-            <CTA size="md" onClick={() => go("#/learn")}>챌린지 안으로 들어가기 →</CTA>
-            <p className="mt-3 text-sm text-gray-400">오늘 하나, 내일 또 하나 — 그렇게 60일</p>
-          </div>
-        </section>
-      );
-    }
+      const update = (v) => {
+        setText(v); saveLS(noteKey(day), v);
+        setFlash(true); clearTimeout(update._t);
+        update._t = setTimeout(() => setFlash(false), 900);
+      };
+      const stamp = () => new Date().toISOString().slice(0, 10);
+      const header = "멋쟁이 챌린지 · Day " + day + " : " + meta.name + "\n" + meta.chapter + " · " + meta.chapterTitle +
+                     "\n작성일 " + stamp() + "\n" + "─".repeat(40) + "\n\n";
 
-    function FitSection() {
-      return (
-        <section className="bg-white/60 border-y border-brand-100/70">
-          <div className="max-w-6xl mx-auto px-5 py-16">
-            <div className="text-center">
-              <SectionCode>06 · 나에게 맞나요?</SectionCode>
-              <h2 className="mt-4 text-3xl sm:text-4xl font-black text-ink">이런 분에게 맞습니다</h2>
-            </div>
-
-            <div className="mt-12 grid md:grid-cols-3 gap-5 items-stretch">
-              {/* 카드1 — 아님 */}
-              <div className="rounded-3xl bg-gray-50 border border-gray-200 p-7">
-                <div className="text-3xl">🧑‍💻</div>
-                <h3 className="mt-3 text-lg font-black text-gray-500">이미 Claude Code를 잘 쓰는 개발자</h3>
-                <p className="mt-2 text-sm text-gray-400">이 챌린지는 조금 쉬울 수 있어요.</p>
-                <div className="mt-4 inline-block rounded-full bg-gray-200 text-gray-500 px-3 py-1 text-xs font-bold">이 코스와 거리 있음</div>
-              </div>
-
-              {/* 카드2 — 추천 (배지) */}
-              <div className="relative rounded-3xl bg-white border-2 border-brand-400 p-7 shadow-card md:-translate-y-3">
-                <div className="absolute -top-3.5 left-6 rounded-full bg-brand-500 text-white px-4 py-1.5 text-xs font-black shadow-card">
-                  잘 모르겠으면 여기!
-                </div>
-                <div className="mt-2 text-3xl">🙋</div>
-                <h3 className="mt-3 text-lg font-black text-ink">챗봇 정도만 써본 3040 직장인</h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  “더 잘 쓰고 싶은데 어떻게?”가 딱 여기입니다. 오늘 써먹을 결과물부터 만듭니다.
-                </p>
-                <div className="mt-4 inline-block rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-xs font-black">✅ 이 코스가 딱이에요</div>
-              </div>
-
-              {/* 카드3 — 곧 공개 */}
-              <div className="relative rounded-3xl bg-gray-50 border border-gray-200 p-7">
-                <div className="absolute -top-3.5 left-6 rounded-full bg-ink text-white px-3 py-1.5 text-xs font-black">곧 공개</div>
-                <div className="mt-2 text-3xl">💸</div>
-                <h3 className="mt-3 text-lg font-black text-ink">AI로 부업·수익화를 노리는 분</h3>
-                <p className="mt-2 text-sm text-gray-500">수익화 중심의 Track B에서 이어집니다.</p>
-                <div className="mt-4 inline-block rounded-full bg-gray-200 text-gray-600 px-3 py-1 text-xs font-bold">Track B · 준비 중</div>
-              </div>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    function FinalCTA() {
-      return (
-        <section className="max-w-6xl mx-auto px-5 py-20">
-          <div className="rounded-[2rem] bg-gradient-to-br from-brand-500 to-brand-600 p-10 sm:p-14 text-center text-white shadow-card">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-bold">
-              🔥 {DATA.product.openDate} 오픈 · 선착순 {DATA.product.seats}명
-            </div>
-            <h2 className="mt-6 text-4xl sm:text-5xl font-black leading-tight">
-              오늘의 나를 바꾸는 데<br />60일이면 충분합니다
-            </h2>
-            <p className="mt-4 text-white/90">결제한 순간이 곧 당신의 Day 1입니다.</p>
-            <div className="mt-8 flex flex-col items-center gap-3">
-              <button
-                onClick={() => go("#/day/1")}
-                className="px-9 py-4 rounded-2xl bg-white text-brand-600 text-lg font-black hover:bg-brand-50 active:scale-[.98] transition shadow-lg">
-                지금 시작하기 - {DATA.product.priceLabel}
-              </button>
-              <span className="text-white/90 text-sm">완주하면 최대 50% 환급 (최대 10만원)</span>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    function SiteFooter() {
-      return (
-        <footer className="border-t border-brand-100/70 bg-cream">
-          <div className="max-w-6xl mx-auto px-5 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <img src="likelion-logo.svg" alt="멋쟁이사자처럼" className="h-5 sm:h-6 w-auto" />
-            <div className="flex gap-5 text-sm text-gray-400">
-              {["이용약관", "개인정보처리방침", "문의하기"].map((t) => (
-                <button key={t} onClick={() => showToast("데모 화면입니다 🙂")} className="hover:text-ink transition">{t}</button>
-              ))}
-            </div>
-            <div className="text-xs text-gray-400">© 2026 멋쟁이사자처럼 · 프로토타입</div>
-          </div>
-        </footer>
-      );
-    }
-
-    function Home() {
-      return (
-        <div className="bg-cream text-ink">
-          <LandingHeader />
-          <Hero />
-          <ContrastSection />
-          <BigNumbers />
-          <UnitPreview />
-          <SplitScreen />
-          <CurriculumTeaser />
-          <FitSection />
-          <FinalCTA />
-          <SiteFooter />
-        </div>
-      );
-    }
-
-    /* ═════════════════════════════════════════════════════════════
-       학습 앱 (듀오링고형) · 공유 상태 + 데모 컨트롤
-       - 커리큘럼은 숨김: 오늘 것만 보이고, 끝내면 내일을 살짝 예고
-       - 시간이 자동으로 Day 를 센다 (시작일 기준)
-       - 우하단 데모 독으로 시작일·Day 를 직접 바꿔 그날 컨텐츠를 확인
-       ═════════════════════════════════════════════════════════════ */
-    const CH = { total: 60, price: 200000, refundRate: 0.5, refundWon: 10 };
-    const STORE_KEY = "mjc_demo_v2";
-    const dRange = (a, b) => Array.from({ length: Math.max(0, b - a + 1) }, (_, i) => a + i);
-    const clampN = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-    const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
-    const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
-    const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) / 86400000);
-    const fmtKDate = (d) => { const x = new Date(d); return `${x.getMonth() + 1}월 ${x.getDate()}일`; };
-    const fmtInputDate = (d) => { const x = startOfDay(d); const m = String(x.getMonth() + 1).padStart(2, "0"); const dd = String(x.getDate()).padStart(2, "0"); return `${x.getFullYear()}-${m}-${dd}`; };
-
-    function teaserFor(dayNum) {
-      const d = DATA.days.find((x) => x.day === dayNum);
-      if (!d) return { theme: "31일차부터", line: "익힌 것을 조합해 진짜 업무를 바꾸는 단계 — 완주하며 열려요." };
-      const wk = DATA.weeks.find((w) => w.id === d.week);
-      const kind = { concept: "새로운 개념 한 조각", live: "직접 해보는 실전 한 판", cross: "배우고 바로 써먹는 하루" }[d.type];
-      return { theme: wk.name, line: `${kind}이 기다려요.` };
-    }
-    function dayEncourage(n) {
-      if (n <= 1) return "오늘부터 시작이에요.";
-      if (n <= 5) return `${n}일째 · 아직 워밍업이에요. 편하게 가요.`;
-      if (n <= 14) return `${n}일째 · 이 페이스, 정말 좋아요.`;
-      if (n <= 29) return `${n}일째 · 이제 손에 익어가죠?`;
-      return `${n}일째 · 30일 완주가 코앞이에요!`;
-    }
-    function missionTemplate(d) {
-      return (
-        "[역할] 너는 내 업무를 돕는 어시스턴트야.\n" +
-        "[오늘 맡길 일] " + d.title.replace(/[“”]/g, "") + "\n" +
-        "[가진 자료] (엑셀·PDF·메일 등 붙여넣기 또는 업로드)\n" +
-        "[원하는 결과물] " + d.output + "\n" +
-        "[형식] 표 / 요약 / 초안 중 택1 — 바로 쓸 수 있게"
-      );
-    }
-
-    const AppCtx = React.createContext(null);
-    const useApp = () => React.useContext(AppCtx);
-
-    function defaultDemoState() {
-      // 기본 데모: 오늘이 Day 1 (방금 시작) → 시작일 = 오늘
-      // (완주 중 시나리오는 데모 독의 'Day 12' 바로가기로 전환)
-      return { startISO: startOfDay(new Date()).toISOString(), broken: [], todayDone: false };
-    }
-    function loadDemoState() {
-      try { const s = JSON.parse(localStorage.getItem(STORE_KEY)); if (s && s.startISO) return { broken: [], todayDone: false, ...s }; } catch (e) {}
-      return defaultDemoState();
-    }
-
-    function AppProvider({ children }) {
-      const [state, setState] = useState(loadDemoState);
-      useEffect(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }, [state]);
-
-      const start = startOfDay(new Date(state.startISO));
-      const now = startOfDay(new Date());
-      const rawDay = daysBetween(start, now) + 1;
-      const currentDay = clampN(rawDay, 1, CH.total);
-      const notStarted = rawDay < 1;
-      const finished = rawDay > CH.total;
-
-      const brokenPast = state.broken.filter((d) => d < currentDay);
-      const eligible = brokenPast.length === 0;
-      const isDone = (d) => (d < currentDay ? !state.broken.includes(d) : d === currentDay ? state.todayDone : false);
-      const completedCount = (currentDay - 1 - brokenPast.length) + (state.todayDone ? 1 : 0);
-      let streak = 0;
-      { let d = state.todayDone ? currentDay : currentDay - 1; while (d >= 1 && isDone(d)) { streak++; d--; } }
-
-      const actions = {
-        setStartDate: (iso) => setState((s) => ({ ...s, startISO: startOfDay(new Date(iso)).toISOString(), todayDone: false })),
-        jumpToDay: (n) => setState((s) => ({ ...s, startISO: addDays(startOfDay(new Date()), -(clampN(n, 1, CH.total) - 1)).toISOString(), todayDone: false })),
-        advance: () => setState((s) => ({ ...s, startISO: addDays(startOfDay(new Date()), -(clampN(currentDay + 1, 1, CH.total) - 1)).toISOString(), todayDone: false })),
-        toggleToday: () => setState((s) => ({ ...s, todayDone: !s.todayDone })),
-        setStreakBroken: (on) => setState((s) => {
-          const target = Math.max(1, currentDay - 2);
-          let broken = s.broken.filter((x) => x !== target);
-          if (on) broken = [...broken, target];
-          return { ...s, broken };
-        }),
-        reset: () => setState(defaultDemoState()),
+      const saveOne = () => {
+        if (!text.trim()) return showToast("먼저 노트를 작성해 주세요 ✍️");
+        downloadBlob("멋쟁이챌린지 Day " + day + " 노트.txt", header + text, "text/plain");
       };
 
-      const value = { state, actions, start, now, rawDay, currentDay, notStarted, finished, eligible, isDone, completedCount, streak };
-      return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
-    }
+      /* 헤더를 드래그해서 패널을 화면 어디로든 옮길 수 있게 한다 */
+      const onDragStart = (e) => {
+        if (e.target.closest("button")) return;
+        const rect = panelRef.current.getBoundingClientRect();
+        dragRef.current = { startX: e.clientX, startY: e.clientY, origX: rect.left, origY: rect.top };
+        setPos({ x: rect.left, y: rect.top });
+        setDragging(true);
+        e.currentTarget.setPointerCapture(e.pointerId);
+      };
+      const onDragMove = (e) => {
+        if (!dragRef.current) return;
+        const w = panelRef.current.offsetWidth, h = panelRef.current.offsetHeight;
+        const maxX = Math.max(4, window.innerWidth - w - 4);
+        const maxY = Math.max(4, window.innerHeight - h - 4);
+        const x = Math.min(Math.max(4, dragRef.current.origX + (e.clientX - dragRef.current.startX)), maxX);
+        const y = Math.min(Math.max(4, dragRef.current.origY + (e.clientY - dragRef.current.startY)), maxY);
+        setPos({ x, y });
+      };
+      const onDragEnd = () => { dragRef.current = null; setDragging(false); };
 
-    /* ── 공용 소품 ─────────────────────────────────────────────── */
-    function Ring({ percent, size = 72, stroke = 8, track = "#FFE4D5", color = "#F97316" }) {
-      const r = (size - stroke) / 2, c = 2 * Math.PI * r, off = c * (1 - percent / 100);
+      const posStyle = pos ? { left: pos.x + "px", top: pos.y + "px", right: "auto", bottom: "auto" } : undefined;
+
       return (
-        <div className="relative" style={{ width: size, height: size }}>
-          <svg width={size} height={size} className="-rotate-90">
-            <circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
-            <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" />
-          </svg>
-          <div className="absolute inset-0 grid place-items-center text-brand-600 font-black" style={{ fontSize: size / 4 }}>{Math.round(percent)}%</div>
+        <div ref={panelRef}
+          className={"fixed z-[210] inset-x-3 bottom-3 sm:inset-x-auto sm:right-5 sm:bottom-24 sm:w-[360px] " + (dragging ? "" : "animate-popIn")}
+          style={posStyle}>
+          <div className="rounded-3xl bg-white border border-gray-200 shadow-lift overflow-hidden">
+            <div onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd} onPointerCancel={onDragEnd}
+              title="드래그해서 옮길 수 있어요"
+              className={"flex items-center gap-2 px-4 py-3 bg-ink text-white select-none " + (dragging ? "cursor-grabbing" : "cursor-grab")}
+              style={{ touchAction: "none" }}>
+              <span className="text-white/40 text-sm leading-none">⠿</span>
+              <span className="text-base">📝</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-black truncate">Day {day} 노트</div>
+                <div className="text-[10px] text-white/50 truncate">{meta.name}</div>
+              </div>
+              <button onClick={onClose} className="shrink-0 w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 grid place-items-center text-xs transition">✕</button>
+            </div>
+            <textarea ref={taRef} value={text} onChange={(e) => update(e.target.value)}
+              placeholder={"오늘 배운 것 중 기억하고 싶은 걸 적어두세요.\n\n· 다시 볼 개념\n· 클로드에게 써먹을 프롬프트\n· 막혔던 지점"}
+              className="w-full h-52 p-4 text-sm leading-relaxed resize-none outline-none placeholder:text-gray-300" />
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border-t border-gray-200">
+              <span className={"text-[11px] font-bold " + (flash ? "text-emerald-600" : "text-gray-400")}>
+                {flash ? "저장됨 ✓" : text.length + "자 · 자동 저장"}
+              </span>
+              <button onClick={saveOne}
+                className="ml-auto rounded-lg bg-brand-500 hover:bg-brand-600 px-3 py-1.5 text-[11px] font-black text-white transition">⬇ .txt 저장</button>
+            </div>
+          </div>
         </div>
       );
     }
-    function StreakChip({ streak }) {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 border border-brand-100 px-3 py-1.5 text-sm font-black text-brand-600">
-          🔥 {streak}일
-        </span>
-      );
-    }
 
-    /* ── 학습 앱 헤더 ─────────────────────────────────────────── */
-    function LearnHeader() {
-      const { currentDay, streak } = useApp();
+    /* 헤더 */
+    function TopHeader({ subtitle, badge, progress }) {
+      const { openGrid } = useUI();
       return (
-        <header className="sticky top-0 z-40 backdrop-blur bg-cream/90 border-b border-brand-100/70">
+        <header className="relative z-40 shrink-0 backdrop-blur bg-cream/90 border-b border-brand-100/70">
+          {progress != null && (
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-100/60">
+              <div className="h-full bg-brand-500 transition-all duration-500 ease-out" style={{ width: (progress * 100).toFixed(1) + "%" }} />
+            </div>
+          )}
           <div className="max-w-3xl mx-auto px-4 h-14 flex items-center gap-3">
-            <button onClick={() => go("#/")} className="text-gray-400 hover:text-ink transition text-sm font-semibold shrink-0">‹ 홈</button>
-            <button onClick={() => go("#/learn")} className="flex items-center shrink-0" aria-label="멋쟁이사자처럼">
-              <img src="likelion-logo.svg" alt="멋쟁이사자처럼" className="h-4 sm:h-5 w-auto" />
+            <button onClick={() => go("#/day/1")} className="shrink-0" title="처음으로">
+              <img src="likelion-logo.svg" alt="멋쟁이사자처럼" className="h-5 w-auto" />
             </button>
-            <div className="ml-auto flex items-center gap-2">
-              <StreakChip streak={streak} />
-              <span className="hidden sm:inline text-sm font-bold text-gray-500">Day {currentDay}/60</span>
-              <button onClick={() => showToast("💬 캠프파이어 채팅 — 데모에서는 안내만 제공돼요")} className="w-9 h-9 rounded-full bg-white border border-gray-200 grid place-items-center hover:bg-brand-50 transition" title="캠프파이어 채팅">💬</button>
+            {subtitle && <span className="text-sm font-bold text-gray-400 truncate">{subtitle}</span>}
+            <div className="ml-auto flex items-center gap-2 shrink-0">
+              {badge}
+              <button onClick={openGrid} className="text-sm font-bold text-brand-600 hover:text-brand-700 hover:underline whitespace-nowrap">전체 목차</button>
             </div>
           </div>
         </header>
       );
     }
 
-    /* ── 환급 진행 위젯 (자격 잃으면 바 자체가 사라짐) ────────── */
-    function RefundStatus({ compact }) {
-      const { eligible, completedCount } = useApp();
-      const pct = Math.round((completedCount / CH.total) * 100);
-      if (!eligible) {
-        return (
-          <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4">
-            <div className="flex items-center gap-2 font-bold text-gray-500"><span>🌙</span> 환급 진행 바는 잠시 접어뒀어요</div>
-            <p className="mt-1 text-sm text-gray-400">스트릭이 끊겨 환급 자격은 마감됐어요. 부담은 내려놓고, 지금부터는 <b className="text-gray-500">학습 그 자체</b>에만 집중하면 돼요.</p>
-            <button onClick={() => go("#/refund")} className="mt-2 text-sm font-bold text-brand-600 hover:underline">환급 규칙 다시 보기 →</button>
-          </div>
-        );
-      }
+    /* 전체 목차 */
+    function ChapterGrid({ onPick, onClose, currentDay }) {
+      const { isDone, isLocked, unlockAll, toggleUnlock } = useUI();
+      const byCode = {};
+      DATA.days.forEach((d) => { (byCode[d.chapter] = byCode[d.chapter] || []).push(d); });
       return (
-        <div className={"rounded-2xl bg-white border border-brand-100 " + (compact ? "p-4" : "p-5")}>
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-ink">완주 환급까지</span>
-            <span className="text-sm font-black text-brand-600">{completedCount} / {CH.total}일</span>
-          </div>
-          <div className="mt-2 h-2.5 rounded-full bg-brand-50 overflow-hidden">
-            <div className="h-full bg-brand-500 rounded-full transition-all" style={{ width: pct + "%" }} />
-          </div>
-          <p className="mt-2 text-sm text-gray-500">끝까지 이어가면 <b className="text-brand-600">10만원</b>을 돌려받아요.</p>
-        </div>
-      );
-    }
-
-    /* ── 듀오링고형 경로 노드 ─────────────────────────────────── */
-    function PathNode({ n, state, onClick }) {
-      const base = "grid place-items-center rounded-full font-black transition select-none";
-      if (state === "done")
-        return <button onClick={onClick} className={base + " w-14 h-14 bg-emerald-500 text-white text-xl shadow-soft hover:scale-105"} title={"Day " + n + " · 완료"}>✓</button>;
-      if (state === "currentDone")
-        return (
-          <div className="flex flex-col items-center gap-1">
-            <span className="rounded-full bg-brand-500 text-white px-3 py-0.5 text-xs font-black shadow-card">오늘 완료 🔥</span>
-            <button onClick={onClick} className={base + " w-20 h-20 bg-brand-500 text-white text-2xl ring-8 ring-brand-100 shadow-card hover:scale-105"}>✓</button>
-          </div>
-        );
-      if (state === "current")
-        return (
-          <div className="flex flex-col items-center gap-1.5 animate-floaty">
-            <span className="rounded-full bg-ink text-white px-3 py-1 text-xs font-black shadow-card">오늘의 미션</span>
-            <button onClick={onClick} className={base + " w-20 h-20 bg-brand-500 text-white text-3xl ring-8 ring-brand-100 shadow-card hover:scale-105"}>▶</button>
-            <span className="text-xs font-bold text-brand-600">시작하기</span>
-          </div>
-        );
-      // locked
-      return <button onClick={onClick} className={base + " w-14 h-14 bg-white border-2 border-gray-200 text-gray-300 text-lg hover:border-brand-200"} title="아직 잠겨 있어요">🔒</button>;
-    }
-
-    /* ── 학습 홈 (#/learn) : 여정 경로 ────────────────────────── */
-    function LearnHome() {
-      const app = useApp();
-      const { currentDay, notStarted, finished, streak, start, state } = app;
-
-      if (notStarted) {
-        const dleft = 1 - app.rawDay;
-        return (
-          <div className="bg-cream min-h-screen text-ink">
-            <LearnHeader />
-            <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-              <div className="text-6xl">🗓️</div>
-              <h1 className="mt-4 text-3xl font-black">시작을 기다리는 중이에요</h1>
-              <p className="mt-3 text-gray-500"><b className="text-ink">{fmtKDate(start)}</b>에 Day 1이 열려요. (D-{dleft})</p>
-              <p className="mt-1 text-sm text-gray-400">시작일은 결제 후 한 달 안에서 한 번만 고를 수 있어요.</p>
-              <button onClick={() => go("#/rules")} className="mt-6 text-brand-600 font-bold hover:underline">규칙 자세히 보기 →</button>
-            </div>
-          </div>
-        );
-      }
-
-      const curWeek = (() => { const d = DATA.days.find((x) => x.day === currentDay); return d ? DATA.weeks.find((w) => w.id === d.week) : null; })();
-      const windowStart = Math.max(1, currentDay - 4);
-      const peekEnd = Math.min(currentDay + 2, CH.total);
-      const nodes = dRange(windowStart, peekEnd);
-      const offsets = [0, 62, 92, 62, 0, -62, -92, -62];
-      const teaser = teaserFor(currentDay + 1);
-
-      return (
-        <div className="bg-cream min-h-screen text-ink pb-28">
-          <LearnHeader />
-          <div className="max-w-3xl mx-auto px-4 py-6">
-            {/* 요약 카드 */}
-            <div className="rounded-3xl bg-white border border-brand-100 p-5 shadow-soft flex items-center gap-4">
-              <Ring percent={Math.round((currentDay / CH.total) * 100)} size={64} stroke={7} />
-              <div className="flex-1 min-w-0">
-                <div className="text-xl font-black">Day {currentDay} <span className="text-gray-400 font-bold">/ 60</span></div>
-                <div className="mt-0.5 flex items-center gap-2 text-sm">
-                  <StreakChip streak={streak} />
-                  <span className="text-gray-500">{fmtKDate(start)} 시작</span>
+        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={onClose}>
+          <div className="bg-cream w-full sm:max-w-6xl sm:rounded-3xl rounded-t-3xl max-h-[90vh] overflow-y-auto p-5 sm:p-8 shadow-lift animate-popIn"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div>
+                <div className="text-xl font-black text-ink">📚 전체 목차</div>
+                <div className="text-sm text-gray-400 mt-0.5">
+                  총 {DATA.product.totalDays}일 중 <b className="text-brand-600">Day 1~{DATA.product.builtDays}</b> 구현됨
                 </div>
               </div>
-              <div className="hidden sm:flex gap-2">
-                <button onClick={() => go("#/rules")} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold hover:bg-brand-50">규칙</button>
-                <button onClick={() => go("#/refund")} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-bold hover:bg-brand-50">환급</button>
-              </div>
+              <button onClick={onClose} className="ml-auto shrink-0 w-9 h-9 rounded-full bg-white border border-gray-200 grid place-items-center text-gray-500 hover:bg-gray-50">✕</button>
             </div>
-
-            <div className="mt-4"><RefundStatus /></div>
-
-            {/* 이번 주 배너 (거친 개요만 노출) */}
-            {curWeek && (
-              <div className="mt-6 rounded-2xl bg-brand-50 border border-brand-100 px-5 py-3 flex items-center gap-3">
-                <span className="text-2xl">{curWeek.emoji}</span>
-                <div><b className="text-brand-700">이번 여정 · {curWeek.name}</b><div className="text-xs text-gray-500">전체 커리큘럼은 숨겨져 있어요 — 오늘 것에만 집중해요.</div></div>
-              </div>
-            )}
-
-            {/* 경로 */}
-            <div className="mt-4 flex flex-col items-center gap-6 py-4">
-              {windowStart > 1 && (
-                <div className="rounded-full bg-white border border-brand-100 px-4 py-1.5 text-xs font-bold text-gray-400 shadow-soft">
-                  지나온 {windowStart - 1}일 🔥
-                </div>
-              )}
-              {nodes.map((n, i) => {
-                const st = n < currentDay ? "done" : n === currentDay ? (state.todayDone ? "currentDone" : "current") : "locked";
-                const off = offsets[i % offsets.length];
-                const onClick = () => {
-                  if (n <= currentDay) go("#/day/" + n);
-                  else if (n === currentDay + 1 && state.todayDone) showToast("내일 미리보기는 아래에서 확인해요 👇");
-                  else showToast("그날이 되면 열려요 🔒");
-                };
-                return (
-                  <div key={n} style={{ transform: `translateX(${off}px)` }} className="flex flex-col items-center">
-                    <PathNode n={n} state={st} onClick={onClick} />
-                    {(st === "done" || st === "locked") && <span className="mt-1 text-[11px] text-gray-400 font-semibold">Day {n}</span>}
+            <label className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 text-xs font-bold text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={unlockAll} onChange={toggleUnlock} className="w-3.5 h-3.5 accent-orange-500" />
+              🔓 잠금 해제하고 둘러보기 <span className="font-normal text-gray-400">(프로토타입 전용)</span>
+            </label>
+            <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {DATA.chapters.map((ch) => (
+                <div key={ch.code} className={"rounded-2xl border p-4 " + (ch.milestone ? "bg-brand-50 border-brand-300" : "bg-white border-brand-100")}>
+                  <div className="flex items-center justify-between mb-1 gap-2">
+                    <span className={"font-black text-sm " + (ch.milestone ? "text-brand-700" : "text-ink")}>{ch.code} · {ch.title}</span>
+                    <span className="shrink-0 text-xs text-gray-400 font-semibold">{ch.days.length}일</span>
                   </div>
-                );
-              })}
-              <div className="mt-1 rounded-2xl bg-white border border-dashed border-brand-200 px-5 py-3 text-center text-sm text-gray-400">🔒 그 다음은, 그날 열려요</div>
-            </div>
-
-            {/* 오늘 완료 시 내일 미리보기 (완료해야만 살짝 공개) */}
-            {state.todayDone && !finished && (
-              <div className="mt-2 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 text-white p-5 shadow-card">
-                <div className="text-sm font-bold text-white/80">🎉 오늘 미션 완료! 내일 미리보기</div>
-                <div className="mt-1 text-lg font-black">«{teaser.theme}»</div>
-                <div className="text-white/90 text-sm">{teaser.line}</div>
-                <button onClick={() => app.actions.advance()} className="mt-3 rounded-xl bg-white text-brand-600 px-4 py-2 font-black hover:bg-brand-50 transition">다음 날 열기 →</button>
-              </div>
-            )}
-            {finished && (
-              <div className="mt-2 rounded-2xl bg-gray-900 text-white p-6 text-center shadow-card">
-                <div className="text-4xl">🎉</div>
-                <div className="mt-2 text-xl font-black">60일 완주!</div>
-                <p className="mt-1 text-gray-300 text-sm">약속을 지켰어요. 환급 절차 안내가 도착할 거예요.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    /* ── Day 1 동기부여 블록 ──────────────────────────────────── */
-    function Day1Motivation() {
-      const M = DATA.day1;
-      return (
-        <div className="space-y-8">
-          <div className="text-center">
-            <span className="inline-block rounded-full bg-brand-100 text-brand-700 px-4 py-1.5 text-sm font-black">{M.kicker}</span>
-            <h1 className="mt-5 text-3xl sm:text-4xl font-black leading-tight">{M.greeting}</h1>
-            <p className="mt-3 text-gray-600 leading-relaxed max-w-xl mx-auto">{M.lead}</p>
-          </div>
-
-          {/* 관점 전환 (슬라이드 재현) */}
-          <div className="rounded-3xl bg-white border border-brand-100 p-8 text-center shadow-soft">
-            <div className="text-2xl sm:text-3xl font-black text-gray-300 line-through decoration-4">“{M.mindsetBefore}”</div>
-            <div className="my-3 text-brand-400 text-2xl">▼</div>
-            <div className="text-2xl sm:text-4xl font-black text-brand-500">“{M.mindsetAfter}”</div>
-            <p className="mt-5 text-gray-600">질문 하나 바꿨을 뿐인데, <b className="text-brand-600">전부가 바뀌었습니다.</b></p>
-          </div>
-
-          {/* 오늘 이 세 가지만 */}
-          <div>
-            <h2 className="text-2xl font-black text-center">오늘, <span className="text-brand-500">이 세 가지</span>만 해주세요</h2>
-            <div className="mt-6 grid sm:grid-cols-3 gap-4">
-              {M.todos.map((t, i) => (
-                <div key={i} className="rounded-2xl bg-white border border-brand-100 p-5 shadow-soft border-t-4 border-t-brand-400">
-                  <div className="text-3xl">{t.icon}</div>
-                  <div className="mt-2 font-black text-ink">{["①", "②", "③"][i]} {t.title}</div>
-                  <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">{t.desc}</p>
+                  <p className="text-[11px] text-gray-400 leading-relaxed mb-2.5">{ch.outcome}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {(byCode[ch.code] || []).map((d) => {
+                      const t = THEME[d.type], cur = d.day === currentDay;
+                      const locked = isLocked(d.day), done = isDone(d.day);
+                      return (
+                        <button key={d.day} onClick={() => onPick(d.day)} disabled={locked}
+                          className={"flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition " +
+                            (cur ? "bg-ink border-ink text-white"
+                              : locked ? "bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed"
+                              : "bg-white/70 border-gray-100 hover:bg-brand-50 hover:border-brand-200")}>
+                          <span className={"text-xs font-black w-12 shrink-0 " + (cur ? "text-white" : "text-gray-400")}>Day {d.day}</span>
+                          <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " + (cur ? "bg-white/20 text-white border border-white/30" : t.badge)}>{t.label}</span>
+                          <span className={"text-xs truncate " + (cur ? "text-white" : "text-ink")}>{d.name}</span>
+                          <span className="ml-auto shrink-0 text-xs">{locked ? "🔒" : done ? "✅" : ""}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {DATA.upcoming.map((u) => (
+                <div key={u.code} className="rounded-2xl border border-dashed border-gray-200 bg-white/40 p-4 opacity-60">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-black text-sm text-gray-400">{u.code} · {u.title}</span>
+                    <span className="shrink-0 text-[10px] text-gray-300 font-semibold">{u.range}</span>
+                  </div>
+                  <p className="mt-2 text-[11px] text-gray-300">준비 중이에요</p>
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-center text-lg font-bold text-ink leading-relaxed max-w-2xl mx-auto">{M.promise}</p>
           </div>
         </div>
       );
     }
 
-    /* ── Day 화면 (#/day/N) ───────────────────────────────────── */
-    function DayScreen({ day }) {
-      const app = useApp();
-      const { currentDay, state, streak } = app;
-      const n = clampN(day, 1, CH.total);
-      const locked = n > currentDay;
-      const d = DATA.days.find((x) => x.day === n);
-      const isToday = n === currentDay;
-      const doneReview = n < currentDay;
+    /* ═══ 슬라이드 덱 ═══════════════════════════════════════════
+       한 번에 한 포인트씩 공개하고, 덱 높이는 뷰포트에 맞춰 고정한다.
+    ═══════════════════════════════════════════════════════════ */
+    const parasOf = (s, n) => fill(s.body, n).split("\n\n").filter((p) => p.trim());
+    const stepsOf = (s, n) => parasOf(s, n).length + (s.img && DATA.SHOTS[s.img] ? 1 : 0);
 
-      // 잠긴 날 / 아직 미공개 구간
-      if (locked || !d) {
-        return (
-          <div className="bg-cream min-h-screen text-ink">
-            <LearnHeader />
-            <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-              <div className="text-6xl">🔒</div>
-              <h1 className="mt-4 text-2xl font-black">{n > 30 ? "이 구간은 완주 후 열려요" : "아직 열리지 않은 날이에요"}</h1>
-              <p className="mt-3 text-gray-500">
-                {n > 30 ? "31일차부터는 익힌 것을 조합해 진짜 업무를 바꾸는 구간이에요." : `지금은 Day ${currentDay}까지 열려 있어요. 오늘 것부터 차근차근 가요.`}
+    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll }) {
+      const paras = parasOf(slide, name);
+      const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
+      return (
+        <div ref={innerRef} onScroll={onScroll || undefined} className="h-full overflow-y-auto no-scrollbar px-5 sm:px-7 py-5 sm:py-6">
+          <h2 className="text-base sm:text-xl font-black leading-snug text-ink">
+            <RichInline text={slide.title} name={name} />
+          </h2>
+          <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
+          <div className="mt-3.5 space-y-2.5">
+            {paras.slice(0, reveal).map((p, i) => (
+              <p key={i} className="animate-revealUp rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
+                 dangerouslySetInnerHTML={{ __html: p.split("\n").join("<br/>") }} />
+            ))}
+          </div>
+          {hasImg && reveal > paras.length && (
+            <figure className="mt-4 animate-revealUp">
+              <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""} title="클릭하면 원본 크기로 열려요"
+                onClick={() => { const w = window.open(); if (w) w.document.write('<img src="' + DATA.SHOTS[slide.img] + '" style="max-width:100%">'); }}
+                className="mx-auto w-auto max-w-full max-h-[28vh] object-contain rounded-2xl border border-gray-200 shadow-soft cursor-zoom-in" />
+              {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
+            </figure>
+          )}
+          {PLAN_NOTES && slide.note && (
+            <div className="mt-4 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed">
+              <b className="text-gray-600">기획 노트</b> : {slide.note}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function SlideDeck({ slides, theme, name, onFinish, finishLabel }) {
+      const [i, setI] = useState(0);
+      const [step, setStep] = useState(1);
+      const [dir, setDir] = useState(1);
+      const total = slides.length;
+      const scrollRef = useRef(null);
+      const prevPos = useRef({ i: 0, step: 1 });
+      const [more, setMore] = useState(false);
+
+      const curSteps = stepsOf(slides[i], name);
+      const finished = i === total - 1 && step >= curSteps;
+
+      const allSteps = useMemo(() => slides.map((s) => stepsOf(s, name)), [slides, name]);
+      const totalSteps = allSteps.reduce((a, b) => a + b, 0);
+      const doneSteps = allSteps.slice(0, i).reduce((a, b) => a + b, 0) + step;
+
+      const next = useCallback(() => {
+        if (step < curSteps) return setStep(step + 1);
+        if (i < total - 1) { setDir(1); setI(i + 1); setStep(1); }
+      }, [i, step, curSteps, total]);
+      const prev = useCallback(() => {
+        if (step > 1) return setStep(step - 1);
+        if (i > 0) { setDir(-1); setI(i - 1); setStep(stepsOf(slides[i - 1], name)); }
+      }, [i, step, slides, name]);
+      const jump = useCallback((n) => { setDir(n > i ? 1 : -1); setI(n); setStep(stepsOf(slides[n], name)); }, [i, slides, name]);
+
+      useEffect(() => {
+        const on = (e) => {
+          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
+          else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+        };
+        window.addEventListener("keydown", on);
+        return () => window.removeEventListener("keydown", on);
+      }, [next, prev]);
+
+      const syncMore = useCallback(() => {
+        const el = scrollRef.current;
+        setMore(!!el && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+      }, []);
+
+      useEffect(() => {
+        const el = scrollRef.current; if (!el) return;
+        if (prevPos.current.i !== i) el.scrollTop = 0;
+        else if (step > prevPos.current.step) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+        prevPos.current = { i, step };
+        const t = setTimeout(syncMore, 380);
+        return () => clearTimeout(t);
+      }, [i, step, syncMore]);
+
+      return (
+        <div className="flex-1 min-h-0 flex flex-col gap-2.5">
+          {/* 진행바. 슬라이드가 아니라 포인트 기준 */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex-1 h-1.5 rounded-full bg-gray-200/70 overflow-hidden">
+              <div className={"h-full rounded-full transition-all duration-300 ease-out " + theme.bar}
+                   style={{ width: ((doneSteps / totalSteps) * 100).toFixed(1) + "%" }} />
+            </div>
+            <span className="text-[11px] font-black text-gray-400 tabular-nums shrink-0">{i + 1} / {total}</span>
+          </div>
+
+          {/* 덱 - 남은 공간을 채운다 */}
+          <div className={"deck-stack rounded-3xl bg-white border shadow-soft flex-1 min-h-0 overflow-hidden relative " + theme.border}>
+            {slides.map((s, n) => {
+              const active = n === i;
+              return (
+                <div key={n} aria-hidden={!active}
+                  className={active ? (dir > 0 ? "anim-in-r relative z-10 h-full" : "anim-in-l relative z-10 h-full") : "invisible pointer-events-none h-full"}>
+                  <SlideBody slide={s} name={name} theme={theme}
+                    reveal={active ? step : stepsOf(s, name)}
+                    innerRef={active ? scrollRef : null} onScroll={active ? syncMore : null} />
+                </div>
+              );
+            })}
+            {more && (
+              <div className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex justify-center items-end pb-2 h-14 bg-gradient-to-t from-white via-white/80 to-transparent">
+                <span className="text-[10px] font-black text-gray-400 animate-floaty">↓ 아래로 더 있어요</span>
+              </div>
+            )}
+          </div>
+
+          {/* 컨트롤. 좌우 화살표 사이에 도트를 가운데 배치 */}
+          <div className="shrink-0 flex items-center justify-center gap-4">
+            <button onClick={prev} disabled={i === 0 && step === 1}
+              className="w-9 h-9 rounded-full border border-gray-200 bg-white grid place-items-center text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">‹</button>
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60%]">
+              {slides.map((_, n) => (
+                <button key={n} onClick={() => jump(n)} aria-label={"슬라이드 " + (n + 1)}
+                  className={"h-2 rounded-full transition-all duration-300 " + (n === i ? "w-6 " + theme.bar : n < i ? "w-2 bg-gray-300" : "w-2 bg-brand-100")} />
+              ))}
+            </div>
+            <button onClick={next} disabled={finished}
+              className="w-9 h-9 rounded-full border border-gray-200 bg-white grid place-items-center text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">›</button>
+          </div>
+
+          {/* CTA 자리. 높이를 항상 차지해 레이아웃이 흔들리지 않게 한다 */}
+          <div className="shrink-0 h-[52px] flex items-center">
+            {finished ? (
+              <ThemedCTA theme={theme} onClick={onFinish} extra="animate-fadeUp">{finishLabel} →</ThemedCTA>
+            ) : (
+              <p className="w-full text-center text-xs text-gray-400">
+                {curSteps - step > 0
+                  ? <>이 장에 <b className="text-gray-500">{curSteps - step}개</b> 더 남았어요. <b className="text-gray-500">→</b> 키로 이어서 보세요</>
+                  : <>→ 키나 화살표로 다음 장으로 넘어가세요</>}
               </p>
-              <button onClick={() => go("#/day/" + currentDay)} className="mt-6 inline-flex rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">오늘(Day {currentDay})로 가기 →</button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* 제공 자료 */
+    function parseSegments(text) {
+      const lines = text.split("\n"); const segs = []; let buf = [], tbl = [];
+      const cols = (l) => l.split("/").length;
+      const flushText = () => { if (buf.length) { segs.push({ type: "text", text: buf.join("\n") }); buf = []; } };
+      const flushTbl = () => {
+        if (tbl.length >= 2) segs.push({ type: "table", rows: tbl.map((r) => r.split("/").map((c) => c.trim())) });
+        else if (tbl.length) buf = buf.concat(tbl);
+        tbl = [];
+      };
+      lines.forEach((l) => {
+        const isRow = l.trim() && !/^━/.test(l.trim()) && (l.match(/\//g) || []).length >= 2;
+        if (isRow && (tbl.length === 0 || cols(l) === cols(tbl[0]))) { flushText(); tbl.push(l); }
+        else { flushTbl(); buf.push(l); }
+      });
+      flushTbl(); flushText();
+      return segs;
+    }
+    const COL_LETTER = (n) => String.fromCharCode(65 + n);
+    const slug = (s) => strip(s).replace(/[\\/:*?"<>|]/g, "").replace(/\s*\(.*?\)\s*/g, "").trim().replace(/\s+/g, "-").slice(0, 40) || "자료";
+
+    function SheetTable({ rows, label }) {
+      const header = rows[0], body = rows.slice(1);
+      const tsv = rows.map((r) => r.join("\t")).join("\n");
+      const csv = rows.map((r) => r.map((c) => (/[",]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c)).join(",")).join("\n");
+      const file = slug(label);
+      return (
+        <div className="rounded-2xl border border-gray-300 bg-white overflow-hidden shadow-soft">
+          <div className="flex items-center gap-2 px-3 py-2 bg-emerald-700 text-white">
+            <span className="text-base">📊</span>
+            <span className="text-xs font-bold flex-1 truncate">{file}.csv</span>
+            <button onClick={() => copyText(tsv)} title="엑셀·구글시트에 그대로 붙여넣을 수 있어요"
+              className="shrink-0 rounded-md bg-white/15 hover:bg-white/25 px-2.5 py-1 text-[11px] font-bold transition">표 복사</button>
+            <button onClick={() => downloadBlob(file + ".csv", csv, "text/csv")}
+              className="shrink-0 rounded-md bg-white text-emerald-700 hover:bg-emerald-50 px-2.5 py-1 text-[11px] font-black transition">⬇ 엑셀로 받기</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-[13px] tabular-nums">
+              <thead>
+                <tr>
+                  <th className="w-9 bg-gray-100 border border-gray-300 text-[10px] font-normal text-gray-400"></th>
+                  {header.map((_, n) => (
+                    <th key={n} className="bg-gray-100 border border-gray-300 px-3 py-1 text-[10px] font-normal text-gray-400">{COL_LETTER(n)}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bg-gray-100 border border-gray-300 text-center text-[10px] text-gray-400">1</td>
+                  {header.map((c, n) => (
+                    <td key={n} className="border border-gray-300 bg-emerald-50 px-3 py-1.5 font-black text-gray-700 whitespace-nowrap">{c}</td>
+                  ))}
+                </tr>
+                {body.map((r, i) => (
+                  <tr key={i} className="hover:bg-emerald-50/40 transition-colors">
+                    <td className="bg-gray-100 border border-gray-300 text-center text-[10px] text-gray-400">{i + 2}</td>
+                    {r.map((c, n) => (
+                      <td key={n} className={"border border-gray-300 px-3 py-1.5 whitespace-nowrap " + (n === 0 ? "text-gray-700 font-semibold" : "text-gray-600")}>{c}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-3 py-1.5 bg-gray-50 border-t border-gray-200 text-[10px] text-gray-400">
+            {body.length}행 × {header.length}열 · <b className="text-gray-500">표 복사</b>를 누르면 엑셀·구글시트에 셀 그대로 붙여넣어져요
+          </div>
+        </div>
+      );
+    }
+
+    function PromptCard({ text, name }) {
+      const raw = strip(fill(text, name));
+      return (
+        <div className="rounded-2xl border border-gray-200 bg-gray-50 overflow-hidden">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border-b border-gray-200">
+            <span className="text-xs">💬</span>
+            <span className="text-[11px] font-bold text-gray-500 flex-1">프롬프트</span>
+            <button onClick={() => copyText(raw)} className="shrink-0 rounded-md bg-white border border-gray-300 px-2.5 py-0.5 text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition">복사</button>
+          </div>
+          <pre className="p-4 text-[13px] text-gray-700 leading-relaxed whitespace-pre-wrap font-sans rich"
+               dangerouslySetInnerHTML={{ __html: fill(text, name) }} />
+        </div>
+      );
+    }
+
+    function ResourceBlock({ given, name }) {
+      const segs = useMemo(() => parseSegments(fill(given.text, name)), [given.text, name]);
+      const whole = strip(fill(given.text, name));
+      return (
+        <div className="rounded-3xl bg-white border border-gray-200 p-5 shadow-soft">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">📎</span>
+            <span className="text-sm font-black text-ink flex-1"><RichInline text={given.label} name={name} /></span>
+            <button onClick={() => copyText(whole)} className="shrink-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[11px] font-bold text-gray-500 hover:bg-gray-50 transition">전체 복사</button>
+          </div>
+          <div className="space-y-3">
+            {segs.map((s, i) => s.type === "table"
+              ? <SheetTable key={i} rows={s.rows} label={given.label} />
+              : <PromptCard key={i} text={s.text} name={name} />)}
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══ 퀴즈 ═══════════════════════════════════════════════════
+       한 문제라도 틀리면 처음부터 다시. 고른 답은 변경할 수 없고,
+       틀렸을 때 왜 아닌지만 알려주며 정답은 끝까지 감춘다.
+    ═══════════════════════════════════════════════════════════ */
+    const QUIZ_CAP = 10;
+    const QUIZ_PASS_RATIO = 0.7;
+
+    function QuizRunner({ quiz: fullQuiz, theme, name, onPass, onBackToSlides }) {
+      const quiz = useMemo(() => fullQuiz.slice(0, QUIZ_CAP), [fullQuiz]);
+      const total = quiz.length;
+      const passMark = Math.ceil(total * QUIZ_PASS_RATIO);
+
+      const [i, setI] = useState(0);
+      const [picked, setPicked] = useState(null);
+      const [answers, setAnswers] = useState(() => Array(total).fill(null));
+      const [attempt, setAttempt] = useState(1);
+      const [phase, setPhase] = useState("quiz"); // quiz | result
+
+      const q = quiz[i];
+      const last = i === total - 1;
+
+      const pick = (n) => { if (picked !== null) return; setPicked(n); };
+      const next = () => {
+        const a = answers.slice(); a[i] = picked;
+        setAnswers(a);
+        if (last) setPhase("result");
+        else { setI(i + 1); setPicked(null); }
+      };
+      const restart = () => {
+        setI(0); setPicked(null); setAnswers(Array(total).fill(null)); setPhase("quiz"); setAttempt((n) => n + 1);
+      };
+
+      if (phase === "result") {
+        const score = answers.reduce((acc, a, n) => acc + (a === quiz[n].answer ? 1 : 0), 0);
+        const pct = Math.round((score / total) * 100);
+        const passed = score >= passMark;
+        const wrongOnes = quiz.map((qq, n) => ({ qq, n })).filter(({ qq, n }) => answers[n] !== qq.answer);
+
+        return (
+          <div className="rounded-3xl bg-white border shadow-soft p-6 sm:p-8 animate-popIn"
+               style={{ borderColor: passed ? "#A7F3D0" : "#FFC9AC" }}>
+            <div className="text-center">
+              <div className="text-5xl">{passed ? (attempt === 1 ? "🏆" : "🎉") : "😢"}</div>
+              <div className="mt-3 text-2xl font-black text-ink">
+                {total}문제 중 <span className={passed ? "text-emerald-600" : "text-brand-600"}>{score}개</span> 정답 ({pct}%)
+              </div>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                {passed
+                  ? <>70% 기준(<b className="text-ink">{passMark}개</b>)을 넘었어요.{attempt > 1 && <> <b className="text-ink">{attempt}번째 시도</b>에 통과하셨어요.</>} 오늘 내용을 확실히 잡으셨네요 😊</>
+                  : <>통과하려면 <b className="text-ink">{passMark}개 이상</b>(70%)이 필요해요. 아래에서 틀린 문제를 확인하고 다시 풀어보세요.</>}
+              </p>
+            </div>
+
+            {wrongOnes.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <div className="text-xs font-black text-gray-400">틀린 문제 {wrongOnes.length}개 다시 보기</div>
+                {wrongOnes.map(({ qq, n }) => (
+                  <div key={n} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-left">
+                    <div className="font-black text-sm text-amber-700">{n + 1}번 문제</div>
+                    <p className="mt-1 text-sm text-ink font-bold leading-relaxed"><RichInline text={qq.q} name={name} /></p>
+                    <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+                      내가 고른 답: <b className="text-red-500">{answers[n] == null ? "(선택 안 함)" : strip(fill(qq.choices[answers[n]], name))}</b>
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 leading-relaxed">
+                      정답: <b className="text-emerald-600">{strip(fill(qq.choices[qq.answer], name))}</b>
+                    </p>
+                    <p className="mt-2 text-sm text-gray-700 leading-relaxed rich"
+                       dangerouslySetInnerHTML={{ __html: fill(qq.explain, name) }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-2.5">
+              {!passed && onBackToSlides && (
+                <button onClick={onBackToSlides} className="rounded-2xl border border-gray-200 bg-white px-5 py-3.5 text-sm font-bold text-gray-500 hover:bg-gray-50 transition sm:shrink-0">
+                  ‹ 슬라이드 다시 보기
+                </button>
+              )}
+              {passed ? (
+                <ThemedCTA theme={theme} onClick={onPass} layout="flex1">확인하고 완료하기 →</ThemedCTA>
+              ) : (
+                <ThemedCTA theme={theme} onClick={restart} layout="flex1">1번 문제부터 다시 풀기 ({attempt + 1}번째 시도)</ThemedCTA>
+              )}
             </div>
           </div>
         );
       }
 
-      const wk = DATA.weeks.find((w) => w.id === d.week);
-      const tmpl = missionTemplate(d);
-      const teaser = teaserFor(n + 1);
+      return (
+        <div className={"rounded-3xl bg-white border shadow-soft p-6 sm:p-8 " + theme.border}>
+          <div className="flex items-center justify-between gap-3">
+            <span className={"inline-flex rounded-full px-3 py-1 text-xs font-black " + theme.badge}>❓ 확인 퀴즈</span>
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-400 tabular-nums">
+              {attempt > 1 && <span className="rounded-full bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px]">{attempt}번째 시도</span>}
+              <span>문제 {i + 1} / {total}</span>
+            </div>
+          </div>
+          <p className="mt-1 text-[11px] text-gray-400">10문제 중 7개(70%) 이상 맞히면 통과예요</p>
+          <div className="mt-3 h-1.5 rounded-full bg-gray-200/70 overflow-hidden">
+            <div className={"h-full rounded-full transition-all duration-500 " + theme.bar}
+                 style={{ width: (((i + (picked !== null ? 1 : 0)) / total) * 100).toFixed(1) + "%" }} />
+          </div>
+
+          <div key={i} className="anim-in-r">
+            <p className="mt-5 text-lg font-black text-ink leading-snug"><RichInline text={q.q} name={name} /></p>
+            <p className="mt-1.5 text-xs text-gray-400">한 번 고르면 바꿀 수 없어요. 신중하게 골라주세요</p>
+            <div className="mt-4 space-y-2.5">
+              {q.choices.map((c, n) => {
+                const isPick = n === picked;
+                const cls = isPick ? "bg-emerald-50 border-emerald-300 text-emerald-800 font-bold"
+                          : picked !== null ? "bg-gray-50 border-gray-100 text-gray-400"
+                          : "bg-white border-gray-200 hover:border-gray-400 hover:bg-gray-50 text-ink";
+                return (
+                  <button key={n} onClick={() => pick(n)} disabled={picked !== null}
+                    className={"w-full text-left rounded-2xl border p-4 text-sm transition flex items-start gap-3 " + cls}>
+                    <span className={"shrink-0 w-5 h-5 rounded-full grid place-items-center text-[11px] font-black " + (isPick ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500")}>
+                      {isPick ? "✓" : String.fromCharCode(65 + n)}
+                    </span>
+                    <span dangerouslySetInnerHTML={{ __html: fill(c, name) }} />
+                  </button>
+                );
+              })}
+            </div>
+            {picked !== null && (
+              <button onClick={next} className="mt-5 w-full inline-flex justify-center rounded-2xl bg-ink text-white py-3.5 text-sm font-bold hover:bg-gray-800 transition animate-popIn">
+                {last ? "결과 보기 →" : "다음 문제 →"}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* 미션 */
+    function MissionPanel({ mission, theme, name, checked, setChecked, vals, setVals, onNext, ready }) {
+      const toggle = (i) => setChecked(checked.map((v, n) => (n === i ? !v : v)));
+      const setVal = (i, v) => setVals(vals.map((x, n) => (n === i ? v : x)));
+      return (
+        <div className="space-y-5">
+          <div className={"rounded-3xl border p-6 shadow-soft " + theme.bg + " " + theme.border}>
+            <span className={"inline-flex rounded-full px-3 py-1 text-xs font-black " + theme.chip}>🎯 오늘의 미션</span>
+            <h3 className="mt-3 text-xl font-black text-ink leading-snug"><RichInline text={mission.title} name={name} /></h3>
+            <p className={"mt-2 text-sm leading-relaxed " + theme.text}><RichInline text={mission.goal} name={name} /></p>
+          </div>
+
+          {mission.given && <ResourceBlock given={mission.given} name={name} />}
+
+          <div className="rounded-3xl bg-white border border-gray-200 p-6 shadow-soft">
+            <div className="font-black text-ink mb-4 flex items-center gap-2"><span className="text-lg">📋</span> 이렇게 진행해요</div>
+            <ol className="space-y-2.5">
+              {mission.steps.map((t, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className={"shrink-0 w-6 h-6 rounded-full grid place-items-center text-[11px] font-black text-white " + theme.solid}>{i + 1}</span>
+                  <span className="text-sm text-gray-700 leading-relaxed pt-0.5 rich" dangerouslySetInnerHTML={{ __html: fill(t, name) }} />
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {mission.fields && mission.fields.length > 0 && (
+            <div className="rounded-3xl bg-white border border-gray-200 p-6 shadow-soft space-y-4">
+              <div className="font-black text-ink flex items-center gap-2"><span className="text-lg">✍️</span> 답변 작성</div>
+              {mission.fields.map((f, i) => (
+                <div key={i}>
+                  <label className="block text-sm font-bold text-ink mb-1.5">
+                    <span className={theme.textSoft}>{f.n}</span> <RichInline text={f.label} name={name} />
+                  </label>
+                  <textarea rows={3} value={vals[i]} onChange={(e) => setVal(i, e.target.value)} placeholder={fill(f.ph, name)}
+                    className={"w-full rounded-xl border border-gray-200 p-3.5 text-sm leading-relaxed resize-y outline-none transition focus:ring-2 " + theme.ring} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="rounded-3xl bg-white border border-gray-200 p-6 shadow-soft">
+            <div className="font-black text-ink mb-1 flex items-center gap-2"><span className="text-lg">✅</span> 통과 기준</div>
+            <p className="text-xs text-gray-400 mb-4">기준을 채우지 않은 제출은 완료로 인정되지 않아요.</p>
+            <div className="space-y-2">
+              {mission.checklist.map((t, i) => (
+                <label key={i} className={"flex items-start gap-3 rounded-xl border p-3.5 cursor-pointer transition " +
+                  (checked[i] ? theme.bg + " " + theme.border : "border-gray-100 hover:bg-gray-50")}>
+                  <input type="checkbox" checked={checked[i]} onChange={() => toggle(i)} className="mt-0.5 w-4 h-4 accent-orange-500 shrink-0" />
+                  <span className="text-sm text-gray-700 leading-relaxed rich" dangerouslySetInnerHTML={{ __html: fill(t, name) }} />
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {mission.tip && (
+            <div className="rounded-2xl bg-white border border-dashed border-gray-300 p-4 flex items-start gap-3">
+              <span className="text-lg shrink-0">💡</span>
+              <p className="text-sm text-gray-600 leading-relaxed rich" dangerouslySetInnerHTML={{ __html: fill(mission.tip, name) }} />
+            </div>
+          )}
+
+          <ThemedCTA theme={theme} disabled={!ready} onClick={onNext} size="lg">
+            {ready ? "제출하러 가기 →" : !checked.every(Boolean) ? "통과 기준을 모두 확인해 주세요" : "답변을 모두 작성해 주세요"}
+          </ThemedCTA>
+        </div>
+      );
+    }
+
+    /* 제출 */
+    const fmtSize = (b) => (b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB");
+    const iconOf = (n) => {
+      const e = (n.split(".").pop() || "").toLowerCase();
+      if (["png","jpg","jpeg","gif","webp","heic"].indexOf(e) !== -1) return "🖼️";
+      if (["csv","xlsx","xls"].indexOf(e) !== -1) return "📊";
+      if (e === "pdf") return "📕";
+      if (["html","htm"].indexOf(e) !== -1) return "🌐";
+      if (e === "zip") return "🗜️";
+      return "📄";
+    };
+
+    function DropZone({ theme, files, setFiles }) {
+      const [over, setOver] = useState(false);
+      const inputRef = useRef(null);
+      const add = useCallback((list) => {
+        const picked = Array.from(list || []);
+        if (!picked.length) return;
+        const items = picked.map((f) => ({ id: Math.random().toString(36).slice(2), name: f.name, size: f.size, status: "uploading" }));
+        setFiles((prev) => prev.concat(items));
+        items.forEach((it, n) => setTimeout(() => {
+          setFiles((prev) => prev.map((x) => (x.id === it.id ? { ...x, status: "saved" } : x)));
+        }, 850 + n * 260));
+      }, [setFiles]);
 
       return (
-        <div className="bg-cream min-h-screen text-ink pb-28">
-          <LearnHeader />
-          <div className="max-w-2xl mx-auto px-4 py-6">
-            {/* ① 진행 바 */}
-            <div className="flex items-center gap-3">
-              <button onClick={() => go("#/learn")} className="text-gray-400 hover:text-ink text-sm font-semibold">‹ 여정</button>
-              <div className="ml-auto flex items-center gap-2 text-sm">
-                <span className="font-bold text-gray-500">Day {n} / 60</span>
-              </div>
-            </div>
-            <div className="mt-2 h-2 rounded-full bg-brand-50 overflow-hidden">
-              <div className="h-full bg-brand-500 rounded-full" style={{ width: (n / CH.total) * 100 + "%" }} />
-            </div>
-            <div className="mt-2 text-xs text-gray-400">이번 여정 · {wk.emoji} {wk.name}</div>
-
-            {doneReview && n !== 1 && <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 text-sm font-bold">✓ 완료한 날 다시 보기</div>}
-
-            {/* Day 1 = 동기부여 우선 */}
-            {n === 1 && <div className="mt-6"><Day1Motivation /></div>}
-
-            {n !== 1 && (
-              <div className="mt-6">
-                <div className="text-sm font-bold text-brand-500">{dayEncourage(n)}</div>
-                <div className="mt-2 text-xs font-black text-gray-400">오늘의 한 줄 · 이럴 때 씁니다</div>
-                <h1 className="mt-1 text-2xl sm:text-3xl font-black leading-snug">{d.title}</h1>
-              </div>
-            )}
-
-            {/* ⑥ 미션 */}
-            <div className="mt-8 rounded-3xl bg-white border border-brand-100 p-6 shadow-soft">
-              <div className="flex items-center gap-2 font-black text-ink"><span className="text-xl">🎯</span> 오늘의 미션</div>
-              <p className="mt-2 text-gray-700 leading-relaxed">
-                {n === 1 ? DATA.day1.mission : d.title.replace(/[“”]/g, "") + " — 옆에 띄운 진짜 Claude 창에서 직접 해보세요."}
-              </p>
-              <div className="mt-4 rounded-2xl bg-brand-50 border border-brand-100 p-4 flex items-center gap-3 text-sm">
-                <span className="text-xl">🖥️</span>
-                <span className="text-brand-700">화면을 반으로 나눠, <b>왼쪽엔 이 미션 · 오른쪽엔 Claude</b>. 가짜 실습이 아니라 진짜 결과물이 남아요.</span>
-              </div>
-            </div>
-
-            {/* ⑨ 오늘의 결과물 */}
-            <div className="mt-4 rounded-3xl bg-white border border-brand-100 p-6 shadow-soft">
-              <div className="flex items-center gap-2 font-black text-ink"><span className="text-xl">📋</span> 오늘의 결과물</div>
-              <p className="mt-1 text-sm text-brand-600 font-semibold">→ {n === 1 ? DATA.day1.missionResult : d.output}</p>
-              {n !== 1 && (
-                <>
-                  <pre className="mt-3 rounded-xl bg-gray-900 text-gray-100 text-[12.5px] leading-relaxed p-4 whitespace-pre-wrap font-sans">{tmpl}</pre>
-                  <button onClick={() => copyText(tmpl, "오늘의 템플릿을 복사했어요 📋")} className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 text-sm font-bold transition">📋 템플릿 복사하기</button>
-                </>
-              )}
-            </div>
-
-            {/* 완료 / 인증 */}
-            <div className="mt-6">
-              {isToday && !state.todayDone && (
-                <button onClick={() => { app.actions.toggleToday(); showToast("오늘 미션 완료! 🔥"); }} className="w-full rounded-2xl bg-brand-500 hover:bg-brand-600 text-white py-4 text-lg font-black shadow-card active:scale-[.99] transition">
-                  ✓ 오늘 미션 완료 · 인증하기
-                </button>
-              )}
-              {isToday && state.todayDone && (
-                <div className="rounded-3xl bg-gradient-to-br from-brand-500 to-brand-600 text-white p-6 shadow-card text-center">
-                  <div className="text-3xl">🎉</div>
-                  <div className="mt-1 text-xl font-black">오늘도 해냈어요! 스트릭 {streak}일 🔥</div>
-                  <div className="mt-4 rounded-2xl bg-white/15 p-4 text-left">
-                    <div className="text-sm text-white/80 font-bold">내일 미리보기</div>
-                    <div className="mt-0.5 font-black">«{teaser.theme}»</div>
-                    <div className="text-sm text-white/90">{teaser.line}</div>
+        <div>
+          <div onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
+            onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}
+            onClick={() => inputRef.current && inputRef.current.click()}
+            className={"rounded-3xl border-2 border-dashed p-10 text-center cursor-pointer transition-all duration-200 " +
+              (over ? theme.bg + " " + theme.border + " scale-[1.01]" : "border-gray-300 bg-white hover:bg-gray-50")}>
+            <div className={"text-5xl transition-transform " + (over ? "scale-110" : "animate-floaty")}>📥</div>
+            <div className="mt-4 text-lg font-black text-ink">{over ? "여기에 놓으세요!" : "파일을 여기로 끌어다 놓으세요"}</div>
+            <p className="mt-1.5 text-sm text-gray-400">또는 클릭해서 파일 선택 · 여러 개 한 번에 올려도 돼요</p>
+            <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => { add(e.target.files); e.target.value = ""; }} />
+          </div>
+          {files.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {files.map((f) => (
+                <div key={f.id} className={"rounded-2xl border p-3.5 flex items-center gap-3 animate-popIn " +
+                  (f.status === "saved" ? "bg-emerald-50 border-emerald-200" : "bg-white border-gray-200")}>
+                  <span className="text-2xl shrink-0">{iconOf(f.name)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-ink truncate">{f.name}</div>
+                    {f.status === "uploading"
+                      ? <div className="mt-1.5 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                          <div className={"h-full rounded-full " + theme.bar} style={{ animation: "bar .85s ease-out forwards" }} />
+                        </div>
+                      : <div className="text-xs text-emerald-600 font-bold mt-0.5">✅ 저장되었습니다 · {fmtSize(f.size)}</div>}
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <button onClick={() => go("#/learn")} className="flex-1 rounded-xl bg-white/15 hover:bg-white/25 text-white py-3 font-bold transition">여정으로</button>
-                    <button onClick={() => app.actions.advance()} className="flex-1 rounded-xl bg-white text-brand-600 py-3 font-black hover:bg-brand-50 transition">다음 날 열기 →</button>
-                  </div>
+                  {f.status === "saved" && (
+                    <button onClick={(e) => { e.stopPropagation(); setFiles((p) => p.filter((x) => x.id !== f.id)); }}
+                      className="shrink-0 w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200 transition text-xs">✕</button>
+                  )}
                 </div>
-              )}
-              {doneReview && (
-                <button onClick={() => go("#/day/" + currentDay)} className="w-full rounded-2xl border border-gray-200 bg-white py-4 font-black text-ink hover:bg-brand-50 transition">오늘(Day {currentDay})로 돌아가기 →</button>
-              )}
+              ))}
             </div>
+          )}
+        </div>
+      );
+    }
 
-            <div className="mt-6 flex justify-center gap-4 text-sm text-gray-400">
-              <button onClick={() => go("#/rules")} className="hover:text-ink">규칙</button>
-              <span>·</span>
-              <button onClick={() => go("#/refund")} className="hover:text-ink">환급</button>
+    function SubmitPanel({ mission, theme, name, files, setFiles, submitted, onSubmit, onBack }) {
+      const saved = files.filter((f) => f.status === "saved");
+      const uploading = files.some((f) => f.status === "uploading");
+      const ready = saved.length > 0 && !uploading;
+
+      if (submitted) {
+        return (
+          <div className="rounded-3xl bg-white border border-emerald-200 p-10 text-center shadow-soft animate-popIn">
+            <div className="text-6xl">🎉</div>
+            <div className="mt-4 text-2xl font-black text-ink">제출 완료!</div>
+            <p className="mt-2.5 text-sm text-gray-500">오늘 Day 완료예요. 파일 <b className="text-ink">{saved.length}개</b>가 저장됐어요.</p>
+            <div className="mt-5 inline-flex flex-col gap-1.5">
+              {saved.map((f) => (
+                <div key={f.id} className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-700 font-bold">
+                  {iconOf(f.name)} {f.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="space-y-5">
+          <div className={"rounded-3xl border p-6 shadow-soft " + theme.bg + " " + theme.border}>
+            <div className={"font-black mb-3 flex items-center gap-2 " + theme.text}><span className="text-lg">📤</span> 무엇을 제출하나요</div>
+            <dl className="space-y-2 text-sm">
+              <div className="flex gap-3"><dt className="w-16 shrink-0 font-bold text-gray-500">무엇을</dt><dd className="text-ink font-semibold">{fill(mission.submit.what, name)}</dd></div>
+              <div className="flex gap-3"><dt className="w-16 shrink-0 font-bold text-gray-500">형식</dt><dd className="text-gray-700">{fill(mission.submit.format, name)}</dd></div>
+              <div className="flex gap-3"><dt className="w-16 shrink-0 font-bold text-gray-500">상세</dt><dd className="text-gray-700 leading-relaxed">{fill(mission.submit.detail, name)}</dd></div>
+            </dl>
+          </div>
+          <DropZone theme={theme} files={files} setFiles={setFiles} />
+          <div className="flex gap-3">
+            <button onClick={onBack} className="rounded-2xl border border-gray-200 bg-white px-5 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 transition shrink-0">‹ 미션</button>
+            <ThemedCTA theme={theme} disabled={!ready} onClick={onSubmit} size="lg" layout="flex1">
+              {uploading ? "저장 중…" : ready ? "제출하기" : "파일을 올려주세요"}
+            </ThemedCTA>
+          </div>
+        </div>
+      );
+    }
+
+    /* Day 이전/다음 + 규칙·환급 링크. 학습 화면(compact)과 그 외 화면에서 공통으로 쓴다. */
+    function DayFooterNav({ prev, next, compact }) {
+      const btnCls = compact
+        ? "rounded-lg border border-gray-200 bg-white px-3 py-1.5 font-bold text-gray-500 disabled:opacity-30 hover:bg-brand-50 transition"
+        : "rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-ink disabled:opacity-30 hover:bg-brand-50 transition";
+      return (
+        <div className={"shrink-0 flex items-center justify-between gap-3 " + (compact ? "text-xs" : "")}>
+          <button disabled={!prev} onClick={() => prev && go("#/day/" + prev.day)} className={btnCls}>
+            ‹ {prev ? "Day " + prev.day : "처음"}
+          </button>
+          <div className={"flex gap-2.5 text-gray-400 " + (compact ? "" : "text-sm gap-3")}>
+            <button onClick={() => go("#/rules")} className={"hover:text-ink transition " + (compact ? "font-bold" : "")}>규칙</button>
+            <span className={compact ? "text-gray-300" : ""}>·</span>
+            <button onClick={() => go("#/refund")} className={"hover:text-ink transition " + (compact ? "font-bold" : "")}>환급</button>
+          </div>
+          <button disabled={!next} onClick={() => next && go("#/day/" + next.day)} className={btnCls}>
+            {next ? "Day " + next.day : "여기까지"} ›
+          </button>
+        </div>
+      );
+    }
+
+    /* ═══ Day 화면 ═══════════════════════════════════════════════
+       학습 단계는 뷰포트에 맞춰 페이지 스크롤 없이,
+       미션·제출 단계는 내용이 길어 일반 스크롤을 쓴다.
+    ═══════════════════════════════════════════════════════════ */
+    function DayScreen({ dayNum }) {
+      const { name, complete, isDone, isLocked, openName } = useUI();
+      const meta = DATA.days.find((d) => d.day === dayNum);
+      const idx = DATA.days.findIndex((d) => d.day === dayNum);
+      const prev = DATA.days[idx - 1], next = DATA.days[idx + 1];
+      const content = DATA.authored[dayNum];
+      const theme = THEME[meta.type];
+      const isConcept = meta.type === "concept";
+      const mission = content.mission;
+
+      const [stage, setStage] = useState("learn");
+      const [submitted, setSubmitted] = useState(() => isDone(dayNum));
+      const [checked, setChecked] = useState(() => (mission ? mission.checklist.map(() => false) : []));
+      const [vals, setVals] = useState(() => (mission && mission.fields ? mission.fields.map(() => "") : []));
+      const [files, setFiles] = useState([]);
+      const [hintOff, setHintOff] = useState(false);
+      const [noteOpen, setNoteOpen] = useState(false);
+      const [noteTick, setNoteTick] = useState(0);
+      const hasNote = useMemo(() => (loadLS(noteKey(dayNum), "") || "").trim().length > 0, [dayNum, noteOpen, noteTick]);
+
+      const split = useSplitScreen();
+      const showHint = !isConcept && !split && !hintOff && !submitted;
+
+      useEffect(() => {
+        setStage("learn"); setSubmitted(isDone(dayNum)); setFiles([]); setHintOff(false); setNoteOpen(false);
+        setChecked(mission ? mission.checklist.map(() => false) : []);
+        setVals(mission && mission.fields ? mission.fields.map(() => "") : []);
+      }, [dayNum]);
+
+      if (isLocked(dayNum)) {
+        return (
+          <div className="bg-cream min-h-screen text-ink">
+            <TopHeader subtitle={meta.chapter + " · " + meta.chapterTitle} />
+            <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+              <div className="text-6xl animate-floaty">🔒</div>
+              <h1 className="mt-6 text-2xl font-black">Day {dayNum}은 아직 잠겨 있어요</h1>
+              <p className="mt-3 text-gray-500 leading-relaxed">
+                <b className="text-ink">Day {dayNum - 1}</b>을 완료해야 열려요.<br />하루에 하나씩, 그게 실력이 붙는 유일한 방법이에요 🔥
+              </p>
+              <button onClick={() => go("#/day/" + (dayNum - 1))}
+                className="mt-7 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">Day {dayNum - 1}로 가기 →</button>
+            </div>
+          </div>
+        );
+      }
+
+      const missionReady = checked.length > 0 && checked.every(Boolean) && vals.every((v) => v.trim().length > 0);
+      const stages = isConcept
+        ? [{ key: "learn", n: "①", label: "학습" }, { key: "act", n: "②", label: "퀴즈" }]
+        : [{ key: "learn", n: "①", label: "학습" }, { key: "act", n: "②", label: "미션" }, { key: "submit", n: "③", label: "제출" }];
+      const stageIdx = stages.findIndex((s) => s.key === stage);
+      const learnMode = stage === "learn";
+
+      const badge = (
+        <>
+          <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + theme.badge}>{theme.emoji} {theme.label}</span>
+          <span className="text-sm font-black text-gray-500 whitespace-nowrap tabular-nums">Day {dayNum} / {DATA.product.totalDays}</span>
+        </>
+      );
+      const onPass = () => { complete(dayNum); showToast("Day " + dayNum + " 완료 ✅"); };
+      const onSubmit = () => { setSubmitted(true); complete(dayNum); showToast("제출 완료! 🔥"); };
+
+      const StageChips = ({ compact }) => (
+        <div className={"flex items-center gap-1.5 " + (compact ? "" : "flex-1")}>
+          {stages.map((st, i) => {
+            const active = i === stageIdx, passed = i < stageIdx;
+            const reachable = i <= 1 || (i === 2 && missionReady) || i <= stageIdx;
+            return (
+              <React.Fragment key={st.key}>
+                {i > 0 && <div className={"h-0.5 rounded transition-all duration-500 " + (compact ? "w-3" : "flex-1") + " " + (i <= stageIdx ? theme.bar : "bg-gray-200")} />}
+                <button onClick={() => reachable && setStage(st.key)} disabled={!reachable}
+                  className={"flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black transition whitespace-nowrap border " +
+                    (active ? theme.chip + " border-transparent"
+                      : passed ? "bg-white " + theme.border + " " + theme.text
+                      : reachable ? "bg-white border-gray-200 text-gray-400 hover:text-gray-600"
+                      : "bg-white border-gray-200 text-gray-300 cursor-not-allowed")}>
+                  <span>{passed ? "✓" : st.n}</span> {st.label}
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+      );
+
+      const NameBtn = () => (
+        <button onClick={openName} title="내 이름 설정"
+          className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold border bg-white text-gray-400 border-gray-200 hover:text-gray-600 transition">🦁</button>
+      );
+
+      const NoteBtn = () => (
+        <button onClick={() => setNoteOpen((v) => !v)} title="내 노트. 자동 저장되고 .txt 로 내려받을 수 있어요"
+          className={"relative shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold border transition " +
+            (noteOpen ? "bg-ink text-white border-ink" : "bg-white text-gray-400 border-gray-200 hover:text-gray-600")}>
+          📝 노트
+          {hasNote && !noteOpen && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-brand-500 ring-2 ring-cream" />}
+        </button>
+      );
+
+      const overlays = (
+        <>
+          {showHint && <SplitScreenHint onDismiss={() => setHintOff(true)} />}
+          {noteOpen && <NotePanel day={dayNum} meta={meta} onClose={() => { setNoteOpen(false); setNoteTick((t) => t + 1); }} />}
+        </>
+      );
+
+      if (learnMode) {
+        return (
+          <div className="h-[100dvh] flex flex-col bg-cream text-ink overflow-hidden">
+            {overlays}
+            <div className={"flex flex-col h-full " + (showHint ? "lg:pr-[38vw]" : "")}>
+              <TopHeader subtitle={meta.chapter + " · " + meta.chapterTitle} badge={badge} progress={dayNum / DATA.product.totalDays} />
+              {/* 학습 화면은 뷰포트에 꽉 맞춘다. 목차는 헤더의 "전체 목차" 링크로 항상 열 수 있어서
+                  여기서는 따로 뜨는 FAB 을 두지 않고, 그만큼 카드에 높이를 돌려준다. */}
+              <main className={"flex-1 min-h-0 w-full max-w-3xl mx-auto px-4 pt-3 flex flex-col gap-2.5 " +
+                (showHint ? "pb-[112px] lg:pb-2.5" : "pb-2.5")}>
+                <div className="shrink-0 flex items-center gap-2.5">
+                  {meta.milestone && <span className="shrink-0 text-sm">🚩</span>}
+                  <h1 className="text-[15px] font-black truncate flex-1 min-w-0">{meta.name}</h1>
+                  <StageChips compact />
+                  <NameBtn />
+                  <NoteBtn />
+                </div>
+                <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name}
+                  finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
+                <DayFooterNav prev={prev} next={next} compact />
+              </main>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className={"bg-cream min-h-screen text-ink " + (showHint ? "pb-[264px] lg:pb-36" : "pb-36")}>
+          {overlays}
+          <Fabs liftForHint={showHint} />
+          <div className={showHint ? "lg:pr-[38vw]" : ""}>
+            <TopHeader subtitle={meta.chapter + " · " + meta.chapterTitle} badge={badge} progress={dayNum / DATA.product.totalDays} />
+            <div className="max-w-3xl mx-auto px-4 py-6">
+              <div className="animate-fadeUp">
+                {meta.milestone && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-ink text-white px-3 py-1.5 text-xs font-black mb-3 sheen">🚩 프로젝트</span>
+                )}
+                <h1 className="text-2xl font-black leading-snug">{meta.name}</h1>
+                <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">이 챕터가 끝나면, <b className="text-ink">{meta.chapterOutcome}</b></p>
+              </div>
+
+              <div className="mt-5 flex items-center gap-2">
+                <StageChips />
+                <NoteBtn />
+              </div>
+
+              <div className="mt-5 animate-fadeUp">
+                {stage === "act" && (isConcept
+                  ? <QuizRunner key={"quiz-" + dayNum} quiz={content.quiz} theme={theme} name={name} onPass={onPass}
+                      onBackToSlides={() => setStage("learn")} />
+                  : <MissionPanel mission={mission} theme={theme} name={name}
+                      checked={checked} setChecked={setChecked} vals={vals} setVals={setVals}
+                      ready={missionReady} onNext={() => { setStage("submit"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />)}
+                {stage === "submit" && (
+                  <SubmitPanel mission={mission} theme={theme} name={name} files={files} setFiles={setFiles}
+                    submitted={submitted} onSubmit={onSubmit} onBack={() => setStage("act")} />
+                )}
+                <button onClick={() => setStage("learn")}
+                  className="mt-5 w-full rounded-xl border border-gray-200 bg-white py-3 text-sm font-bold text-gray-500 hover:bg-gray-50 transition">‹ 슬라이드 다시 보기</button>
+              </div>
+
+              <div className="mt-10 border-t border-brand-100 pt-6">
+                <DayFooterNav prev={prev} next={next} />
+              </div>
             </div>
           </div>
         </div>
       );
     }
 
-    /* ── 규칙 페이지 (#/rules) ────────────────────────────────── */
-    function RulesPage() {
-      const R = DATA.rules;
+    /* 규칙 / 환급 */
+    function InfoPage({ kind }) {
+      const rules = kind === "rules";
+      const R = rules ? DATA.rules : DATA.refund;
       return (
         <div className="bg-cream min-h-screen text-ink">
-          <LearnHeader />
+          <Fabs />
+          <TopHeader subtitle={rules ? "규칙 안내" : "환급 안내"} />
           <div className="max-w-2xl mx-auto px-4 py-10">
-            <div className="text-center">
-              <span className="inline-block rounded-full bg-brand-50 text-brand-600 border border-brand-100 px-3.5 py-1.5 text-sm font-bold">📖 규칙 안내</span>
+            <div className="text-center animate-fadeUp">
+              <span className="inline-block rounded-full bg-brand-50 text-brand-600 border border-brand-100 px-3.5 py-1.5 text-sm font-bold">
+                {rules ? "📖 규칙 안내" : "💸 환급 안내"}
+              </span>
               <h1 className="mt-4 text-3xl font-black">{R.title}</h1>
               <p className="mt-2 text-gray-500">{R.subtitle}</p>
             </div>
-            <div className="mt-8 space-y-3">
-              {R.items.map((it, i) => (
+
+            {!rules && (
+              <div className="mt-8 rounded-3xl bg-white border border-brand-100 p-8 shadow-soft flex items-center justify-center gap-4 sm:gap-6 animate-popIn">
+                <span className="text-3xl sm:text-5xl font-black text-gray-300 line-through decoration-4">{R.before}</span>
+                <span className="text-2xl sm:text-3xl text-brand-400">→</span>
+                <span className="text-3xl sm:text-5xl font-black text-brand-500">{R.after}</span>
+              </div>
+            )}
+
+            <div className="mt-8 space-y-3 stagger">
+              {(rules ? R.items : R.conditions).map((it, i) => (
                 <div key={i} className="rounded-2xl bg-white border border-brand-100 p-5 shadow-soft flex gap-4">
                   <div className="text-3xl shrink-0">{it.icon}</div>
                   <div>
@@ -1030,480 +1255,83 @@
                 </div>
               ))}
             </div>
-            <div className="mt-8 text-center">
-              <button onClick={() => go("#/learn")} className="rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">여정으로 돌아가기 →</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
 
-    /* ── 환급 페이지 (#/refund) ───────────────────────────────── */
-    function RefundPage() {
-      const F = DATA.refund;
-      return (
-        <div className="bg-cream min-h-screen text-ink">
-          <LearnHeader />
-          <div className="max-w-2xl mx-auto px-4 py-10">
-            <div className="text-center">
-              <span className="inline-block rounded-full bg-brand-50 text-brand-600 border border-brand-100 px-3.5 py-1.5 text-sm font-bold">💸 환급 안내</span>
-              <h1 className="mt-4 text-3xl font-black">{F.title}</h1>
-              <p className="mt-2 text-gray-500">{F.subtitle}</p>
-            </div>
-
-            <div className="mt-8 rounded-3xl bg-white border border-brand-100 p-8 shadow-soft flex items-center justify-center gap-4 sm:gap-6">
-              <span className="text-3xl sm:text-5xl font-black text-gray-300 line-through decoration-4">{F.before}</span>
-              <span className="text-2xl sm:text-3xl text-brand-400">→</span>
-              <span className="text-4xl sm:text-6xl font-black text-brand-500">{F.after}</span>
-            </div>
-
-            <div className="mt-6"><RefundStatus /></div>
-
-            <div className="mt-6 space-y-3">
-              {F.conditions.map((c, i) => (
-                <div key={i} className="rounded-2xl bg-white border border-brand-100 p-5 shadow-soft flex gap-4">
-                  <div className="text-2xl shrink-0">{c.icon}</div>
-                  <div><div className="font-black text-ink">{c.title}</div><p className="mt-1 text-sm text-gray-500 leading-relaxed">{c.desc}</p></div>
-                </div>
-              ))}
-            </div>
-
-            <p className="mt-6 rounded-2xl bg-brand-50 border border-brand-100 p-5 text-sm text-gray-600 leading-relaxed text-center">{F.note}</p>
-
-            <div className="mt-8 text-center">
-              <button onClick={() => go("#/learn")} className="rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">여정으로 돌아가기 →</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* ── 데모 컨트롤 독 (우하단) ──────────────────────────────── */
-    function DemoDock() {
-      const app = useApp();
-      const { currentDay, start, eligible, state } = app;
-      const [open, setOpen] = useState(false);
-
-      if (!open) {
-        return (
-          <button onClick={() => setOpen(true)} className="fixed bottom-5 right-5 z-[90] rounded-full bg-ink text-white w-14 h-14 grid place-items-center text-2xl shadow-card hover:scale-105 transition" title="데모 컨트롤 열기">🧪</button>
-        );
-      }
-      return (
-        <div className="fixed bottom-5 right-5 z-[90] w-[290px] max-w-[calc(100vw-2.5rem)] rounded-2xl bg-ink text-white shadow-card border border-white/10 overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 bg-white/5">
-            <span className="font-black text-sm">🧪 데모 컨트롤</span>
-            <span className="text-[11px] text-white/40">프로토타입 전용</span>
-            <button onClick={() => setOpen(false)} className="ml-auto w-7 h-7 rounded-full bg-white/10 grid place-items-center hover:bg-white/20">–</button>
-          </div>
-          <div className="p-4 space-y-3.5 text-sm">
-            {/* 시작일 */}
-            <label className="block">
-              <span className="text-white/60 text-xs font-bold">시작일 (Day 1)</span>
-              <input type="date" value={fmtInputDate(start)} onChange={(e) => app.actions.setStartDate(e.target.value)}
-                className="mt-1 w-full rounded-lg bg-white/10 border border-white/15 px-3 py-2 text-white [color-scheme:dark]" />
-            </label>
-
-            {/* 오늘 Day */}
-            <div>
-              <span className="text-white/60 text-xs font-bold">오늘 = Day</span>
-              <div className="mt-1 flex items-center gap-2">
-                <button onClick={() => app.actions.jumpToDay(currentDay - 1)} className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 font-black">−</button>
-                <div className="flex-1 text-center rounded-lg bg-white/10 py-2 font-black">Day {currentDay} · {fmtKDate(addDays(start, currentDay - 1))}</div>
-                <button onClick={() => app.actions.jumpToDay(currentDay + 1)} className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 font-black">+</button>
-              </div>
-            </div>
-
-            {/* 토글들 */}
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => app.actions.toggleToday()} className={"rounded-lg py-2 font-bold border " + (state.todayDone ? "bg-brand-500 border-brand-500" : "bg-white/5 border-white/15 hover:bg-white/10")}>
-                오늘 {state.todayDone ? "완료 ✓" : "미완료"}
-              </button>
-              <button onClick={() => app.actions.setStreakBroken(eligible)} className={"rounded-lg py-2 font-bold border " + (!eligible ? "bg-gray-600 border-gray-600" : "bg-white/5 border-white/15 hover:bg-white/10")}>
-                스트릭 {eligible ? "유지" : "끊김"}
-              </button>
-            </div>
-
-            {/* 바로가기 */}
-            <div>
-              <span className="text-white/60 text-xs font-bold">바로가기</span>
-              <div className="mt-1 grid grid-cols-3 gap-1.5 text-xs">
-                {[["Day 1", () => { app.actions.jumpToDay(1); go("#/day/1"); }],
-                  ["Day 12", () => { app.actions.jumpToDay(12); go("#/learn"); }],
-                  ["완주(60)", () => { app.actions.jumpToDay(60); go("#/learn"); }],
-                  ["여정", () => go("#/learn")],
-                  ["규칙", () => go("#/rules")],
-                  ["환급", () => go("#/refund")]].map(([label, fn], i) => (
-                  <button key={i} onClick={fn} className="rounded-lg bg-white/5 border border-white/10 py-1.5 hover:bg-white/15 font-semibold">{label}</button>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={() => { app.actions.reset(); showToast("데모 상태를 초기화했어요"); }} className="w-full rounded-lg bg-white/5 border border-white/10 py-2 text-white/70 hover:bg-white/10 font-semibold">↺ 초기화</button>
-            <p className="text-[11px] text-white/35 leading-snug">데모용 컨트롤이에요. 실제 서비스에서는 시간이 자동으로 Day 를 셉니다.</p>
-          </div>
-        </div>
-      );
-    }
-
-    /* ─────────────────────────────────────────────────────────────
-       페이지 2 · Course Overview (구 버전 · 현재 라우팅되지 않음)
-    ───────────────────────────────────────────────────────────── */
-    function ProgressRing({ percent, size = 72, stroke = 8 }) {
-      const r = (size - stroke) / 2;
-      const c = 2 * Math.PI * r;
-      const off = c * (1 - percent / 100);
-      return (
-        <div className="relative" style={{ width: size, height: size }}>
-          <svg width={size} height={size} className="-rotate-90">
-            <circle cx={size / 2} cy={size / 2} r={r} stroke="#FFE4D5" strokeWidth={stroke} fill="none" />
-            <circle cx={size / 2} cy={size / 2} r={r} stroke="#F97316" strokeWidth={stroke} fill="none"
-              strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" />
-          </svg>
-          <div className="absolute inset-0 grid place-items-center text-brand-600 font-black text-lg">{percent}%</div>
-        </div>
-      );
-    }
-
-    function CourseHeader({ onResume }) {
-      const p = DATA.progress;
-      const refund = Math.round(DATA.product.price * DATA.product.refundRateMax / 10000);
-      return (
-        <header className="sticky top-0 z-40 backdrop-blur bg-cream/90 border-b border-brand-100/70">
-          <div className="max-w-6xl mx-auto px-5 py-3 flex items-center gap-4">
-            <button onClick={() => go("#/")} className="shrink-0 text-gray-400 hover:text-ink transition text-sm font-semibold">‹ 홈</button>
-
-            <div className="flex items-center gap-4 min-w-0">
-              <ProgressRing percent={p.percent} size={56} stroke={6} />
-              <div className="min-w-0">
-                <div className="font-black text-ink truncate">클로드 배워서 인생 바꾸기</div>
-                <div className="text-sm text-gray-500">
-                  Day {p.currentDay} / {p.totalDays} · <b className="text-brand-600">진행 중</b>
-                  <span className="hidden sm:inline"> · 완주 시 최대 {refund}만원 환급</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="ml-auto shrink-0">
-              <CTA size="md" onClick={onResume} className="hidden sm:inline-flex">
-                Day {p.currentDay} 이어하기 →
-              </CTA>
-            </div>
-          </div>
-        </header>
-      );
-    }
-
-    function WeekNav() {
-      const items = [
-        ...DATA.weeks.map((w) => ({ id: "sec-" + w.id, label: w.code })),
-        { id: "sec-locked", label: "🔒 31일~" },
-      ];
-      return (
-        <div className="sticky top-[73px] z-30 bg-cream/90 backdrop-blur border-b border-brand-100/50">
-          <div className="max-w-6xl mx-auto px-5 py-2.5 flex gap-2 overflow-x-auto no-scrollbar">
-            {items.map((it) => (
-              <button key={it.id} onClick={() => scrollToId(it.id)}
-                className="shrink-0 rounded-full border border-brand-100 bg-white px-3.5 py-1.5 text-sm font-semibold text-ink hover:bg-brand-50 hover:border-brand-300 transition">
-                {it.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    function StatusIcon({ status }) {
-      if (status === "done")
-        return <span className="w-7 h-7 shrink-0 rounded-full bg-emerald-500 text-white grid place-items-center text-sm">✓</span>;
-      if (status === "current")
-        return <span className="w-7 h-7 shrink-0 rounded-full bg-brand-500 text-white grid place-items-center text-[11px] font-black ring-4 ring-brand-100">▶</span>;
-      return <span className="w-7 h-7 shrink-0 rounded-full border-2 border-gray-300" />;
-    }
-
-    function DayRow({ d, cur, onOpen }) {
-      const status = statusOf(d.day, cur);
-      const t = DATA.typeMeta[d.type];
-      const isCurrent = status === "current";
-      return (
-        <button
-          onClick={() => onOpen(d)}
-          className={
-            "w-full text-left flex items-center gap-3 sm:gap-4 rounded-2xl border p-3.5 sm:p-4 transition group " +
-            (isCurrent
-              ? "bg-brand-50 border-brand-300 shadow-card"
-              : "bg-white border-brand-100 hover:border-brand-200 hover:shadow-soft")
-          }>
-          <StatusIcon status={status} />
-          <div className="w-12 sm:w-14 shrink-0 text-center">
-            <div className="text-[11px] text-gray-400 font-semibold">Day</div>
-            <div className={"text-lg font-black " + (isCurrent ? "text-brand-600" : "text-ink")}>{d.day}</div>
-          </div>
-          <span className={"shrink-0 rounded-full px-2.5 py-1 text-xs font-bold " + TYPE_BADGE[d.type]}>{t.label}</span>
-          <div className="min-w-0 flex-1">
-            <div className="font-bold text-ink truncate">{d.title}</div>
-            <div className="text-sm text-brand-600 font-medium truncate">→ {d.output}</div>
-          </div>
-          {isCurrent && <span className="hidden sm:inline shrink-0 rounded-full bg-brand-500 text-white px-2.5 py-1 text-xs font-bold">진행중</span>}
-          <span className="shrink-0 text-gray-300 group-hover:text-brand-400 transition">›</span>
-        </button>
-      );
-    }
-
-    function WeekSection({ week, cur, onOpen }) {
-      const days = DATA.days.filter((d) => d.week === week.id);
-      const doneCount = days.filter((d) => d.day < cur).length;
-      return (
-        <section id={"sec-" + week.id} className="scroll-mt-32">
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <span className="text-2xl">{week.emoji}</span>
-            <h2 className="text-2xl font-black text-ink">
-              <span className="text-brand-500">{week.code}</span> · {week.name}
-            </h2>
-            <span className="text-sm text-gray-400 font-medium">{week.range}</span>
-            <span className="ml-auto text-sm text-gray-500 font-semibold">{doneCount}/{days.length} 완료</span>
-          </div>
-          <p className="mt-1 text-sm text-gray-500">이 주가 끝나면 — <b className="text-ink">{week.outcome}</b></p>
-          <div className="mt-4 space-y-2.5">
-            {days.map((d) => <DayRow key={d.day} d={d} cur={cur} onOpen={onOpen} />)}
-          </div>
-        </section>
-      );
-    }
-
-    function LockedSection() {
-      const L = DATA.lockedTeaser;
-      return (
-        <section id="sec-locked" className="scroll-mt-32">
-          <div className="rounded-3xl bg-gray-900 text-white p-8 sm:p-10 relative overflow-hidden">
-            <div className="pointer-events-none absolute -right-16 -top-16 w-64 h-64 rounded-full bg-brand-500/20 blur-3xl" />
-            <div className="relative">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-sm font-bold">
-                🔒 {L.code}
-              </span>
-              <h2 className="mt-4 text-2xl sm:text-3xl font-black">{L.title}</h2>
-              <p className="mt-3 text-gray-300 max-w-2xl leading-relaxed">{L.desc}</p>
-
-              <div className="mt-7 grid sm:grid-cols-3 gap-3">
-                {DATA.lockedDays.slice(0, 3).map((d) => (
-                  <div key={d.day} className="rounded-2xl bg-white/5 border border-white/10 p-4">
-                    <div className="text-xs text-gray-400 font-semibold">Day {d.day}</div>
-                    <div className="mt-1 font-bold blur-[3px] select-none">{d.title}</div>
-                    <div className="mt-3 text-lg">🔒</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center gap-3 text-gray-500">
-                <div className="flex-1 border-t border-dashed border-white/15" />
-                <span className="text-sm">Day 31 ~ 60 · 계속</span>
-                <div className="flex-1 border-t border-dashed border-white/15" />
-              </div>
-
-              <p className="mt-6 text-sm text-brand-300 font-semibold">✨ {L.note}</p>
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    /* Day 상세 미리보기 모달 (10개 영역 구조) */
-    function DayModal({ d, cur, onClose }) {
-      const week = DATA.weeks.find((w) => w.id === d.week);
-      const t = DATA.typeMeta[d.type];
-      const isConcept = d.type === "concept";
-      const status = statusOf(d.day, cur);
-
-      const template =
-        "[역할] 너는 내 업무를 돕는 어시스턴트야.\n" +
-        "[오늘 맡길 일] " + d.title.replace(/[“”]/g, "") + "\n" +
-        "[가진 자료] (엑셀·PDF·메일 등 여기에 붙여넣기 또는 업로드)\n" +
-        "[원하는 결과물] " + d.output + "\n" +
-        "[형식] 표 / 요약 / 초안 중 택1 — 바로 쓸 수 있게";
-
-      // 개념 유닛은 ③⑥⑦ 자리에 시뮬레이터 퀴즈가 들어간다.
-      const conceptReplaced = { video: true, mission: true, verify: true };
-
-      const contentFor = (key) => {
-        switch (key) {
-          case "progress": return `Day ${d.day} / 60 · 이번 주: ${week.name}`;
-          case "oneline":  return d.title;
-          case "concept":  return "슬라이드 스타일 개념 카드 + 한 문장 설명";
-          case "guide":    return "‘잘 모르겠으면 여기!’ — 오늘의 추천 선택 1개";
-          case "mission":  return "옆 Claude 창에서 오늘의 한 가지를 직접 수행";
-          case "verify":   return "결과 스크린샷 또는 대화 링크 제출";
-          case "quiz":     return "상황형 2~3문항 · 오답 시 설명 제공";
-          case "output":   return d.output;
-          case "nav":      return "‹ 이전 Day   ·   다음 Day ›   ·   이어하기";
-          default:         return "";
-        }
-      };
-
-      return (
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm grid place-items-end sm:place-items-center p-0 sm:p-6"
-             onClick={onClose}>
-          <div className="bg-cream w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl shadow-card animate-popIn no-scrollbar"
-               onClick={(e) => e.stopPropagation()}>
-            {/* 모달 헤더 */}
-            <div className="sticky top-0 bg-cream/95 backdrop-blur border-b border-brand-100 px-6 py-4 flex items-center gap-3">
-              <span className={"rounded-full px-2.5 py-1 text-xs font-bold " + TYPE_BADGE[d.type]}>{t.label}</span>
-              <div className="min-w-0">
-                <div className="text-xs text-gray-400 font-semibold">Day {d.day} · {week.code}</div>
-                <div className="font-black text-ink truncate">{d.title}</div>
-              </div>
-              <button onClick={onClose} className="ml-auto shrink-0 w-9 h-9 rounded-full bg-white border border-gray-200 grid place-items-center text-gray-500 hover:bg-gray-50">✕</button>
-            </div>
-
-            <div className="px-6 py-5">
-              <div className="rounded-xl bg-brand-50 border border-brand-100 px-4 py-3 text-sm text-brand-700">
-                {isConcept
-                  ? "🌱 개념 학습(워밍업) 구간 — 아직 Claude를 쓰지 않고, 사이트 안에서 시뮬레이터 퀴즈로 완결합니다."
-                  : "🖥️ 실전 구간 — 화면을 나눠 옆 Claude 창에서 직접 해보고 결과물을 남깁니다."}
-              </div>
-
-              <div className="mt-5 text-sm font-bold text-gray-400">Day 유닛 구조 · 10개 영역</div>
-              <div className="mt-3 space-y-2.5">
-                {DATA.unitAreas.map((a) => {
-                  const replaced = isConcept && conceptReplaced[a.key];
-                  return (
-                    <div key={a.key}
-                      className={"rounded-2xl border p-3.5 flex gap-3 items-start " +
-                        (replaced ? "bg-gray-50 border-gray-200" : "bg-white border-brand-100")}>
-                      <div className="shrink-0 w-9 text-center">
-                        <div className="text-brand-400 font-black text-sm">{a.n}</div>
-                        <div className="text-lg leading-none mt-0.5">{a.icon}</div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-bold text-ink text-sm">{a.name}</div>
-                        {replaced ? (
-                          <div className="text-sm text-gray-400 mt-0.5">개념 구간 — 이 자리에 <b>시뮬레이터 퀴즈</b>가 들어갑니다.</div>
-                        ) : (
-                          <div className="text-sm text-gray-500 mt-0.5">{contentFor(a.key)}</div>
-                        )}
-
-                        {/* ⑨ 오늘의 결과물 — 복붙 템플릿 */}
-                        {a.key === "output" && !replaced && (
-                          <div className="mt-2.5">
-                            <pre className="rounded-xl bg-gray-900 text-gray-100 text-[12px] leading-relaxed p-3.5 whitespace-pre-wrap font-sans">{template}</pre>
-                            <button
-                              onClick={() => copyText(template, "오늘의 결과물 템플릿을 복사했어요 📋")}
-                              className="mt-2 inline-flex items-center gap-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white px-3.5 py-2 text-sm font-bold transition">
-                              📋 템플릿 복사하기
-                            </button>
-                          </div>
-                        )}
-                      </div>
+            {rules ? (
+              <div className="mt-10">
+                <div className="text-center text-sm font-black text-gray-400">⚠️ 코스 전반 주의사항</div>
+                <div className="mt-4 grid sm:grid-cols-3 gap-3">
+                  {DATA.notices.map((n, i) => (
+                    <div key={i} className="rounded-2xl bg-white border border-gray-200 p-4">
+                      <div className="text-2xl">{n.icon}</div>
+                      <div className="mt-2 font-black text-sm text-ink">{n.title}</div>
+                      <p className="mt-1 text-xs text-gray-500 leading-relaxed">{n.desc}</p>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
+            ) : (
+              <p className="mt-6 rounded-2xl bg-brand-50 border border-brand-100 p-5 text-sm text-gray-600 leading-relaxed text-center">{R.note}</p>
+            )}
 
-              <div className="mt-5 flex gap-2">
-                <button onClick={onClose} className="flex-1 rounded-xl border border-gray-200 bg-white py-3 font-bold text-ink hover:bg-gray-50 transition">닫기</button>
-                <button
-                  onClick={() => showToast(status === "todo" ? "완주 순서대로 열립니다 🔒" : "데모 화면입니다 · Day 상세는 다음 스코프예요")}
-                  className="flex-1 rounded-xl bg-brand-500 hover:bg-brand-600 text-white py-3 font-bold transition">
-                  {status === "current" ? "이어서 학습하기 →" : status === "done" ? "다시 보기" : "미리보기"}
-                </button>
-              </div>
+            <div className="mt-10 text-center">
+              <button onClick={() => go("#/day/1")} className="rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">Day 1로 가기 →</button>
             </div>
           </div>
         </div>
       );
     }
 
-    function CourseOverview() {
-      const cur = DATA.progress.currentDay;
-      const [openDay, setOpenDay] = useState(null);
-      const currentDayObj = useMemo(() => DATA.days.find((d) => d.day === cur), [cur]);
-
-      // 모달 열릴 때 배경 스크롤 잠금
-      useEffect(() => {
-        document.body.style.overflow = openDay ? "hidden" : "";
-        return () => { document.body.style.overflow = ""; };
-      }, [openDay]);
-
-      return (
-        <div className="bg-cream text-ink min-h-screen">
-          <CourseHeader onResume={() => setOpenDay(currentDayObj)} />
-          <WeekNav />
-
-          <div className="max-w-6xl mx-auto px-5 py-8">
-            {/* 진행 요약 배너 */}
-            <div className="rounded-3xl bg-white border border-brand-100 p-6 sm:p-7 shadow-soft flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <ProgressRing percent={DATA.progress.percent} />
-              <div className="flex-1">
-                <div className="text-2xl font-black text-ink">
-                  {DATA.progress.currentDay} <span className="text-gray-400 font-bold">/ {DATA.progress.totalDays}일</span>
-                  <span className="ml-2 text-brand-500">진행 중</span>
-                </div>
-                <div className="mt-1.5 h-2.5 rounded-full bg-brand-50 overflow-hidden max-w-md">
-                  <div className="h-full bg-brand-500 rounded-full" style={{ width: DATA.progress.percent + "%" }} />
-                </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  60일 중 <b className="text-ink">{DATA.progress.totalDays - DATA.progress.currentDay + 1}일</b> 남았어요 ·
-                  완주하면 <b className="text-brand-600"> 10만원 환급</b> (아직 {100 - DATA.progress.percent}% 남았어요)
-                </p>
-              </div>
-              <CTA size="md" onClick={() => setOpenDay(currentDayObj)} className="w-full sm:w-auto">
-                Day {cur} 이어하기 →
-              </CTA>
-            </div>
-
-            {/* 1~30일: 4주 + 마무리 */}
-            <div className="mt-10 space-y-12">
-              {DATA.weeks.map((w) => (
-                <WeekSection key={w.id} week={w} cur={cur} onOpen={setOpenDay} />
-              ))}
-            </div>
-
-            {/* 31~60일: 잠금 */}
-            <div className="mt-12">
-              <LockedSection />
-            </div>
-
-            <div className="h-24" />
-          </div>
-
-          {/* 플로팅 이어하기 */}
-          <button
-            onClick={() => setOpenDay(currentDayObj)}
-            className="fixed bottom-6 right-6 z-30 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-5 py-3.5 font-black shadow-card active:scale-[.98] transition animate-floaty">
-            ▶ Day {cur} 이어하기
-          </button>
-
-          {openDay && <DayModal d={openDay} cur={cur} onClose={() => setOpenDay(null)} />}
-        </div>
-      );
-    }
-
-    /* ─────────────────────────────────────────────────────────────
-       라우터
-    ───────────────────────────────────────────────────────────── */
+    /* 라우터 + 루트 */
     function parseRoute(hash) {
-      const h = (hash || "#/").replace(/^#/, "");
-      if (h.indexOf("/day/") === 0) { const n = parseInt(h.split("/")[2], 10); return { name: "day", day: isNaN(n) ? 1 : n }; }
-      if (h.indexOf("/learn") === 0) return { name: "learn" };
-      if (h.indexOf("/course") === 0) return { name: "learn" };   // 구 경로 → 학습 홈
+      const h = (hash || "#/day/1").replace(/^#/, "");
+      if (h.indexOf("/day/") === 0) {
+        const n = parseInt(h.split("/")[2], 10);
+        return { name: "day", day: DATA.days.some((d) => d.day === n) ? n : 1 };
+      }
       if (h.indexOf("/rules") === 0) return { name: "rules" };
       if (h.indexOf("/refund") === 0) return { name: "refund" };
-      return { name: "home" };
+      return { name: "day", day: 1 };
+    }
+
+    function NameModal({ onClose }) {
+      const { name, setName } = useUI();
+      const [v, setV] = useState(name);
+      return (
+        <div className="fixed inset-0 z-[220] bg-black/50 backdrop-blur-sm grid place-items-center px-4" onClick={onClose}>
+          <div className="bg-white rounded-3xl p-7 w-full max-w-sm shadow-lift animate-popIn" onClick={(e) => e.stopPropagation()}>
+            <div className="text-lg font-black text-ink">이름을 알려주세요 🦁</div>
+            <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">슬라이드 곳곳에서 <b className="text-ink">{"{{name}}"}</b> 자리에 들어갈 이름이에요.</p>
+            <input value={v} onChange={(e) => setV(e.target.value)} placeholder="유저"
+              className="mt-4 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-2 ring-brand-300" />
+            <button onClick={() => { setName(v.trim() || DATA.DEMO_NAME); onClose(); }}
+              className="mt-4 w-full rounded-2xl bg-brand-500 hover:bg-brand-600 text-white py-3 font-black transition">저장하기</button>
+          </div>
+        </div>
+      );
     }
 
     function App() {
       const route = useHashRoute();
       const r = parseRoute(route);
+      const prog = useProgress();
+      const [gridOpen, setGridOpen] = useState(false);
+      const [nameOpen, setNameOpen] = useState(false);
+      const [name, setNameState] = useState(() => loadLS("mjc.name", DATA.DEMO_NAME));
+
+      const ui = { ...prog, name, setName: (n) => { setNameState(n); saveLS("mjc.name", n); },
+                   openGrid: () => setGridOpen(true), openName: () => setNameOpen(true) };
+
       let page;
-      if (r.name === "learn") page = <LearnHome />;
-      else if (r.name === "day") page = <DayScreen day={r.day} />;
-      else if (r.name === "rules") page = <RulesPage />;
-      else if (r.name === "refund") page = <RefundPage />;
-      else page = <Home />;
-      const showDock = r.name !== "home";
+      if (r.name === "rules") page = <InfoPage kind="rules" />;
+      else if (r.name === "refund") page = <InfoPage kind="refund" />;
+      else page = <DayScreen key={r.day} dayNum={r.day} />;
+
       return (
-        <AppProvider>
+        <UICtx.Provider value={ui}>
           {page}
-          {showDock && <DemoDock />}
-        </AppProvider>
+          {gridOpen &&<ChapterGrid onPick={(n) => { setGridOpen(false); go("#/day/" + n); }} onClose={() => setGridOpen(false)} currentDay={r.name === "day" ? r.day : null} />}
+          {nameOpen && <NameModal onClose={() => setNameOpen(false)} />}
+        </UICtx.Provider>
       );
     }
 
