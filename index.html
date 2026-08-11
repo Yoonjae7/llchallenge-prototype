@@ -58,6 +58,9 @@
     @keyframes shake     { 10%,90%{transform:translateX(-2px)} 30%,70%{transform:translateX(4px)} 50%{transform:translateX(-4px)} }
     @keyframes nudgeR    { 0%,100% { transform: translateX(0); opacity:.5 } 50% { transform: translateX(12px); opacity:1 } }
     @keyframes bar       { from { width: 0 } to { width: 100% } }
+    @keyframes barGrow   { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes flyIn     { from { opacity:0; transform: translateY(-14px) rotate(-8deg); } to { opacity:1; transform: translateY(0) rotate(-3deg); } }
+    @keyframes pulseSoft { 0%,100% { opacity:1; } 50% { opacity:.35; } }
     @keyframes sheen     { from { background-position: -180% 0 } to { background-position: 220% 0 } }
     .anim-in-r        { animation: slideInR .34s cubic-bezier(.22,.9,.3,1) both; }
     .anim-in-l        { animation: slideInL .34s cubic-bezier(.22,.9,.3,1) both; }
@@ -474,9 +477,84 @@
     const parasOf = (s, n) => fill(s.body, n).split("\n\n").filter((p) => p.trim());
     const stepsOf = (s, n) => parasOf(s, n).length + (s.img && DATA.SHOTS[s.img] ? 1 : 0);
 
-    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll }) {
+    /* 로드맵 슬라이드용 미니 아이콘 - 문장마다 어울리는 작은 애니메이션을 하나씩 붙인다 */
+    function RoadmapVisual({ kind }) {
+      const wrap = "w-14 h-14 shrink-0 rounded-2xl bg-brand-50 border border-brand-100 grid place-items-center relative overflow-hidden";
+      if (kind === "chart") {
+        const bars = [{ x: 6, h: 18, d: 0 }, { x: 20, h: 30, d: .09 }, { x: 34, h: 13, d: .18 }, { x: 48, h: 36, d: .27 }];
+        return (
+          <div className={wrap}>
+            <svg viewBox="0 0 62 44" className="w-9 h-6">
+              <line x1="1" y1="42" x2="61" y2="42" stroke="#FFD9C2" strokeWidth="2" strokeLinecap="round" />
+              {bars.map((b, i) => (
+                <rect key={i} x={b.x} y={42 - b.h} width="9" height={b.h} rx="2" className="fill-brand-500"
+                  style={{ transformBox: "fill-box", transformOrigin: "bottom", animation: "barGrow .5s " + b.d + "s cubic-bezier(.2,.9,.3,1.1) both" }} />
+              ))}
+            </svg>
+          </div>
+        );
+      }
+      if (kind === "automate") {
+        return (
+          <div className={wrap}>
+            <svg viewBox="0 0 48 36" className="w-8 h-6">
+              <rect x="1" y="1" width="46" height="34" rx="5" fill="white" className="stroke-brand-400" strokeWidth="2.5" />
+              <path d="M2 3 L24 20 L46 3" fill="none" className="stroke-brand-400" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="absolute right-1 bottom-1 w-5 h-5 rounded-full bg-emerald-500 text-white grid place-items-center text-[10px] font-black shadow-soft"
+              style={{ animation: "popIn .3s .55s cubic-bezier(.2,.9,.3,1.15) both" }}>✓</span>
+          </div>
+        );
+      }
+      if (kind === "deploy") {
+        return (
+          <div className={wrap}>
+            <div className="w-10 rounded-lg border border-brand-200 bg-white overflow-hidden shadow-soft">
+              <div className="h-2.5 bg-brand-100 flex items-center gap-0.5 px-1">
+                <span className="w-1 h-1 rounded-full bg-brand-300" /><span className="w-1 h-1 rounded-full bg-brand-300" /><span className="w-1 h-1 rounded-full bg-brand-300" />
+              </div>
+              <div className="p-1.5">
+                <div className="h-1.5 rounded-full bg-brand-100 overflow-hidden">
+                  <div className="h-full bg-brand-500" style={{ animation: "bar .6s .1s ease-out both" }} />
+                </div>
+                <div className="mt-1.5 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"
+                    style={{ animation: "popIn .25s .75s both, pulseSoft 1.6s .95s ease-in-out infinite" }} />
+                  <span className="text-[7px] font-black text-emerald-600" style={{ animation: "popIn .25s .8s both" }}>LIVE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      if (kind === "assistant") {
+        return (
+          <div className={wrap}>
+            <svg viewBox="0 0 56 44" className="w-9 h-7 absolute bottom-2">
+              <path d="M2 12 L2 38 Q2 41 5 41 L51 41 Q54 41 54 38 L54 16 Q54 13 51 13 L26 13 L22 8 L5 8 Q2 8 2 11 Z" className="fill-brand-400" />
+            </svg>
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="absolute w-3 h-3.5 rounded-[2px] bg-white border border-brand-300"
+                style={{ top: 8, left: 15 + i * 9, animation: "flyIn .45s " + (.1 + i * .13) + "s cubic-bezier(.3,.7,.4,1) both" }} />
+            ))}
+            <span className="absolute right-1.5 top-1 text-[13px]" style={{ animation: "popIn .3s .62s cubic-bezier(.2,.9,.3,1.15) both" }}>✨</span>
+          </div>
+        );
+      }
+      return null;
+    }
+
+    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll, active }) {
       const paras = parasOf(slide, name);
       const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
+      const videoRef = useRef(null);
+      /* 슬라이드가 화면에 실제로 들어올 때만 영상을 재생한다(모든 슬라이드가 미리 마운트돼 있어서 autoPlay만으로는 안 보이는 곳에서 먼저 끝나버림) */
+      useEffect(() => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (active) { v.currentTime = 0; v.play().catch(() => {}); }
+        else v.pause();
+      }, [active, slide.video]);
       return (
         <div ref={innerRef} onScroll={onScroll || undefined} className="h-full overflow-y-auto no-scrollbar px-5 sm:px-7 py-5 sm:py-6">
           <h2 className="text-base sm:text-xl font-black leading-snug text-ink">
@@ -484,22 +562,44 @@
           </h2>
           <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
           {slide.video && (
-            <video src={slide.video} autoPlay muted playsInline
-              className="mt-3.5 mx-auto w-auto max-w-full max-h-[22vh] rounded-2xl" />
+            <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
+              className="mt-3.5 mx-auto w-auto max-w-full max-h-[40vh] sm:max-h-[48vh] rounded-2xl shadow-soft" />
           )}
-          <div className="mt-3.5 space-y-2.5">
-            {paras.slice(0, reveal).map((p, i) => (
-              <p key={i} className="animate-revealUp rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
-                 dangerouslySetInnerHTML={{ __html: p.split("\n").join("<br/>") }} />
-            ))}
-          </div>
-          {hasImg && reveal > paras.length && (
-            <figure className="mt-4 animate-revealUp">
-              <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""} title="클릭하면 원본 크기로 열려요"
-                onClick={() => { const w = window.open(); if (w) w.document.write('<img src="' + DATA.SHOTS[slide.img] + '" style="max-width:100%">'); }}
-                className="mx-auto w-auto max-w-full max-h-[28vh] object-contain rounded-2xl border border-gray-200 shadow-soft cursor-zoom-in" />
-              {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
-            </figure>
+          {slide.heroVisual ? (
+            /* 로드맵 항목 하나가 페이지 전체를 차지하는 형태. active가 바뀔 때마다 key로 강제 리마운트해 아이콘 애니메이션을 매번 처음부터 재생시킨다 */
+            <div key={active ? "hero-on" : "hero-off"}
+              className="mt-6 py-8 sm:py-12 flex flex-col items-center justify-center gap-6 text-center animate-revealUp">
+              <div className="w-24 h-24 flex items-center justify-center">
+                <div style={{ transform: "scale(1.6)" }}>
+                  <RoadmapVisual kind={slide.heroVisual} />
+                </div>
+              </div>
+              <p className="rich text-[15px] sm:text-base text-gray-700 leading-[1.75] max-w-sm"
+                 dangerouslySetInnerHTML={{ __html: paras[0].split("\n").join("<br/>") }} />
+            </div>
+          ) : (
+            <>
+              <div className="mt-3.5 space-y-3">
+                {paras.slice(0, reveal).map((p, i) => {
+                  const visualKind = slide.visuals && slide.visuals[i];
+                  return (
+                    <div key={i} className={"animate-revealUp " + (visualKind ? "flex flex-col items-start gap-2" : "")}>
+                      {visualKind && <RoadmapVisual kind={visualKind} />}
+                      <p className="rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
+                         dangerouslySetInnerHTML={{ __html: p.split("\n").join("<br/>") }} />
+                    </div>
+                  );
+                })}
+              </div>
+              {hasImg && reveal > paras.length && (
+                <figure className="mt-4 animate-revealUp">
+                  <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""} title="클릭하면 원본 크기로 열려요"
+                    onClick={() => { const w = window.open(); if (w) w.document.write('<img src="' + DATA.SHOTS[slide.img] + '" style="max-width:100%">'); }}
+                    className="mx-auto w-auto max-w-full max-h-[28vh] object-contain rounded-2xl border border-gray-200 shadow-soft cursor-zoom-in" />
+                  {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
+                </figure>
+              )}
+            </>
           )}
           {PLAN_NOTES && slide.note && (
             <div className="mt-4 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed">
@@ -546,6 +646,13 @@
         return () => window.removeEventListener("keydown", on);
       }, [next, prev]);
 
+      /* autoReveal 슬라이드는 탭 없이도 항목이 하나씩 순서대로 나타난다 */
+      useEffect(() => {
+        if (!slides[i].autoReveal || step >= curSteps) return;
+        const t = setTimeout(() => setStep((s) => Math.min(s + 1, curSteps)), 750);
+        return () => clearTimeout(t);
+      }, [i, step, curSteps, slides]);
+
       const syncMore = useCallback(() => {
         const el = scrollRef.current;
         setMore(!!el && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
@@ -580,7 +687,8 @@
                   className={active ? (dir > 0 ? "anim-in-r relative z-10 h-full" : "anim-in-l relative z-10 h-full") : "invisible pointer-events-none h-full"}>
                   <SlideBody slide={s} name={name} theme={theme}
                     reveal={active ? step : stepsOf(s, name)}
-                    innerRef={active ? scrollRef : null} onScroll={active ? syncMore : null} />
+                    innerRef={active ? scrollRef : null} onScroll={active ? syncMore : null}
+                    active={active} />
                 </div>
               );
             })}
