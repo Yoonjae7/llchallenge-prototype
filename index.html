@@ -59,6 +59,7 @@
     @keyframes nudgeR    { 0%,100% { transform: translateX(0); opacity:.5 } 50% { transform: translateX(12px); opacity:1 } }
     @keyframes bar       { from { width: 0 } to { width: 100% } }
     @keyframes barGrow   { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+    @keyframes barPulse  { 0%,100% { transform: scaleY(1); } 45% { transform: scaleY(.82); } }
     @keyframes flyIn     { from { opacity:0; transform: translateY(-14px) rotate(-8deg); } to { opacity:1; transform: translateY(0) rotate(-3deg); } }
     @keyframes pulseSoft { 0%,100% { opacity:1; } 50% { opacity:.35; } }
     @keyframes sheen     { from { background-position: -180% 0 } to { background-position: 220% 0 } }
@@ -488,7 +489,9 @@
               <line x1="1" y1="42" x2="61" y2="42" stroke="#FFD9C2" strokeWidth="2" strokeLinecap="round" />
               {bars.map((b, i) => (
                 <rect key={i} x={b.x} y={42 - b.h} width="9" height={b.h} rx="2" className="fill-brand-500"
-                  style={{ transformBox: "fill-box", transformOrigin: "bottom", animation: "barGrow .5s " + b.d + "s cubic-bezier(.2,.9,.3,1.1) both" }} />
+                  style={{ transformBox: "fill-box", transformOrigin: "bottom",
+                    /* 처음 자라나는 barGrow가 끝나면 이어서 barPulse가 계속 움직여, 다 자란 뒤에도 멈춰 있지 않고 살아있는 느낌을 준다 */
+                    animation: "barGrow .5s " + b.d + "s cubic-bezier(.2,.9,.3,1.1) both, barPulse 1.7s ease-in-out " + (b.d + .55) + "s infinite" }} />
               ))}
             </svg>
           </div>
@@ -556,19 +559,21 @@
         else v.pause();
       }, [active, slide.video]);
       return (
-        <div ref={innerRef} onScroll={onScroll || undefined} className="h-full overflow-y-auto no-scrollbar px-5 sm:px-7 py-5 sm:py-6">
-          <h2 className="text-base sm:text-xl font-black leading-snug text-ink">
+        <div ref={innerRef} onScroll={onScroll || undefined}
+          className={"h-full overflow-y-auto no-scrollbar px-5 sm:px-7 py-5 sm:py-6" + (slide.heroVisual ? " flex flex-col" : "")}>
+          <h2 className="text-base sm:text-xl font-black leading-snug text-ink shrink-0">
             <RichInline text={slide.title} name={name} />
           </h2>
-          <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
+          <div className={"mt-1.5 h-1 w-9 rounded-full shrink-0 " + theme.bar} />
           {slide.video && (
             <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-              className="mt-3.5 mx-auto w-auto max-w-full max-h-[40vh] sm:max-h-[48vh] rounded-2xl shadow-soft" />
+              className="mt-3.5 mx-auto w-auto max-w-full max-h-[40vh] sm:max-h-[48vh] rounded-2xl shadow-soft shrink-0" />
           )}
           {slide.heroVisual ? (
-            /* 로드맵 항목 하나가 페이지 전체를 차지하는 형태. active가 바뀔 때마다 key로 강제 리마운트해 아이콘 애니메이션을 매번 처음부터 재생시킨다 */
+            /* 로드맵 항목 하나가 페이지 전체를 차지하는 형태. flex-1로 남은 세로 공간을 다 채운 뒤 그 안에서 진짜로 가운데 정렬한다(패딩만으로는 위쪽에 붙어 보였음).
+               active가 바뀔 때마다 key로 강제 리마운트해 아이콘 애니메이션을 매번 처음부터 재생시킨다 */
             <div key={active ? "hero-on" : "hero-off"}
-              className="mt-6 py-8 sm:py-12 flex flex-col items-center justify-center gap-6 text-center animate-revealUp">
+              className="flex-1 min-h-0 flex flex-col items-center justify-center gap-6 text-center animate-revealUp">
               <div className="w-24 h-24 flex items-center justify-center">
                 <div style={{ transform: "scale(1.6)" }}>
                   <RoadmapVisual kind={slide.heroVisual} />
@@ -602,7 +607,7 @@
             </>
           )}
           {PLAN_NOTES && slide.note && (
-            <div className="mt-4 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed">
+            <div className={"mt-4 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed" + (slide.heroVisual ? " shrink-0" : "")}>
               <b className="text-gray-600">기획 노트</b> : {slide.note}
             </div>
           )}
