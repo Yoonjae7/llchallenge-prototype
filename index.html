@@ -2027,7 +2027,7 @@
       );
     }
 
-    function SlideDeck({ slides, theme, name, onFinish, finishLabel }) {
+    function SlideDeck({ slides, theme, name, onFinish, finishLabel, dayNum }) {
       const [i, setI] = useState(0);
       const [step, setStep] = useState(1);
       const [dir, setDir] = useState(1);
@@ -2097,6 +2097,16 @@
 
           {/* 덱 - 남은 공간을 채운다 */}
           <div className={"deck-stack rounded-3xl bg-white border shadow-soft flex-1 min-h-0 max-h-[520px] sm:max-h-[640px] overflow-hidden relative " + theme.border}>
+            {/* 슬라이드 참조 태그 - {Day}.{슬라이드 순번}-{그 슬라이드 안에서 몇 번째로 열린 문단인지}.
+                "Day 8 슬라이드 8.1-2에서 이거 고쳐줘" 처럼 대화로 특정 문단을 정확히 짚을 수 있게 하는
+                용도라 늘 떠 있어야 한다 - ?notes=1 뒤에 숨겨뒀더니 안 보인다는 얘기가 나와서 뺐다 */}
+            {dayNum != null && (
+              <div className="absolute top-2 left-2.5 z-30 pointer-events-none select-none">
+                <span className="inline-block rounded-md bg-ink/75 text-white/90 text-[9.5px] font-mono font-bold px-1.5 py-0.5 tracking-wide">
+                  {dayNum}.{i + 1}-{step}
+                </span>
+              </div>
+            )}
             {slides.map((s, n) => {
               const active = n === i;
               return (
@@ -2711,7 +2721,7 @@
                   <NameBtn />
                   <NoteBtn />
                 </div>
-                <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name}
+                <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name} dayNum={dayNum}
                   finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
                 <DayFooterNav prev={prev} next={next} compact />
               </main>
