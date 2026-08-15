@@ -84,6 +84,24 @@
     .race-fast { animation: raceFast 3.6s cubic-bezier(.2,.8,.3,1) infinite; }
     @keyframes narrowNudge { 0%,55%,100% { transform: translateX(0); } 25% { transform: translateX(-14px); } }
     .narrow-nudge { animation: narrowNudge 1.6s ease-in-out infinite; }
+    /* 지침 공식(입력→동작→출력) 사이 아래 화살표. 흐름이 한 방향으로 흐른다는 걸 계속 알린다 */
+    @keyframes nudgeD { 0%,100% { transform: translateY(0); opacity:.4 } 50% { transform: translateY(4px); opacity:1 } }
+    .nudge-d { animation: nudgeD 1.5s ease-in-out infinite; }
+    /* 내려받을 수 있는 결과물이라는 신호 - 파일 카드의 다운로드 화살표가 계속 살짝 튄다 */
+    @keyframes dlBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2.5px); } }
+    .dl-bounce { animation: dlBounce 1.3s ease-in-out infinite; }
+    /* Day 21 trioCompare 리메이크(2026-08-13, v2) - 서랍 슬라이드가 overflow-hidden 박스 안에서
+       위쪽이 잘려 보이는 버그가 있었다(clip 경계 계산 실수). 서랍 대신 "눌러야 작동하는 버튼"으로
+       교체 - 눌렸다 튀어 오르는 동작이라 클리핑 문제 자체가 없고, 다른 비주얼의 은은한 opacity
+       펄스와 확실히 다른 모션이라 더 눈에 띈다 */
+    @keyframes buttonPress { 0%,55%,100% { transform: scale(1); } 66% { transform: scale(.86); } 76% { transform: scale(1.06); } 86% { transform: scale(1); } }
+    .btn-press { animation: buttonPress 3.4s ease-in-out infinite; }
+    /* '같은 걸 세 번' 규칙 - 1→2→3 을 계속 세는 게이지. 세 번째에서 멈칫했다 리셋된다.
+       width 대신 scaleX 로 그린다 - 레이아웃을 다시 잡지 않아 가볍고, 무엇보다 마지막 키프레임이
+       '꽉 찬 상태'라서 모션을 끈 사용자(prefers-reduced-motion)에게도 게이지가 채워진 채로 남는다.
+       width 로 하면 마지막이 0% 라 게이지가 아예 안 보였다 */
+    @keyframes tallyFill { 0%,5% { transform: scaleX(0); } 28%,33% { transform: scaleX(.5); } 56%,100% { transform: scaleX(1); } }
+    .tally-fill { transform-origin: left; animation: tallyFill 4.2s cubic-bezier(.4,0,.3,1) infinite; }
     .anim-in-r        { animation: slideInR .34s cubic-bezier(.22,.9,.3,1) both; }
     .anim-in-l        { animation: slideInL .34s cubic-bezier(.22,.9,.3,1) both; }
     .animate-fadeUp   { animation: fadeUp .5s ease both; }
@@ -880,6 +898,103 @@
         </svg>
       );
     }
+    /* PJT1/PJT2 순서 스테퍼(StepFlow)에서 쓰는 아이콘 세 개 - 기존 세트에 없던 개념(융합·폴더·복사)이라 같은 획 스타일로 새로 그렸다 */
+    function IconSparkle() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2.5 L11.6 7.8 L17 9.4 L11.6 11 L10 16.3 L8.4 11 L3 9.4 L8.4 7.8 Z" />
+          <path d="M16 2.3 L16.55 4.15 L18.4 4.7 L16.55 5.25 L16 7.1 L15.45 5.25 L13.6 4.7 L15.45 4.15 Z" strokeWidth="1.3" />
+        </svg>
+      );
+    }
+    function IconFolder() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2.5 5.5 A1.5 1.5 0 0 1 4 4 H8 L9.5 6 H16 A1.5 1.5 0 0 1 17.5 7.5 V14 A1.5 1.5 0 0 1 16 15.5 H4 A1.5 1.5 0 0 1 2.5 14 Z" />
+        </svg>
+      );
+    }
+    function IconCopy() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="6.5" y="6.5" width="11" height="11" rx="1.6" />
+          <path d="M4.5 13.5 H3.5 A1 1 0 0 1 2.5 12.5 V3.5 A1 1 0 0 1 3.5 2.5 H12.5 A1 1 0 0 1 13.5 3.5 V4.5" />
+        </svg>
+      );
+    }
+    /* 챕터 6(스킬) 비주얼용 - 내려받기·압축·업로드·문서·경고 */
+    function IconDownload() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2.5 V12.5 M6 8.8 L10 12.8 L14 8.8" />
+          <path d="M3 14.5 V16 A1.5 1.5 0 0 0 4.5 17.5 H15.5 A1.5 1.5 0 0 0 17 16 V14.5" />
+        </svg>
+      );
+    }
+    function IconUpload() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 13 V3 M6 6.7 L10 2.7 L14 6.7" />
+          <path d="M3 14.5 V16 A1.5 1.5 0 0 0 4.5 17.5 H15.5 A1.5 1.5 0 0 0 17 16 V14.5" />
+        </svg>
+      );
+    }
+    /* 지퍼가 달린 압축 파일 */
+    function IconArchive() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 2.5 H16 A1.5 1.5 0 0 1 17.5 4 V16 A1.5 1.5 0 0 1 16 17.5 H4 A1.5 1.5 0 0 1 2.5 16 V4 A1.5 1.5 0 0 1 4 2.5 Z" />
+          <path d="M10 2.5 V5 M10 7 V9 M10 11 V12" />
+          <rect x="8.4" y="12.6" width="3.2" height="3.4" rx="1" />
+        </svg>
+      );
+    }
+    /* 모서리가 접힌 문서 - 내장 스킬이 뽑아내는 '진짜 파일'을 나타낸다 */
+    function IconDocFold() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 2.5 H12 L16.5 7 V17.5 H4 Z" />
+          <path d="M11.6 2.7 V7.2 H16.2" />
+        </svg>
+      );
+    }
+    /* 되돌리기 화살표 - 아티팩트 버전 기록에서 이전 버전으로 복원 */
+    function IconUndo() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 9 A6.5 6.5 0 1 1 5.6 13.6" />
+          <path d="M2.2 4.6 L4 9.2 L8.6 7.4" />
+        </svg>
+      );
+    }
+    /* Day 21 trioCompare 서랍 속 망치 - "필요할 때 꺼내 쓰는 도구"라는 스킬 비유용 */
+    function IconHammer() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11.2 8.2 L16.3 13.3 A1.3 1.3 0 0 1 14.5 15.1 L9.4 10 Z" />
+          <path d="M4 17.5 L9 12.5" />
+          <path d="M9.3 4.2 L15.8 3.2 L16.8 9.7 L13.4 6.7 Z" />
+        </svg>
+      );
+    }
+    /* Day 1 - 다음 Day가 잠겨 있다는 걸 보여주는 자물쇠 */
+    function IconLock() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="9" width="12" height="9" rx="1.8" />
+          <path d="M6.5 9 V6 A3.5 3.5 0 0 1 13.5 6 V9" />
+          <path d="M10 12.5 V14.5" strokeWidth="2" />
+        </svg>
+      );
+    }
+    function IconAlertTriangle() {
+      return (
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2.8 L18.2 16.8 H1.8 Z" />
+          <path d="M10 7.8 V11.6 M10 14.2 V14.25" />
+        </svg>
+      );
+    }
     /* 이후 개념 Day 비주얼(커넥터 허브 등)에서 쓰는 앱 아이콘 - 실제 로고 이미지(assets.js의 DATA.LOGOS)를 그대로 쓴다 */
     function IconNotionApp() {
       return <img src={DATA.LOGOS.notion} alt="노션" className="w-full h-full object-contain" />;
@@ -952,6 +1067,27 @@
               <div className={"text-[14.5px] font-black " + text}>{label}</div>
               <div className="text-[11.5px] text-gray-500 leading-snug">{caption}</div>
             </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* PJT1·PJT2 순서 슬라이드에서 공유하는 세로 스테퍼 - 점선으로 이은 세로선 위에 아이콘 배지 +
+       라벨을 순서대로 늘어놓는다. 세 군데(qaArtifactSteps, pjt2Day1Steps, pjt2Day2Steps)에서 거의
+       같은 마크업이 반복돼서 뽑아냈다 */
+    function StepFlow({ steps }) {
+      return (
+        <div className="relative pl-4">
+          <div className="absolute left-[6.5px] top-1.5 bottom-1.5 w-[2px] rounded-full bg-gray-100" />
+          <div className="space-y-2.5">
+            {steps.map((s, i) => (
+              <div key={i} className="relative flex items-center gap-2.5"
+                style={{ animation: "revealUp .4s " + (.15 + i * .1) + "s both" }}>
+                <span className="absolute -left-4 w-3 h-3 rounded-full bg-white border-2 border-brand-400" />
+                <span className={"shrink-0 w-7 h-7 rounded-lg grid place-items-center p-1.5 " + s.tone}><s.Icon /></span>
+                <span className="text-[11px] font-black text-ink leading-tight">{s.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       );
@@ -1152,11 +1288,51 @@
       }
 
       /* Day 3 - 세 모델을 깊이 vs 속도 축 위의 점으로 보여준다. 외울 필요 없이 '축 하나'만 남기는 게 목적 */
+      /* Day 1 - Day 타입과 무관하게(퀴즈든 미션 제출이든) 오늘을 통과해야 내일이 열린다는 규칙.
+         현재 Day는 브랜드 그라디언트로 빛나고, 다음 Day들은 자물쇠와 함께 흐릿하게 이어진다 */
+      /* Day 1 - v2(2026-08-13). v1(3개 칩 + 사이사이 작은 자물쇠 + 인디고 마무리 바)이 "안 어울린다"는
+         평을 받았다 - 주황(오늘 칩)과 인디고(마무리 바)가 서로 무관한 색으로 충돌했고, 칩 사이 3x3
+         자물쇠는 너무 작아 장식 이상의 역할을 못 했다. v2는 "오늘 → 내일" 딱 두 칸으로 단순화하고,
+         주황(활성)·잉크(마무리)·회색(잠김) 세 톤만 써서 이 파일 다른 카드들과 같은 팔레트로 통일했다.
+         두 칸은 같은 크기(flex-1)로 맞춰 균형을 잡는다 */
+      if (kind === "dayLockChain") {
+        return (
+          <div className={card}>
+            <div className="flex items-stretch gap-2.5">
+              <div className="flex-1 rounded-2xl px-3 py-3.5 text-center text-white shadow-lift"
+                style={{ background: "linear-gradient(135deg,#FF8747,#E05500)", animation: "popIn .4s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                <div className="text-[13px] font-black">오늘</div>
+                <div className="mt-1 text-[9px] font-bold text-white/85">진행 중</div>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-1 shrink-0 text-gray-300">
+                <IconArrowSm />
+                <span className="w-4 h-4" style={{ animation: "pulseSoft 2s .3s ease-in-out infinite" }}><IconLock /></span>
+              </div>
+              <div className="flex-1 rounded-2xl px-3 py-3.5 text-center bg-white border-2 border-dashed border-gray-200 text-gray-300"
+                style={{ animation: "popIn .4s .15s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                <div className="text-[13px] font-black">내일</div>
+                <div className="mt-1 text-[9px] font-bold">잠김</div>
+              </div>
+            </div>
+            <div className="mt-3.5 rounded-xl bg-ink px-3.5 py-2.5 text-center text-[10.5px] font-black text-white">
+              오늘을 통과해야 <span className="text-brand-300">내일이 열려요</span>
+            </div>
+            <div className="mt-2 text-center text-[9.5px] text-gray-400">퀴즈, 미션 제출, 원칙은 같아요</div>
+          </div>
+        );
+      }
+
       if (kind === "modelSpectrum") {
+        /* 점 위치(pos)를 아래 grid-cols-5 라벨의 칸 중심(10/30/50/70/90)과 정확히 맞췄다.
+           2026-08-13 재수정: Mythos가 계속 깜빡이는 게 산만하다는 피드백으로 pulseSoft를 뺐다 -
+           이제 Fable·Mythos 둘 다 정적으로 흐리게(opacity)만 처리해 "이 챌린지에서 안 쓴다"는
+           같은 톤을 준다. 금지 배지(IconNoEntry)는 Mythos에 그대로 남겨 "아예 못 쓴다"는 의미는 구분한다 */
         const models = [
-          { name: "Haiku", sub: "가장 빠름", pos: 8, dot: "bg-sky-500" },
-          { name: "Sonnet", sub: "균형 · 챌린지 기본", pos: 50, dot: "bg-brand-500" },
-          { name: "Opus", sub: "가장 깊음", pos: 92, dot: "bg-violet-500" },
+          { name: "Haiku", sub: "가장 빠름", pos: 10, dot: "bg-sky-500" },
+          { name: "Sonnet", sub: "균형 · 챌린지 기본", pos: 30, dot: "bg-brand-500" },
+          { name: "Opus", sub: "가장 깊음", pos: 50, dot: "bg-violet-500" },
+          { name: "Fable", sub: "크레딧 추가 구매 필요", pos: 70, dot: "bg-indigo-400", faded: true },
+          { name: "Mythos", sub: "이용 불가", pos: 90, dot: "bg-rose-500", locked: true, faded: true },
         ];
         return (
           <div className={card}>
@@ -1164,21 +1340,29 @@
               <span>⚡ 빠르게</span>
               <span>깊게 생각 🧠</span>
             </div>
-            <div className="relative mt-3 h-2 rounded-full bg-gradient-to-r from-sky-200 via-brand-200 to-violet-200">
+            <div className="relative mt-3 h-2 rounded-full" style={{ background: "linear-gradient(90deg,#BAE6FD,#FFC9AC,#DDD6FE,#C7D2FE,#FECDD3)" }}>
               {models.map((m, i) => (
-                <span key={i} className={"absolute -top-2.5 w-7 h-7 rounded-full border-4 border-white shadow-soft " + m.dot}
-                  style={{ left: m.pos + "%", transform: "translateX(-50%)", animation: "popIn .4s " + (i * .15) + "s cubic-bezier(.2,.9,.3,1.15) both" }} />
+                <span key={i} className="absolute -top-2.5" style={{ left: m.pos + "%", transform: "translateX(-50%)", opacity: m.faded ? .55 : 1 }}>
+                  <span className={"relative block w-7 h-7 rounded-full border-4 border-white shadow-soft " + m.dot}
+                    style={{ animation: "popIn .4s " + (i * .15) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                    {m.locked && (
+                      <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-white text-rose-500 grid place-items-center shadow ring-1 ring-rose-200">
+                        <IconNoEntry />
+                      </span>
+                    )}
+                  </span>
+                </span>
               ))}
             </div>
-            <div className="mt-6 grid grid-cols-3 gap-1.5">
+            <div className="mt-8 grid grid-cols-5 gap-1">
               {models.map((m, i) => (
-                <div key={i} className="text-center" style={{ animation: "revealUp .4s " + (.4 + i * .1) + "s both" }}>
-                  <div className="text-[13.5px] font-black text-ink">{m.name}</div>
-                  <div className="mt-0.5 text-[10px] text-gray-400 leading-snug">{m.sub}</div>
+                <div key={i} className="text-center" style={{ animation: "revealUp .4s " + (.4 + i * .1) + "s both", opacity: m.faded ? .65 : 1 }}>
+                  <div className={"text-[10.5px] sm:text-[12px] font-black " + (m.locked ? "text-rose-500" : "text-ink")}>{m.name}</div>
+                  <div className="mt-0.5 text-[8px] sm:text-[9px] text-gray-400 leading-snug">{m.sub}</div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 rounded-xl bg-gray-50 px-3.5 py-2.5 text-[11.5px] text-gray-500 text-center">
+            <div className="mt-4 rounded-xl bg-gray-50 px-3.5 py-2.5 text-[11px] text-gray-500 text-center leading-snug">
               외울 필요 없어요 - <b className="text-ink">깊게 vs 빠르게</b>, 이 축 하나만 기억하세요
             </div>
           </div>
@@ -1221,36 +1405,32 @@
       /* Day 2 - 사용량 한도를 세션·주간 게이지 두 개로 압축해서 보여준다. 원래 문단 4개짜리 설명이었는데
          숫자(퍼센트·리셋 주기·모델 조합)만 눈에 띄게 뽑아내면 글로 안 읽어도 한눈에 들어온다 */
       if (kind === "usageGauge") {
+        /* 실제 설정 → 사용량 화면(다크) 색을 그대로 옮겼다 - 밝은 카드 대신 짙은 패널 위에
+           파란 게이지를 써서, 나중에 진짜 화면을 봤을 때 "이거 봤던 거네" 하고 연결되게 한다 */
         const gauges = [
-          { label: "현재 세션", pct: 67, sub: "28분 후 재설정" },
-          { label: "이번 주 한도", pct: 54, sub: "매주 월요일 재설정" },
+          { label: "현재 세션", pct: 33, sub: "39분 후 재설정" },
+          { label: "모든 모델", pct: 5, sub: "(목) 오전 10:00에 재설정" },
         ];
         return (
-          <div className={card}>
-            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft p-4 space-y-4">
+          <div className="relative rounded-3xl border border-white/10 bg-[#161616] p-5 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,.35)]">
+            <div className="flex items-center gap-2">
+              <span className="text-[12.5px] font-black text-white">플랜 사용량 한도</span>
+              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/70">Pro</span>
+            </div>
+            <div className="mt-4 space-y-4">
               {gauges.map((g, i) => (
                 <div key={i} style={{ animation: "revealUp .4s " + (i * .1) + "s both" }}>
-                  <div className="flex items-end justify-between mb-1.5">
-                    <span className="text-[11.5px] font-bold text-gray-500">{g.label}</span>
-                    <span className="text-[15px] font-black text-ink tabular-nums leading-none">{g.pct}<span className="text-[10px] text-gray-400">% 사용</span></span>
+                  <div className="mb-1.5 text-[11px] font-bold text-white/60">{g.label}</div>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full rounded-full origin-left" style={{ width: g.pct + "%", background: "linear-gradient(90deg,#60A5FA,#2563EB)",
+                        animation: "growRight .7s " + (i * .1 + .15) + "s cubic-bezier(.2,.8,.3,1) both" }} />
+                    </div>
+                    <span className="shrink-0 text-[11.5px] font-black text-white tabular-nums">{g.pct}<span className="text-[9.5px] font-bold text-white/40"> % 사용됨</span></span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-full rounded-full origin-left" style={{ width: g.pct + "%", background: "linear-gradient(90deg,#FF8747,#FF6000)",
-                      animation: "growRight .7s " + (i * .1 + .15) + "s cubic-bezier(.2,.8,.3,1) both" }} />
-                  </div>
-                  <div className="mt-1 text-[10px] text-gray-400">{g.sub}</div>
+                  <div className="mt-1 text-[9.5px] text-white/40">{g.sub}</div>
                 </div>
               ))}
-            </div>
-            <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-              <div className="rounded-xl bg-brand-50 border border-brand-100 px-3 py-2.5 text-center">
-                <div className="text-[9.5px] font-black text-brand-600">모델 조합</div>
-                <div className="mt-0.5 text-[12.5px] font-black text-ink">Sonnet · 높음</div>
-              </div>
-              <div className="rounded-xl bg-brand-50 border border-brand-100 px-3 py-2.5 text-center">
-                <div className="text-[9.5px] font-black text-brand-600">리셋 주기</div>
-                <div className="mt-0.5 text-[12.5px] font-black text-ink">5시간마다</div>
-              </div>
             </div>
           </div>
         );
@@ -1321,6 +1501,219 @@
         );
       }
 
+      /* Day 14 - PJT1 2일차 순서. 0단계(설정 토글)가 꺼지면 이후 스텝이 전부 막히는 게이트라
+         실제 설정 화면처럼 토글 행으로 강조해 위에 두고, 나머지 네 스텝은 아래 세로 스테퍼로 잇는다.
+         토글에 pulseSoft를 계속 돌려 "지금 확인해야 하는 항목"이라는 긴장감을 준다 */
+      if (kind === "qaArtifactSteps") {
+        const steps = [
+          { Icon: IconChatPlus, label: "어제 만든 대시보드 열기", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconSparkle, label: "AI 분석가로 융합", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconArrowSm, label: "요청문 보내기", tone: "bg-amber-100 text-amber-600" },
+          { Icon: IconTarget, label: "질문 3개 답하기", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <div className="rounded-2xl bg-white border-2 border-brand-300 shadow-soft px-3.5 py-3 flex items-center gap-3"
+              style={{ animation: "popIn .4s cubic-bezier(.2,.9,.3,1.15) both" }}>
+              <span className="shrink-0 w-8 h-8 rounded-lg bg-brand-100 text-brand-600 grid place-items-center p-1.5"><IconGear /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[11.5px] font-black text-ink truncate">AI 기반 아티팩트</div>
+                <div className="text-[9.5px] font-bold text-rose-500 leading-snug">꺼져 있으면 오늘 미션이 안 돼요</div>
+              </div>
+              <span className="relative shrink-0 w-9 h-5 rounded-full"
+                style={{ background: "linear-gradient(135deg,#22C55E,#16A34A)", animation: "pulseSoft 2.4s ease-in-out infinite" }}>
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white shadow" />
+              </span>
+            </div>
+            <div className="mt-3.5"><StepFlow steps={steps} /></div>
+          </div>
+        );
+      }
+
+      /* Day 13 - PJT1 1일차 순서. Day 24/25(PJT2)와 같은 StepFlow 스타일로 통일 - 게이트 없는
+         평범한 5단계라 강조 카드 없이 바로 StepFlow */
+      if (kind === "pjt1Day1Steps") {
+        const steps = [
+          { Icon: IconDocLines, label: "데이터 붙여넣고 설명 요청", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconCalc, label: "이익 추이 · 평균 계산", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconLayoutGrid, label: "한눈에 보는 대시보드로", tone: "bg-amber-100 text-amber-600" },
+          { Icon: IconPencil, label: "색·차트·배치 다듬기", tone: "bg-rose-100 text-rose-600" },
+          { Icon: IconDownload, label: "파일로 내려받기", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <StepFlow steps={steps} />
+          </div>
+        );
+      }
+
+      /* Day 24 - PJT2 1일차 순서. 실제로 하게 될 6단계(복제→접근범위→프로젝트→지침→테스트→복사)를
+         그대로 세로 스테퍼로. 게이트가 없는 평범한 순서라 qaArtifactSteps 같은 강조 카드 없이 바로 StepFlow만 */
+      if (kind === "pjt2Day1Steps") {
+        const steps = [
+          { Icon: IconNotionApp, label: "노션 페이지 복제해오기", tone: "bg-white ring-1 ring-gray-200" },
+          { Icon: IconEye, label: "커넥터 접근 범위 확인", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconFolder, label: "새 프로젝트 만들기", tone: "bg-amber-100 text-amber-600" },
+          { Icon: IconPencil, label: "지침 쓰기", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconTarget, label: "「Week 1」로 테스트", tone: "bg-rose-100 text-rose-600" },
+          { Icon: IconCopy, label: "답변 복사해두기", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <StepFlow steps={steps} />
+          </div>
+        );
+      }
+
+      /* Day 25 - PJT2 2일차 순서. 5단계(프로젝트 열기→캘린더 요청→확인→이메일 요청→복사). 실제 앱
+         두 개(캘린더·Gmail)를 넘나드는 게 이 Day의 핵심이라 로고 아이콘을 그대로 살렸다 */
+      if (kind === "pjt2Day2Steps") {
+        const steps = [
+          { Icon: IconFolder, label: "어제 프로젝트 이어서 열기", tone: "bg-amber-100 text-amber-600" },
+          { Icon: IconCalendarRange, label: "캘린더 요청 보내기", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconCheckCircle, label: "캘린더 등록 확인 + 캡처", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconGmailApp, label: "이메일 요청 보내기", tone: "bg-white ring-1 ring-gray-200" },
+          { Icon: IconCopy, label: "초안 복사해두기", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <StepFlow steps={steps} />
+          </div>
+        );
+      }
+
+      /* Day 19 - 지침 공식. 입력→동작→출력 세 칸을 위에서 아래로 흐르게 쌓고, 사이의 화살표를 계속
+         아래로 까딱이게 해서 "한 방향으로 이어 붙인다"는 걸 몸으로 알게 한다. 맨 아래에 세 조각이
+         하나로 합쳐진 결과 바를 sheen과 함께 둬서 "이게 곧 지침"이라는 착지를 만든다 */
+      if (kind === "instructionFormula") {
+        const parts = [
+          { n: "1", tag: "입력", q: "무엇이 들어오면", ex: "엑셀 파일이 올라오면", accent: "bg-sky-500", chip: "bg-sky-50 text-sky-600 border-sky-200" },
+          { n: "2", tag: "동작", q: "무엇을 하는가", ex: "요약하고 이상치를 표시한다", accent: "bg-violet-500", chip: "bg-violet-50 text-violet-600 border-violet-200" },
+          { n: "3", tag: "출력", q: "결과는 어떤 모양인가", ex: "① 요약 ② 발견 ③ 다음 액션", accent: "bg-amber-500", chip: "bg-amber-50 text-amber-600 border-amber-200" },
+        ];
+        return (
+          <div className={card}>
+            {parts.map((p, i) => (
+              <React.Fragment key={i}>
+                <div className="relative rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden pl-3 pr-3 py-2.5"
+                  style={{ animation: "revealUp .42s " + (i * .12) + "s both" }}>
+                  <span className={"absolute left-0 top-0 bottom-0 w-1.5 " + p.accent} />
+                  <div className="flex items-center gap-2">
+                    <span className={"shrink-0 w-5 h-5 rounded-full text-white text-[10px] font-black grid place-items-center " + p.accent}>{p.n}</span>
+                    <span className="text-[11.5px] font-black text-ink">{p.tag}</span>
+                    <span className="text-[9.5px] text-gray-400 truncate">{p.q}</span>
+                  </div>
+                  <div className={"mt-1.5 rounded-lg border px-2 py-1 text-[10px] font-bold " + p.chip}>{p.ex}</div>
+                </div>
+                {i < parts.length - 1 && (
+                  <div className="flex justify-center py-1">
+                    <span className="w-3.5 h-3.5 text-gray-300 nudge-d" style={{ animationDelay: (i * .25) + "s" }}>
+                      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 4 V15 M5 10.5 L10 15.5 L15 10.5" />
+                      </svg>
+                    </span>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+            <div className="sheen relative mt-3 rounded-xl bg-brand-600 px-3.5 py-2.5 text-center text-[11px] font-black text-white overflow-hidden"
+              style={{ animation: "revealUp .4s .5s both" }}>
+              이어 붙이면 = 지침
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 21 - 설치 없이 이미 들어 있는 내장 스킬 네 개. 이모지 목록 대신 실제 파일처럼 생긴 카드로
+         보여줘야 "진짜 파일이 나온다"는 말이 믿긴다. 확장자 배지를 각 포맷 고유색으로 칠하고
+         문서 아이콘을 서로 다른 주기로 떠다니게 해서 카드가 살아 있게 만든다 */
+      if (kind === "builtinSkills") {
+        const files = [
+          { ext: "xlsx", label: "엑셀", tone: "text-emerald-600", badge: "bg-emerald-500", ring: "hover:border-emerald-200" },
+          { ext: "pptx", label: "발표자료", tone: "text-orange-600", badge: "bg-orange-500", ring: "hover:border-orange-200" },
+          { ext: "docx", label: "워드 문서", tone: "text-blue-600", badge: "bg-blue-500", ring: "hover:border-blue-200" },
+          { ext: "pdf", label: "PDF", tone: "text-rose-600", badge: "bg-rose-500", ring: "hover:border-rose-200" },
+        ];
+        return (
+          <div className={card}>
+            <div className="flex justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[9.5px] font-black text-emerald-600"
+                style={{ animation: "popIn .35s both" }}>
+                <span className="w-3 h-3"><IconCheckCircle /></span> 설치 불필요 · 이미 들어 있어요
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2.5">
+              {files.map((f, i) => (
+                <div key={i} className={"rounded-2xl bg-white border border-gray-100 shadow-soft p-3 flex flex-col items-center transition-colors " + f.ring}
+                  style={{ animation: "popIn .35s " + (.1 + i * .09) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <span className={"w-8 h-8 " + f.tone} style={{ animation: "floaty " + (3 + i * .4) + "s " + (i * .3) + "s ease-in-out infinite" }}><IconDocFold /></span>
+                  <span className={"mt-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-black text-white tracking-wide " + f.badge}>{f.ext}</span>
+                  <span className="mt-1 text-[10px] font-bold text-gray-500">{f.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 21 - 남이 만든 스킬 받아 쓰기. 3단계는 StepFlow로 재사용하고, 아래에 출처 경고를 붙인다.
+         경고 아이콘만 계속 깜빡이게 해서 "이 한 줄은 그냥 넘기지 말 것"이라고 잡아둔다 */
+      if (kind === "skillInstall") {
+        const steps = [
+          { Icon: IconDownload, label: "스킬 폴더 내려받기", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconArchive, label: "zip으로 압축하기", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconUpload, label: "설정에서 업로드하기", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <StepFlow steps={steps} />
+            <div className="mt-3.5 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2.5 flex items-start gap-2"
+              style={{ animation: "revealUp .4s .45s both" }}>
+              <span className="shrink-0 w-4 h-4 text-rose-500 mt-px" style={{ animation: "pulseSoft 2s ease-in-out infinite" }}><IconAlertTriangle /></span>
+              <span className="text-[10px] font-bold text-rose-600 leading-snug">출처를 모르는 스킬은 받지 마세요 - 절차를 담고 있어서 이상하게 동작할 수 있어요</span>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 22 - "말하면 파일이 나온다"를 실제 대화창처럼. 오른쪽 사용자 말풍선 → 왼쪽에 내려받기
+         가능한 파일 카드가 떨어지는 구조. 다운로드 화살표가 계속 톡톡 튀어서 '내려받을 수 있는
+         진짜 파일'이라는 게 정지 화면에서도 읽힌다 */
+      /* Day 22 - 실제 클로드 다크 테마 채팅창처럼. 흰 카드였던 v1을 짙은 패널로 바꿔 usageGauge와
+         같은 "실제 화면" 계열로 묶었고, 파일 카드에 에메랄드 포인트를 줘 이 배치의 다른 다크 패널과도
+         구분되게 했다 */
+      if (kind === "skillToFile") {
+        return (
+          <div className="relative rounded-3xl overflow-hidden p-3.5 shadow-lift" style={{ background: "linear-gradient(165deg,#211D2B,#15121B)" }}>
+            <div className="flex justify-end" style={{ animation: "revealUp .4s both" }}>
+              <div className="max-w-[85%] rounded-2xl rounded-br-md px-3 py-2 text-[10.5px] font-bold text-white leading-snug shadow-lift"
+                style={{ background: "linear-gradient(135deg,#FF8747,#E05500)" }}>
+                이 데이터로 엑셀 만들어줘.<br />월별 시트를 나누고 합계 행을 넣어줘
+              </div>
+            </div>
+            <div className="my-2.5 flex justify-center">
+              <span className="w-3.5 h-3.5 text-white/25 nudge-d">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10 4 V15 M5 10.5 L10 15.5 L15 10.5" />
+                </svg>
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-3 py-2.5"
+              style={{ animation: "popIn .4s .35s cubic-bezier(.2,.9,.3,1.15) both" }}>
+              <span className="shrink-0 w-7 h-7 text-emerald-400"><IconDocFold /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10.5px] font-black text-white truncate">월별_매출.xlsx</div>
+                <div className="text-[9px] text-white/40">시트 12개 · 합계 행 포함</div>
+              </div>
+              <span className="shrink-0 w-4 h-4 text-emerald-400 dl-bounce"><IconDownload /></span>
+            </div>
+            <div className="mt-2.5 text-center text-[10px] font-bold text-white/60 leading-snug">
+              구체적으로 말할수록 <b className="text-amber-300">결과가 확 달라져요</b>
+            </div>
+          </div>
+        );
+      }
+
       /* Day 15 - 노션·Gmail·캘린더 연결. 추상적인 허브-스포크 다이어그램 대신, Day 15 후반에 실제로 보게 될
          "커넥터 토글 목록" 화면을 미리 그려서 보여준다 - 실제 UI와 닮아 있어야 더 믿음이 가고, 나중에
          진짜 화면을 봤을 때 "아까 그거네" 하고 연결된다. 목록 → 클로드로 흘러들어가는 점선 + 도착점의
@@ -1371,7 +1764,36 @@
         );
       }
 
-      /* Day 3 - 「Sonnet 4.6」을 이름/숫자 두 조각으로 쪼개 보여준다. 자동차 차종·연식 비유를 그대로 카드로 */
+      /* Day 3 - "왜 Sonnet인가"의 두 이유. 앞 슬라이드(영상)에서 결론만 보여줬으니 여기선 이유 두 개를
+         카드로 나란히, 마지막에 Day 2에서 맞춰둔 조합을 다시 확인시켜 닫는다 */
+      if (kind === "sonnetReasons") {
+        const reasons = [
+          { Icon: IconScale, title: "품질 대비 최적화", desc: "Opus로 바꿔도 결과가 극적으로 좋아지진 않는데, 사용량은 훨씬 많이 써요", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconClock, title: "Opus는 한도를 빨리 태워요", desc: "더 좋아 보인다고 쓰다 보면 정작 오늘 미션을 못 끝내고 기다리게 돼요", tone: "bg-rose-100 text-rose-600" },
+        ];
+        return (
+          <div className={card}>
+            <div className="space-y-2.5">
+              {reasons.map((r, i) => (
+                <div key={i} className="rounded-2xl bg-white border border-gray-100 shadow-soft p-3 flex items-start gap-2.5"
+                  style={{ animation: "revealUp .4s " + (i * .15) + "s both" }}>
+                  <span className={"shrink-0 w-8 h-8 rounded-xl grid place-items-center p-1.5 " + r.tone}><r.Icon /></span>
+                  <div className="min-w-0">
+                    <div className="text-[11.5px] font-black text-ink">{r.title}</div>
+                    <div className="mt-0.5 text-[9.5px] text-gray-500 leading-snug">{r.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl px-3.5 py-2.5 text-center text-[10.5px] font-black text-white"
+              style={{ background: "linear-gradient(135deg,#FF8747,#E05500)" }}>
+              Day 2에서 맞춘 <b className="text-white">Sonnet + 노력 높음</b>, 그대로 가시면 돼요
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 3 - 「Sonnet 5.0」을 이름/숫자 두 조각으로 쪼개 보여준다. 자동차 차종·연식 비유를 그대로 카드로 */
       if (kind === "modelVersion") {
         return (
           <div className={card}>
@@ -1380,7 +1802,7 @@
                 <span className="relative text-brand-600">Sonnet
                   <span className="absolute left-0 -bottom-1 h-[3px] w-full rounded-full bg-brand-300 origin-left" style={{ animation: "growRight .5s .2s cubic-bezier(.2,.8,.3,1) both" }} />
                 </span>
-                <span className="relative text-gray-300">4.6
+                <span className="relative text-gray-300">5.0
                   <span className="absolute left-0 -bottom-1 h-[3px] w-full rounded-full bg-gray-200 origin-left" style={{ animation: "growRight .5s .35s cubic-bezier(.2,.8,.3,1) both" }} />
                 </span>
               </div>
@@ -1423,6 +1845,35 @@
             <div className="mt-2 rounded-xl bg-ink px-3.5 py-2.5 text-[10.5px] text-white/85 flex items-center gap-2 leading-snug">
               <span className="shrink-0 w-4 h-4 text-brand-300"><IconBulb /></span>
               길어지면 <b className="text-white">정리해서 새 채팅으로</b> 넘기세요
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 4 - 좋은 프롬프트의 네 요소를 2x2 카드로. 이모지 번호 목록 대신 이 파일의 다른 "네 요소"
+         비주얼(Day 7 instructionElements)과 같은 아이콘 언어를 써서, 나중에 챕터 5에서 지침을 배울 때
+         "그때 그 요소들"이라는 게 자연스럽게 연결되게 한다 */
+      if (kind === "promptElements") {
+        const els = [
+          { Icon: IconDocLines, label: "맥락", desc: "무슨 상황인지", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconMask, label: "역할", desc: "누구처럼 답할지", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconQuoteDoc, label: "예시", desc: "원하는 결과 샘플", tone: "bg-amber-100 text-amber-600" },
+          { Icon: IconLayoutGrid, label: "출력형식", desc: "어떤 모양으로", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <div className="grid grid-cols-2 gap-2.5">
+              {els.map((e, i) => (
+                <div key={i} className="rounded-2xl bg-white border border-gray-100 shadow-soft p-3 text-center"
+                  style={{ animation: "popIn .35s " + (i * .08) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <span className={"inline-flex w-9 h-9 rounded-xl items-center justify-center p-2 " + e.tone}><e.Icon /></span>
+                  <div className="mt-1.5 text-[11px] font-black text-ink">{e.label}</div>
+                  <div className="mt-0.5 text-[9px] text-gray-400 leading-snug">{e.desc}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl bg-brand-50 border border-brand-100 px-3.5 py-2.5 text-[10.5px] text-gray-600 text-center leading-relaxed">
+              네 개를 <b className="text-ink">다 넣을 필요는 없어요</b> - 결과가 아쉬우면 <b className="text-ink">뭐가 빠졌는지</b>부터 보세요
             </div>
           </div>
         );
@@ -1658,27 +2109,352 @@
       }
 
       /* Day 21 - 메모리·지침(자동)과 스킬(내가 불러서)을 한 줄씩. Day는 세 종류예요와 같은 흐름 구조를 재사용 */
-      if (kind === "trioCompare") {
+      /* Day 6 - 문서에 없는 걸 일부러 물어보는 미션. 어느 쪽이 나와도 통과라는 게 핵심이라
+         질문 하나가 두 갈래로 갈라지고 양쪽 끝에 똑같이 '통과' 배지가 붙는 구조로 그렸다.
+         두 배지가 번갈아 반짝여서 "둘 다 정답"이라는 게 눈으로 먼저 읽힌다 */
+      if (kind === "hallucinationCheck") {
+        const branches = [
+          { Icon: IconCheckCircle, head: "「문서에 없습니다」", desc: "믿을 만하다는 뜻", tone: "text-emerald-600", bg: "bg-emerald-50", bd: "border-emerald-200" },
+          { Icon: IconAlertTriangle, head: "그럴듯하게 지어냄", desc: "검증이 필요한 이유를 배움", tone: "text-amber-600", bg: "bg-amber-50", bd: "border-amber-200" },
+        ];
+        return (
+          <div className={card}>
+            <div className="rounded-xl px-3 py-2 text-center text-[10.5px] font-black text-white"
+              style={{ background: "linear-gradient(90deg,#10B981,#F59E0B)", animation: "revealUp .4s both" }}>
+              문서에 <b className="text-white">없는 것</b>을 일부러 물어보면?
+            </div>
+            <div className="relative h-5">
+              <span className="absolute left-1/2 top-0 h-2.5 w-[2px] -ml-px bg-gray-200" />
+              <span className="absolute left-1/4 right-1/4 top-[10px] h-[2px] bg-gray-200" />
+              <span className="absolute left-1/4 top-[10px] h-2.5 w-[2px] bg-gray-200" />
+              <span className="absolute right-1/4 top-[10px] h-2.5 w-[2px] bg-gray-200" />
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {branches.map((b, i) => (
+                <div key={i} className={"rounded-2xl border p-2.5 text-center " + b.bg + " " + b.bd}
+                  style={{ animation: "revealUp .4s " + (.2 + i * .12) + "s both" }}>
+                  <span className={"inline-flex w-6 h-6 " + b.tone}><b.Icon /></span>
+                  <div className="mt-1 text-[10px] font-black text-ink leading-tight">{b.head}</div>
+                  <div className="mt-0.5 text-[9px] text-gray-500 leading-snug">{b.desc}</div>
+                  <div className="mt-1.5 rounded-full bg-brand-500 py-0.5 text-[9px] font-black text-white"
+                    style={{ animation: "pulseSoft 2.4s " + (i * 1.2) + "s ease-in-out infinite" }}>통과</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 9 - 출처 검증을 요청문에 끼워 넣는 세 문장. 따로 열어보는 대신 한 번에 시킨다는 게 요지라
+         세 줄을 하나의 요청 카드 안에 겹쳐 담아 "이걸 통째로 붙이면 된다"처럼 보이게 했다 */
+      if (kind === "sourceVerify") {
+        const lines = [
+          { Icon: IconNoEntry, text: "신뢰할 수 없는 출처는 빼고", tone: "bg-rose-100 text-rose-600" },
+          { Icon: IconShieldCheck, text: "확실하지 않은 건 '확인 필요' 표시", tone: "bg-sky-100 text-sky-600" },
+          { Icon: IconListOutput, text: "사용한 출처를 목록으로 정리", tone: "bg-emerald-100 text-emerald-600" },
+        ];
+        return (
+          <div className={card}>
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 text-[9.5px] font-black text-gray-400 tracking-wide">
+                요청문에 이 세 줄을 더하세요
+              </div>
+              <div className="divide-y divide-gray-100">
+                {lines.map((l, i) => (
+                  <div key={i} className="flex items-center gap-2.5 px-3.5 py-2.5"
+                    style={{ animation: "revealUp .4s " + (i * .12) + "s both" }}>
+                    <span className={"shrink-0 w-6 h-6 rounded-lg grid place-items-center p-1 " + l.tone}><l.Icon /></span>
+                    <span className="text-[10.5px] font-bold text-gray-600 leading-snug">{l.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="sheen relative mt-2.5 rounded-xl bg-brand-50 border border-brand-100 px-3 py-2 text-center text-[10px] font-black text-gray-600 overflow-hidden">
+              검증까지 <b className="text-ink">한 번에</b> - 일을 두 번 하지 마세요
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 10 - 아티팩트 버전 기록. 실제로 보게 될 버전 목록 패널을 그대로 그려서 "되돌릴 수 있다"를
+         말이 아니라 화면으로 납득시킨다. 이전 버전 행의 되돌리기 아이콘만 계속 움직여 클릭 지점을 가리킨다 */
+      if (kind === "artifactVersions") {
+        const versions = [
+          { v: "v3", label: "현재 버전", sub: "방금 수정함", now: true },
+          { v: "v2", label: "이전 버전", sub: "색상 변경 전" },
+          { v: "v1", label: "처음 만든 버전", sub: "최초 생성" },
+        ];
+        return (
+          <div className={card}>
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 text-gray-400"><IconClock /></span>
+                <span className="text-[9.5px] font-black text-gray-400 tracking-wide">버전 기록</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {versions.map((r, i) => (
+                  <div key={i} className={"flex items-center gap-2.5 px-3.5 py-2.5 " + (r.now ? "bg-brand-50/60" : "")}
+                    style={{ animation: "revealUp .4s " + (i * .1) + "s both" }}>
+                    <span className={"shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-black " + (r.now ? "bg-brand-500 text-white" : "bg-gray-100 text-gray-500")}>{r.v}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10.5px] font-black text-ink truncate">{r.label}</div>
+                      <div className="text-[9px] text-gray-400">{r.sub}</div>
+                    </div>
+                    {!r.now && (
+                      <span className="shrink-0 w-4 h-4 text-brand-500" style={{ animation: "nudgeD 1.6s " + (i * .3) + "s ease-in-out infinite" }}><IconUndo /></span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2.5 rounded-xl px-3 py-2 text-center text-[10px] font-bold text-white/90 leading-snug"
+              style={{ background: "linear-gradient(135deg,#A78BFA,#7C3AED)" }}>
+              돌아올 길이 있으니 <b className="text-white">마음껏 실험하세요</b>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 18 - 프로젝트 안에 지식(자료)과 지침(방식) 두 칸이 있다는 구조를 실제 프로젝트 화면처럼.
+         두 칸이 아래 대화로 함께 흘러들어가는 걸 점선+드립으로 보여줘 "열면 이미 알고 시작한다"를 만든다 */
+      if (kind === "projectAnatomy") {
+        return (
+          <div className={card}>
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 text-brand-500"><IconFolder /></span>
+                <span className="text-[10px] font-black text-ink">우리 회사 마케팅</span>
+              </div>
+              <div className="p-2.5 space-y-2">
+                <div style={{ animation: "revealUp .4s .1s both" }}>
+                  <div className="mb-1 text-[9px] font-black text-gray-400 tracking-wide">지식 · 자료</div>
+                  <div className="flex flex-wrap gap-1">
+                    {["브랜드 가이드", "지난 보고서", "제품 설명서"].map((t, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 rounded-md bg-sky-50 border border-sky-200 px-1.5 py-1 text-[9px] font-bold text-sky-700">
+                        <span className="w-2.5 h-2.5"><IconDocFold /></span>{t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ animation: "revealUp .4s .22s both" }}>
+                  <div className="mb-1 text-[9px] font-black text-gray-400 tracking-wide">지침 · 방식</div>
+                  <div className="rounded-md bg-violet-50 border border-violet-200 px-2 py-1.5 text-[9px] font-bold text-violet-700 leading-snug">
+                    "보고서가 올라오면 → 요약 → 액션 3개"
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="relative h-6">
+              <div className="absolute left-1/2 -ml-px top-0 bottom-0 w-[2px] rounded-full bg-brand-100" />
+              {[0, 1].map((i) => (
+                <span key={i} className="absolute left-1/2 -ml-[3px] w-1.5 h-1.5 rounded-full bg-brand-400 connector-drip"
+                  style={{ animationDelay: (i * .7) + "s" }} />
+              ))}
+            </div>
+            <div className="rounded-xl bg-brand-500 px-3 py-2.5 text-center text-[10.5px] font-black text-white">
+              여기서 대화를 열면 <b className="text-white">이미 알고 시작해요</b>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 18 - 프로젝트 범위 고르기. 넓다/적당/좁다를 축 하나 위에 놓아, 「업무」와 「10월 3주차」가
+         왜 둘 다 나쁜지를 양 극단이라는 위치로 설명한다. 가운데 적당한 칸만 브랜드색으로 살렸다 */
+      if (kind === "projectScope") {
+        const zones = [
+          { label: "너무 넓음", ex: "「업무」", why: "자료끼리 방해", tone: "text-gray-400", bg: "bg-gray-50", bd: "border-gray-200" },
+          { label: "적당", ex: "「우리 회사 마케팅」", why: "맥락이 딱 겹침", tone: "text-brand-600", bg: "bg-brand-50", bd: "border-brand-300", good: true },
+          { label: "너무 좁음", ex: "「10월 3주차」", why: "매주 새로 만듦", tone: "text-gray-400", bg: "bg-gray-50", bd: "border-gray-200" },
+        ];
+        return (
+          <div className={card}>
+            <div className="h-2 rounded-full" style={{ background: "linear-gradient(90deg,#E5E7EB,#FFC9AC,#E5E7EB)" }} />
+            <div className="mt-2.5 grid grid-cols-3 gap-1.5">
+              {zones.map((z, i) => (
+                <div key={i} className={"rounded-xl border p-2 text-center " + z.bg + " " + z.bd + (z.good ? " shadow-soft" : "")}
+                  style={{ animation: "popIn .35s " + (i * .1) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <div className={"text-[9px] font-black " + z.tone}>{z.label}</div>
+                  <div className={"mt-1 text-[9.5px] font-black leading-tight " + (z.good ? "text-ink" : "text-gray-400")}>{z.ex}</div>
+                  <div className="mt-0.5 text-[8px] text-gray-400 leading-snug">{z.why}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2.5 rounded-xl bg-gray-50 border border-dashed border-gray-300 px-3 py-2 text-center text-[10px] text-gray-500 leading-snug">
+              감이 안 오면 <b className="text-ink">일단 크게 만들고 나중에 쪼개세요</b>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 19 - 나쁜 지침 세 개. 앞 슬라이드(instructionFormula)에서 만든 공식과 짝이 되도록
+         '왜 안 되는지'를 각 줄 아래에 붙였다. 셋의 공통 원인을 맨 아래 한 줄로 못박는다 */
+      if (kind === "badInstructions") {
+        const bads = [
+          { quote: "친절하고 전문적으로 답변해줘", why: "언제 뭘 할지가 없어요" },
+          { quote: "내 업무를 도와줘", why: "뭐가 들어오는지 없어요" },
+          { quote: "좋은 리포트를 만들어줘", why: "'좋은'이 뭔지 몰라요" },
+        ];
         return (
           <div className={card}>
             <div className="space-y-2">
-              {[
-                { icon: <IconAuto />, label: "메모리", desc: "나를 저장 · 자동 적용", tone: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
-                { icon: <IconAuto />, label: "지침", desc: "일의 방식을 저장 · 자동 적용", tone: "text-brand-600", bg: "bg-brand-50", border: "border-brand-200" },
-                { icon: <IconCursor />, label: "스킬", desc: "절차를 저장 · 내가 불러서 사용", tone: "text-violet-600", bg: "bg-violet-50", border: "border-violet-200" },
-              ].map((r, i) => (
-                <div key={i} className={"flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 " + r.bg + " " + r.border}
-                  style={{ animation: "revealUp .4s " + (i * .12) + "s both" }}>
-                  <div className={"w-9 h-9 rounded-xl bg-white grid place-items-center shrink-0 shadow-soft p-2 " + r.tone}>{r.icon}</div>
-                  <div className="min-w-0 flex-1">
-                    <div className={"text-[13.5px] font-black " + r.tone}>{r.label}</div>
-                    <div className="text-[10.5px] text-gray-500 leading-snug">{r.desc}</div>
+              {bads.map((b, i) => (
+                <div key={i} className="rounded-xl bg-white border border-rose-100 px-2.5 py-2 flex items-start gap-2"
+                  style={{ animation: "revealUp .4s " + (i * .11) + "s both" }}>
+                  <span className="shrink-0 w-4 h-4 text-rose-400 mt-0.5" style={{ animation: "pulseSoft 2.6s " + (i * .3) + "s ease-in-out infinite" }}><IconXCircle /></span>
+                  <div className="min-w-0">
+                    <div className="text-[10.5px] font-bold text-gray-400 line-through decoration-rose-300">"{b.quote}"</div>
+                    <div className="mt-0.5 text-[9px] text-rose-500 font-bold leading-snug">{b.why}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-3 text-center text-[10.5px] text-gray-400">
-              앞의 둘은 배경에서 조용히, <b className="text-ink">스킬은 내가 꺼내 쓰는 도구</b>예요
+            <div className="mt-3 rounded-xl px-3 py-2.5 text-center text-[10.5px] font-bold text-white/90 leading-snug"
+              style={{ background: "linear-gradient(135deg,#FB7185,#BE123C)" }}>
+              전부 <b className="text-white">조건과 순서가 없어요</b><br />
+              <span className="text-[9.5px] text-white/70">지침은 부탁이 아니라 규칙이에요</span>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 20 - 프로젝트 지식에 넣을 것과 뺄 것. 실제 지식 목록 패널처럼 그리고, 일회성 자료만
+         점선 처리해서 목록 바깥으로 밀려난 것처럼 보이게 했다 */
+      if (kind === "knowledgeWhat") {
+        const keep = ["브랜드 가이드 · 톤앤매너", "제품 · 서비스 설명서", "자주 쓰는 양식 · 템플릿", "지난 보고서"];
+        return (
+          <div className={card}>
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 text-brand-500"><IconFolder /></span>
+                <span className="text-[9.5px] font-black text-gray-400 tracking-wide">프로젝트 지식</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {keep.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2.5 px-3.5 py-2"
+                    style={{ animation: "revealUp .4s " + (i * .09) + "s both" }}>
+                    <span className="shrink-0 w-4 h-4 text-emerald-500"><IconCheckCircle /></span>
+                    <span className="text-[10px] font-bold text-gray-600 leading-snug">{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3.5 py-2 flex items-center gap-2.5"
+              style={{ animation: "revealUp .4s .45s both" }}>
+              <span className="shrink-0 w-4 h-4 text-gray-300"><IconXCircle /></span>
+              <span className="text-[10px] font-bold text-gray-400 leading-snug">일회성 자료 - 그냥 대화에 올리세요</span>
+            </div>
+            <div className="mt-2.5 rounded-xl bg-brand-50 border border-brand-100 px-3 py-2 text-center text-[10px] font-black text-gray-600">
+              "이걸 앞으로도 계속 쓸까?"
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 21 - '같은 걸 세 번' 규칙. 세 번째에서야 스킬이 켜진다는 걸 계속 도는 카운터로 보여준다.
+         게이지가 1→2→3 을 훑고 리셋되는 동안 세 번째 칸만 브랜드색이라 시선이 거기 남는다 */
+      if (kind === "threeTimesRule") {
+        const counts = [
+          { n: "1", label: "그냥 일" },
+          { n: "2", label: "우연" },
+          { n: "3", label: "계속 할 일", hit: true },
+        ];
+        return (
+          <div className={card}>
+            <div className="relative mx-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+              <div className="tally-fill h-full w-full rounded-full" style={{ background: "linear-gradient(90deg,#FFA778,#FF6000)" }} />
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {counts.map((c, i) => (
+                <div key={i} className={"rounded-2xl border p-2.5 text-center " + (c.hit ? "bg-brand-50 border-brand-300 shadow-soft" : "bg-white border-gray-100")}
+                  style={{ animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <div className={"mx-auto w-7 h-7 rounded-full grid place-items-center text-[12px] font-black " + (c.hit ? "bg-brand-500 text-white" : "bg-gray-100 text-gray-400")}>{c.n}</div>
+                  <div className={"mt-1.5 text-[9.5px] font-black leading-tight " + (c.hit ? "text-brand-600" : "text-gray-400")}>{c.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2.5 rounded-xl px-3 py-2.5 flex items-center justify-center gap-1.5 text-[10.5px] font-black text-white"
+              style={{ background: "linear-gradient(135deg,#FDBA74,#EA580C)" }}>
+              <span className="w-3.5 h-3.5 text-white" style={{ animation: "floaty 2.8s ease-in-out infinite" }}><IconSparkle /></span>
+              세 번째부터 스킬로 만드세요
+            </div>
+            <div className="mt-2 text-center text-[9.5px] text-gray-400">
+              한 번만 할 일은 <b className="text-gray-500">그냥 하는 게 빨라요</b>
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 23 - 삼둥이 최종 정리(메모리·프로젝트·스킬). 21.2 trioCompare 가 메모리/지침/스킬을 줄로
+         비교했다면, 여기는 셋을 나란한 카드로 세워 '무엇을 저장하나 / 언제 적용되나'까지 못박는 마무리판 */
+      if (kind === "trioSummary") {
+        const trio = [
+          { Icon: IconPerson, eq: "나", desc: "내가 누구고 뭘 하는지", when: "알아서", tone: "text-sky-600", bg: "bg-sky-50", bd: "border-sky-200", chip: "bg-sky-500" },
+          { Icon: IconFolder, eq: "공간", desc: "이 일의 자료와 방식", when: "그 안에서", tone: "text-brand-600", bg: "bg-brand-50", bd: "border-brand-200", chip: "bg-brand-500" },
+          { Icon: IconSteps, eq: "절차", desc: "반복하는 작업 순서", when: "내가 불러서", tone: "text-violet-600", bg: "bg-violet-50", bd: "border-violet-200", chip: "bg-violet-500" },
+        ];
+        const names = ["메모리", "프로젝트", "스킬"];
+        return (
+          <div className={card}>
+            <div className="grid grid-cols-3 gap-2">
+              {trio.map((t, i) => (
+                <div key={i} className={"rounded-2xl border p-2.5 text-center " + t.bg + " " + t.bd}
+                  style={{ animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <span className={"inline-flex w-7 h-7 rounded-xl bg-white shadow-soft items-center justify-center p-1.5 " + t.tone}
+                    style={{ animation: "floaty " + (3.2 + i * .4) + "s " + (i * .35) + "s ease-in-out infinite" }}><t.Icon /></span>
+                  <div className="mt-1.5 text-[10px] font-black text-ink">{names[i]}</div>
+                  <div className={"text-[11px] font-black " + t.tone}>= {t.eq}</div>
+                  <div className="mt-1 text-[8px] text-gray-400 leading-snug">{t.desc}</div>
+                  <div className={"mt-1.5 rounded-full py-0.5 text-[8px] font-black text-white " + t.chip}>{t.when}</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 rounded-xl px-3 py-2.5 text-center text-[10.5px] font-black text-white"
+              style={{ background: "linear-gradient(90deg,#0EA5E9,#8B5CF6,#FF6000)" }}>
+              "이건 셋 중 <span className="text-white">어디에 저장할까?</span>"
+            </div>
+          </div>
+        );
+      }
+
+      /* Day 21 - 메모리·지침(자동) vs 스킬(내가 꺼내 씀)의 차이를 아이콘 비교 줄 대신 실제 비유
+         그대로 그렸다: 위쪽은 "항상 켜져 배경에서 도는" 자동 배지 둘, 아래는 닫힌 서랍 홈에서
+         망치(스킬)가 주기적으로 올라왔다 내려가는 애니메이션 - "필요할 때 꺼내 쓴다"를 문장이 아니라
+         움직임으로 보여준다. 이전 버전(아이콘+줄 3개)은 이 파일의 다른 리스트형 비주얼과 톤이 겹쳐서
+         "다 똑같이 지루하다"는 피드백을 받고 교체(2026-08-13) */
+      /* Day 21 - 메모리·지침(자동) vs 스킬(내가 눌러서 씀). v1(서랍 슬라이드)이 overflow-hidden
+         박스 안에서 위가 잘려 보이는 버그로 "horrible" 판정을 받아 전면 리메이크(2026-08-13 v2).
+         흰 카드+회색 테두리 톤을 버리고 색이 있는 그라디언트 배경 위에 올려, 이 파일에서 반복되던
+         "흰 박스 + 검은 버튼" 톤과 확실히 갈라놓는다. 위쪽 배지는 은은한 글로우 링으로 "항상 켜짐"을,
+         아래쪽은 실제로 눌렸다 튀어 오르는 원형 버튼(btn-press)으로 "내가 눌러야 작동함"을 몸으로
+         보여준다 - 오프셋으로 서로 다른 리듬을 줘서 두 배지가 기계적으로 안 맞아 보이게 했다 */
+      if (kind === "trioCompare") {
+        return (
+          <div className="relative rounded-3xl overflow-hidden p-5 sm:p-6 shadow-lift"
+            style={{ background: "linear-gradient(160deg,#EEF2FF 0%,#F5F0FF 45%,#FFF3ED 100%)" }}>
+            <div className="flex items-center justify-center gap-3">
+              {[
+                { label: "메모리", grad: "linear-gradient(135deg,#38BDF8,#0284C7)" },
+                { label: "지침", grad: "linear-gradient(135deg,#FF8747,#E05500)" },
+              ].map((m, i) => (
+                <div key={i} className="rounded-full px-4 py-2 text-white text-[11px] font-black shadow-lift flex items-center gap-1.5"
+                  style={{ background: m.grad, animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  <span className="w-2 h-2 rounded-full bg-white" style={{ animation: "pulseSoft " + (1.7 + i * .3) + "s " + (i * .4) + "s ease-in-out infinite" }} />
+                  {m.label}
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-500">항상 켜져서 배경에서 조용히 작동해요</div>
+
+            <div className="mt-5 flex flex-col items-center" style={{ animation: "revealUp .4s .3s both" }}>
+              <div className="relative">
+                <span className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,.35),transparent 70%)", animation: "pulseSoft 3.4s ease-in-out infinite" }} />
+                <div className="btn-press relative w-16 h-16 rounded-full grid place-items-center text-white"
+                  style={{ background: "linear-gradient(160deg,#C4B5FD,#7C3AED)", boxShadow: "0 10px 24px -8px rgba(124,58,237,.6), inset 0 -3px 0 rgba(0,0,0,.15)" }}>
+                  <span className="w-7 h-7"><IconHammer /></span>
+                </div>
+              </div>
+              <div className="mt-2.5 text-[11.5px] font-black text-violet-700">스킬</div>
+              <div className="text-[9.5px] font-bold text-gray-500">내가 눌러야 작동해요</div>
             </div>
           </div>
         );
@@ -1818,11 +2594,12 @@
       }
       return null;
     }
-    function FeatureCard({ icon, tone, title, desc, open, onToggle, delay }) {
+    /* 2026-08-13: 눌러야 펼쳐지는 아코디언 카드(button + open state)였는데, "클릭해서 여는 슬라이드가
+       하나도 없어야 한다"는 요청으로 정적 카드로 바꿨다. 설명은 처음부터 항상 보이고, 클릭 유도
+       요소(button, 화살표 회전)는 전부 뺐다 */
+    function FeatureCard({ icon, tone, title, desc, delay }) {
       return (
-        <button type="button" onClick={onToggle}
-          className={"text-left rounded-2xl border px-3.5 py-3 transition-colors " +
-            (open ? "border-brand-200 bg-brand-50/50" : "border-gray-100 bg-white hover:border-brand-100 hover:bg-brand-50/30")}
+        <div className="rounded-2xl border border-gray-100 bg-white px-3.5 py-3"
           style={{ animation: "revealUp .4s " + delay + "s both" }}>
           <div className="flex items-center gap-2.5">
             <span className={"shrink-0 w-9 h-9 rounded-xl p-2 " + (FEATURE_TONE[tone] || FEATURE_TONE.sky)}>
@@ -1830,23 +2607,13 @@
             </span>
             <span className="rich flex-1 min-w-0 text-[13px] sm:text-[13.5px] font-black text-ink leading-snug"
               dangerouslySetInnerHTML={{ __html: title }} />
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-              className={"shrink-0 text-gray-400 transition-transform duration-300 " + (open ? "rotate-180" : "")}>
-              <path d="M5 7.5 L10 12.5 L15 7.5" />
-            </svg>
           </div>
-          <div className={"grid transition-all duration-300 ease-out " + (open ? "grid-rows-[1fr] mt-2 opacity-100" : "grid-rows-[0fr] opacity-0")}>
-            <div className="overflow-hidden">
-              <p className="rich text-[12.5px] sm:text-[13px] text-gray-600 leading-[1.6] pl-[46px]"
-                dangerouslySetInnerHTML={{ __html: desc }} />
-            </div>
-          </div>
-        </button>
+          <p className="rich mt-2 text-[12.5px] sm:text-[13px] text-gray-600 leading-[1.6] pl-[46px]"
+            dangerouslySetInnerHTML={{ __html: desc }} />
+        </div>
       );
     }
     function FeatureCardsGrid({ intro, cards, outro, active }) {
-      const [open, setOpen] = useState(0);
-      useEffect(() => { if (active) setOpen(0); }, [active]);
       return (
         <div key={active ? "feat-on" : "feat-off"}>
           {intro && (
@@ -1855,8 +2622,7 @@
           )}
           <div className="mt-3.5 grid sm:grid-cols-2 gap-2 sm:gap-2.5">
             {cards.map((c, i) => (
-              <FeatureCard key={i} icon={c.icon} tone={c.tone} title={c.title} desc={c.desc}
-                open={open === i} onToggle={() => setOpen((o) => (o === i ? -1 : i))} delay={i * 0.07} />
+              <FeatureCard key={i} icon={c.icon} tone={c.tone} title={c.title} desc={c.desc} delay={i * 0.07} />
             ))}
           </div>
           {outro && (
@@ -1905,10 +2671,11 @@
           const cs = getComputedStyle(box);
           const avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
           let need = el.scrollHeight;
-          /* 글까지 같이 줄이기 전에 영상·이미지부터 양보시킨다. 글씨 크기를 지키는 쪽이 읽기 좋다 */
+          /* 영상은 크게 보여주는 게 우선이라 왠만하면 안 줄인다 - 바닥값을 넉넉히 잡아두고,
+             그래도 다 안 들어가면 아래 전체 scale()이 글까지 같이 줄여서 맞춘다 */
           if (need > avail && vid) {
             const vh = vid.getBoundingClientRect().height;
-            const room = Math.max(220, avail - (need - vh));
+            const room = Math.max(380, avail - (need - vh));
             if (room < vh) { vid.style.maxHeight = room + "px"; need = el.scrollHeight; }
           }
           if (avail > 0 && need > avail) {
@@ -1954,7 +2721,7 @@
           <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
           {slide.video && (
             <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-              className="mt-3.5 mx-auto w-auto max-w-full max-h-[54vh] sm:max-h-[68vh] rounded-2xl shadow-soft" />
+              className="mt-3.5 mx-auto w-auto max-w-full max-h-[62vh] sm:max-h-[82vh] rounded-2xl shadow-soft" />
           )}
           {slide.featureCards ? (
             /* 눌러서 펼치는 기능 카드 그리드. paras[0]을 인트로 문장으로 쓰고, 설명은 카드 클릭으로
@@ -1981,29 +2748,31 @@
               </div>
             </div>
           ) : slide.visual ? (
-            /* 그림이 주인공이라 칸을 더 준다(3:2). 그림은 슬라이드에 들어오는 순간 통째로 뜨고, 옆의 글만 클릭으로 한 문단씩 열린다 */
-            <div className="mt-4 grid sm:grid-cols-[3fr_2fr] gap-4 sm:gap-5 items-center">
-              <div key={active ? "vis-on" : "vis-off"} className="animate-revealUp">
+            /* 2026-08-13 실험: 3:2였던 비율을 정확히 50:50으로, 둘 사이에 실제 경계선(divide-x)을
+               넣었다 - 전엔 그림 칸이 더 넓어서 시각적으로 경계를 넘어서는 것처럼 보인다는 지적이 있었다.
+               모바일은 위아래로 쌓이니 경계선 없이 gap만 유지(sm: 접두사) */
+            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
+              <div key={active ? "vis-on" : "vis-off"} className="animate-revealUp sm:pr-5">
                 <SlideVisual kind={slide.visual} />
               </div>
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 sm:pl-5">
                 {paras.map((p, i) => (
                   <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
                 ))}
               </div>
             </div>
           ) : hasImg ? (
-            /* 실제 화면 캡처도 그림이 주인공이니 visual과 같은 3:2 레이아웃을 쓴다 - 문단 아래
+            /* 실제 화면 캡처도 그림이 주인공이니 visual과 같은 50:50 레이아웃을 쓴다 - 문단 아래
                작게 깔리던 걸 왼쪽 큰 칸으로 옮기니 캡처 속 글자까지 읽힌다. 이미지는 슬라이드에
                들어오는 순간 통째로 뜨고(reveal 계단에 안 묶임), 옆 글만 클릭으로 한 문단씩 연다 */
-            <div className="mt-4 grid sm:grid-cols-[3fr_2fr] gap-4 sm:gap-5 items-center">
-              <figure key={active ? "img-on" : "img-off"} className="animate-revealUp">
+            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
+              <figure key={active ? "img-on" : "img-off"} className="animate-revealUp sm:pr-5">
                 <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""} title="클릭하면 원본 크기로 열려요"
                   onClick={() => { const w = window.open(); if (w) w.document.write('<img src="' + DATA.SHOTS[slide.img] + '" style="max-width:100%">'); }}
                   className="mx-auto w-auto max-w-full max-h-[34vh] sm:max-h-[46vh] object-contain rounded-2xl border border-gray-200 shadow-soft cursor-zoom-in" />
                 {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
               </figure>
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 sm:pl-5">
                 {paras.map((p, i) => (
                   <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
                 ))}
@@ -2096,7 +2865,7 @@
           </div>
 
           {/* 덱 - 남은 공간을 채운다 */}
-          <div className={"deck-stack rounded-3xl bg-white border shadow-soft flex-1 min-h-0 max-h-[520px] sm:max-h-[640px] overflow-hidden relative " + theme.border}>
+          <div className={"deck-stack rounded-3xl bg-white border shadow-soft flex-1 min-h-0 max-h-[580px] sm:max-h-[800px] overflow-hidden relative " + theme.border}>
             {/* 슬라이드 참조 태그 - {Day}.{슬라이드 순번}-{그 슬라이드 안에서 몇 번째로 열린 문단인지}.
                 "Day 8 슬라이드 8.1-2에서 이거 고쳐줘" 처럼 대화로 특정 문단을 정확히 짚을 수 있게 하는
                 용도라 늘 떠 있어야 한다 - ?notes=1 뒤에 숨겨뒀더니 안 보인다는 얘기가 나와서 뺐다 */}
@@ -2243,20 +3012,50 @@
     }
 
     function ResourceBlock({ given, name }) {
-      const segs = useMemo(() => parseSegments(fill(given.text, name)), [given.text, name]);
-      const whole = strip(fill(given.text, name));
+      const segs = useMemo(() => (given.text ? parseSegments(fill(given.text, name)) : []), [given.text, name]);
+      const whole = given.text ? strip(fill(given.text, name)) : "";
+      /* 세그먼트가 하나뿐이면(대부분의 미션 프롬프트) 그 안의 PromptCard가 이미 자기 복사 버튼을
+         갖고 있어서, 위쪽 "전체 복사"까지 같이 뜨면 똑같은 텍스트를 복사하는 버튼이 2개가 된다.
+         세그먼트가 여러 개(표+프롬프트 등 섞인 자료)일 때만 "전체 복사"가 실제로 다른 동작이라 의미가 있다.
+         2026-08-13: given.link(노션 등 외부 링크)·given.file(다운로드 파일) 버튼 추가 - 이전엔
+         노션 링크를 복사용 텍스트 블록 안에 평문 URL로 끼워넣거나(눌러도 안 열림), Day 6 미션은
+         "아래에서 내려받으세요"라고 해놓고 실제 다운로드 수단이 아예 없었다 */
       return (
         <div className="rounded-3xl bg-white border border-gray-200 p-5 shadow-soft">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">📎</span>
             <span className="text-sm font-black text-ink flex-1"><RichInline text={given.label} name={name} /></span>
-            <button onClick={() => copyText(whole)} className="shrink-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[11px] font-bold text-gray-500 hover:bg-gray-50 transition">전체 복사</button>
+            {segs.length > 1 && (
+              <button onClick={() => copyText(whole)} className="shrink-0 rounded-lg border border-gray-300 bg-white px-2.5 py-1 text-[11px] font-bold text-gray-500 hover:bg-gray-50 transition">전체 복사</button>
+            )}
           </div>
-          <div className="space-y-3">
-            {segs.map((s, i) => s.type === "table"
-              ? <SheetTable key={i} rows={s.rows} label={given.label} />
-              : <PromptCard key={i} text={s.text} name={name} />)}
-          </div>
+          {(given.link || given.file) && (
+            <div className="mb-3 space-y-2">
+              {given.link && (
+                <a href={given.link.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 hover:bg-gray-50 transition">
+                  <span className="shrink-0 w-6 h-6"><img src={DATA.LOGOS.notion} alt="" className="w-full h-full object-contain" /></span>
+                  <span className="flex-1 min-w-0 text-[12.5px] font-bold text-ink truncate">{given.link.label}</span>
+                  <span className="shrink-0 text-[10.5px] font-black text-white bg-ink rounded-lg px-2.5 py-1.5">열기 ↗</span>
+                </a>
+              )}
+              {given.file && (
+                <a href={given.file.url} download
+                  className="flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 hover:bg-gray-50 transition">
+                  <span className="shrink-0 w-6 h-6 text-brand-500"><IconDownload /></span>
+                  <span className="flex-1 min-w-0 text-[12.5px] font-bold text-ink truncate">{given.file.label}</span>
+                  <span className="shrink-0 text-[10.5px] font-black text-white bg-brand-500 rounded-lg px-2.5 py-1.5">다운로드</span>
+                </a>
+              )}
+            </div>
+          )}
+          {segs.length > 0 && (
+            <div className="space-y-3">
+              {segs.map((s, i) => s.type === "table"
+                ? <SheetTable key={i} rows={s.rows} label={given.label} />
+                : <PromptCard key={i} text={s.text} name={name} />)}
+            </div>
+          )}
         </div>
       );
     }
