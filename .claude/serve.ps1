@@ -1,5 +1,6 @@
 $root = Split-Path -Parent $PSScriptRoot
-$port = 5173
+# 포트는 실행 환경이 정해주면 그걸 쓰고(여러 세션이 동시에 띄울 때 충돌 방지), 없으면 5173
+$port = if ($env:PORT) { $env:PORT } else { 5173 }
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 $listener.Start()
