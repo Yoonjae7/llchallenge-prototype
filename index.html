@@ -2564,7 +2564,9 @@
          아니게 됐다. 만들어진 스킬을 확인하러 가는 경로(+ 버튼 → 스킬 → 스킬 관리)는 미션 단계
          텍스트로만 남긴다 - 세 단계뿐이라 그림까지 필요하지 않다. */
 
-      /* Day 23 - 스킬에 들어가야 할 네 요소를 번호 칩으로. 아래 노란 박스에 '클로드에게 시키기' 요령 하나만 남긴다 */
+      /* Day 23 에서 쓰던 스킬 네 요소(이름과 설명 / 절차 / 출력 형식 / 주의할 점) 카드. /skill-creator
+         플로우로 개편하면서(2026-08-19) 더 이상 어느 Day에서도 안 쓰지만, "스킬에 뭐가 들어가야
+         하는가"를 다시 설명할 자리가 생기면 재사용할 수 있어 지우지 않고 남겨둔다. */
       if (kind === "skillElements") {
         const els = [
           { n: "1", label: "언제 쓰는가", desc: "이름과 설명" },
@@ -2952,18 +2954,20 @@
           </div>
         );
       }
-
-      /* Day 23 - 스킬 만들기를 도와주는 스킬(skill-creator). 지침을 손으로 쓰는 대신 "이런 스킬
-         만들어줘"라고 말하면 클로드가 지침까지 써준다는 게 요점이라, 요청 말풍선 하나와 그 결과로
-         떨어지는 스킬 카드만 남긴 채팅 목업으로 그린다. skillToFile(Day 22)과 같은 다크 톤을 쓰되
-         결과 카드를 파일이 아니라 스킬로 바꿔, 두 날의 차이가 결과물 모양에서 드러나게 했다 */
+      /* Day 23 - /skill-creator 슬래시 명령. 이전 버전(2026-08-18 앞선 개정)은 "스킬 추가 →
+         클로드와 함께 창작하기"라는, 확인 안 된 UI 경로를 그렸었다. 사용자가 실제로 확인해준
+         진짜 메커니즘, 즉 클로드에 이미 들어 있는 skill-creator 라는 이름의 스킬을 채팅에서
+         /skill-creator 라고 직접 입력해 부르는 방식으로 교체했다(2026-08-18 재개정). 말풍선 위에
+         슬래시 명령 칩을 따로 얹어 "이게 명령어다"가 한눈에 읽히게 하고, 그 아래 요청 문장을 붙였다.
+         결과 카드는 이전과 동일하게 유지(스킬로) - skillToFile(Day 22)과 같은 다크 톤. */
       if (kind === "skillCreatorChat") {
         return (
           <div className="relative rounded-3xl overflow-hidden p-3.5 shadow-lift" style={{ background: "linear-gradient(165deg,#211D2B,#15121B)" }}>
             <div className="flex justify-end" style={{ animation: "revealUp .4s both" }}>
-              <div className="max-w-[88%] rounded-2xl rounded-br-md px-3 py-2 text-[10.5px] font-bold text-white leading-snug shadow-lift"
+              <div className="max-w-[88%] rounded-2xl rounded-br-md px-3 py-2 text-white leading-snug shadow-lift"
                 style={{ background: "linear-gradient(135deg,#FF8747,#E05500)" }}>
-                뒤죽박죽인 회의 메모를<br />늘 같은 형식으로 정리하는 스킬 만들어줘
+                <span className="inline-block rounded-md bg-black/25 px-1.5 py-0.5 text-[9.5px] font-mono font-black tracking-tight">/skill-creator</span>
+                <div className="mt-1.5 text-[10.5px] font-bold">뒤죽박죽인 회의 메모를<br />늘 같은 형식으로 정리하는 스킬 만들고 싶어</div>
               </div>
             </div>
             <div className="my-2.5 flex justify-center">
@@ -2985,11 +2989,12 @@
               </div>
             </div>
             <div className="mt-2.5 text-center text-[10px] font-bold text-white/60 leading-snug">
-              지침을 손으로 안 써도 <b className="text-violet-300">클로드가 대신 써줘요</b>
+              <b className="text-violet-300">/skill-creator</b>라고만 치면, 대화하면서 스킬이 만들어져요
             </div>
           </div>
         );
       }
+
       /* Day 23 의 trioSummary(삼둥이 = 메모리·프로젝트·스킬 최종 정리)는 2026-08-18에 삭제했다.
          챕터 6은 실습 이틀이 전부 스킬 하나에 붙어 있어야 하는데, 마지막 날에 메모리·프로젝트까지
          묶어 정리하게 하면 PJT 성격이 섞여 "그래서 오늘 뭘 하는 Day냐"가 흐려진다는 판단. */
