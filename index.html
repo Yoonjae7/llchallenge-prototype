@@ -175,11 +175,12 @@
   <!-- 커리큘럼 데이터: Day 메타 + 슬라이드/퀴즈/미션 콘텐츠 (Day 1~25) -->
   <script src="data.js"></script>
 
-  <!-- 배포 잠금선. 이 Day 까지만 열고 그 뒤 챕터는 전체 목차에서 "아직 준비 중" 잠금 카드로만
-       보여준다. 아래 dayNN.js 는 그대로 다 불러오되 days/_register.js 가 승격을 막는 방식이라,
-       숫자 하나만 고치면 다음 챕터가 열린다 (챕터 7 을 열려면 28, 챕터 8 까지면 32).
-       지우거나 null 로 두면 로드된 Day 가 전부 열린다 - 내부에서 45일치를 다 볼 때 그렇게 쓴다. -->
-  <script>window.MJC_RELEASE_MAX_DAY = 25;</script>
+  <!-- 배포 잠금선. 숫자를 넣으면 그 Day 까지만 열리고 그 뒤 챕터는 전체 목차에서
+       "아직 준비 중" 잠금 카드로만 보인다. 아래 dayNN.js 는 그대로 다 불러오되
+       days/_register.js 가 승격을 막는 방식이라 이 한 줄만 바꾸면 범위가 바뀐다.
+       null = 로드된 Day 를 전부 연다. 이 브랜치(main)는 45일치를 다 보는 작업용이라 null 이고,
+       고객에게 나가는 배포본은 release/day1-25 브랜치에서 25 로 잠가서 내보낸다. -->
+  <script>window.MJC_RELEASE_MAX_DAY = null;</script>
 
   <!-- Day 26~45. 한 Day = 한 파일이고, 그 안에 슬라이드·퀴즈·미션·전용 비주얼이 다 들어 있다.
        전부 평범한 <script src> 다 - type="text/babel" 을 쓰면 Babel이 그 파일을 네트워크로
