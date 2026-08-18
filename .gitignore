@@ -1,0 +1,11 @@
+# 편집 원본·작업 폴더 (완성본 mp4/이미지는 프로젝트 루트에 따로 커밋돼 있다)
+pics&vids/
+vids edit/
+make_this_lion_wave_dont_chan (1).mp4
+
+# 설치 파일·실행 파일은 저장소에 넣지 않는다
+*.exe
+*.msi
+
+# 이 컴퓨터에서만 쓰는 권한 설정 (launch.json·serve.ps1 은 공유해도 되는 개발용 설정이라 커밋한다)
+.claude/settings.local.json
