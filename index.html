@@ -104,19 +104,23 @@
     .pane-widen { animation: paneWiden 2.6s cubic-bezier(.4,0,.2,1) infinite; }
     @keyframes grabPulse { 0%,14% { transform: scale(1); opacity:.55 } 30% { transform: scale(1.25); opacity:1 } 62%,100% { transform: scale(1); opacity:.9 } }
     .grab-pulse { animation: grabPulse 2.6s cubic-bezier(.4,0,.2,1) infinite; }
+    /* 오른쪽 빈 칸으로 클로드 창이 미끄러져 들어온다. 마지막 키프레임이 '자리를 채운 상태'라
+       prefers-reduced-motion 으로 1회만 재생돼도 도달해야 할 모습에서 멈춘다 */
+    @keyframes claudeSlideIn { 0%,10% { transform: translateX(105%); opacity:0 } 45%,100% { transform: translateX(0); opacity:1 } }
+    .claude-slide-in { animation: claudeSlideIn 3s cubic-bezier(.4,0,.2,1) infinite; }
     /* 지침 공식(입력→동작→출력) 사이 아래 화살표. 흐름이 한 방향으로 흐른다는 걸 계속 알린다 */
     @keyframes nudgeD { 0%,100% { transform: translateY(0); opacity:.4 } 50% { transform: translateY(4px); opacity:1 } }
     .nudge-d { animation: nudgeD 1.5s ease-in-out infinite; }
     /* 내려받을 수 있는 결과물이라는 신호 - 파일 카드의 다운로드 화살표가 계속 살짝 튄다 */
     @keyframes dlBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2.5px); } }
     .dl-bounce { animation: dlBounce 1.3s ease-in-out infinite; }
-    /* Day 21 trioCompare 리메이크(2026-08-13, v2) - 서랍 슬라이드가 overflow-hidden 박스 안에서
-       위쪽이 잘려 보이는 버그가 있었다(clip 경계 계산 실수). 서랍 대신 "눌러야 작동하는 버튼"으로
-       교체 - 눌렸다 튀어 오르는 동작이라 클리핑 문제 자체가 없고, 다른 비주얼의 은은한 opacity
-       펄스와 확실히 다른 모션이라 더 눈에 띈다 */
+    /* 눌렸다 튀어 오르는 버튼 모션. Day 21 trioCompare(스킬 = 내가 눌러야 작동)에서 쓰다가
+       2026-08-18 그 비주얼이 skillScope로 교체되며 지금은 쓰는 곳이 없다 - 다른 비주얼의 은은한
+       opacity 펄스와 확실히 구분되는 모션이라 재사용을 위해 남겨둔다 */
     @keyframes buttonPress { 0%,55%,100% { transform: scale(1); } 66% { transform: scale(.86); } 76% { transform: scale(1.06); } 86% { transform: scale(1); } }
     .btn-press { animation: buttonPress 3.4s ease-in-out infinite; }
-    /* '같은 걸 세 번' 규칙 - 1→2→3 을 계속 세는 게이지. 세 번째에서 멈칫했다 리셋된다.
+    /* 단계별로 차오르는 게이지. Day 21 threeTimesRule('같은 걸 세 번' 카운터)에서 쓰다가 2026-08-18
+       그 비주얼이 폐기되며 지금은 쓰는 곳이 없다 - 재사용 가치가 있어 남겨둔다.
        width 대신 scaleX 로 그린다 - 레이아웃을 다시 잡지 않아 가볍고, 무엇보다 마지막 키프레임이
        '꽉 찬 상태'라서 모션을 끈 사용자(prefers-reduced-motion)에게도 게이지가 채워진 채로 남는다.
        width 로 하면 마지막이 0% 라 게이지가 아예 안 보였다 */
@@ -410,16 +414,45 @@
       );
     }
 
+    /* v2 - 예전엔 🖥️ 이모지 하나가 떠 있고 글로 "반으로 나눠주세요"라고 설명했다. 좁은 화면
+       경고를 실제 동작으로 바꾸고 나니 이쪽만 정적이라 톤이 안 맞았다. 지금은 오른쪽 빈 자리에
+       클로드 창이 실제로 미끄러져 들어와 자리를 채우는 걸 반복해서 보여준다 - 이 자리에 저걸
+       놓으라는 뜻이 그림만 봐도 읽힌다 */
     function SplitScreenHint({ onDismiss }) {
+      const demo = (
+        <div className="mx-auto w-[190px] rounded-2xl border border-brand-300/50 bg-white/70 p-1.5 shadow-soft">
+          <div className="flex h-[70px] gap-[3px] overflow-hidden rounded-xl">
+            <div className="flex-1 min-w-0 rounded-lg bg-brand-500/20 border border-brand-300/50 p-1.5 overflow-hidden">
+              <div className="h-1 w-2/3 rounded-full bg-brand-400/80" />
+              <div className="mt-1 h-[3px] w-full rounded-full bg-brand-300/50" />
+              <div className="mt-[3px] h-[3px] w-4/5 rounded-full bg-brand-300/50" />
+              <div className="mt-1.5 h-4 rounded bg-white/60" />
+              <div className="mt-1 text-[6.5px] font-black text-brand-700/80 whitespace-nowrap">멋쟁이 챌린지</div>
+            </div>
+            {/* 오른쪽에 클로드 창이 미끄러져 들어온다 */}
+            <div className="flex-1 min-w-0 rounded-lg border border-dashed border-brand-300/60 bg-white/40 p-1.5 overflow-hidden relative">
+              <div className="claude-slide-in h-full">
+                <div className="rounded-md bg-ink h-full p-1.5">
+                  <div className="h-1 w-1/2 rounded-full bg-white/50" />
+                  <div className="mt-1 h-[3px] w-full rounded-full bg-white/20" />
+                  <div className="mt-[3px] h-[3px] w-3/5 rounded-full bg-white/20" />
+                  <div className="mt-1.5 h-4 rounded bg-white/10" />
+                  <div className="mt-1 text-[6.5px] font-black text-white/50 whitespace-nowrap">Claude</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
       return (
         <>
           <div className="hidden lg:block fixed inset-y-0 right-0 z-[160] w-[38vw] max-w-[560px] pointer-events-none">
             <div className="absolute inset-4 rounded-3xl border-[3px] border-dashed border-brand-400/70 bg-brand-500/[.06] grid place-items-center">
               <div className="text-center px-6 pointer-events-auto">
-                <div className="text-5xl animate-floaty">🖥️</div>
-                <div className="mt-4 text-xl font-black text-brand-700 leading-snug">오른쪽 화면에<br />Claude 데스크탑을 띄워주세요</div>
+                {demo}
+                <div className="mt-5 text-xl font-black text-brand-700 leading-snug">여기에<br />Claude 데스크탑을 띄워주세요</div>
                 <p className="mt-3 text-sm text-brand-600/80 leading-relaxed">
-                  실습·프로젝트 Day는 <b>스플릿스크린</b>이 기본 자세예요.<br />왼쪽 = 이 챌린지 페이지 · 오른쪽 = 클로드
+                  실습·프로젝트 Day는 <b>스플릿스크린</b>이 기본 자세예요
                 </p>
                 <div className="mt-4 text-xs text-brand-500/70 font-bold">
                   Windows <span className="px-1.5 py-0.5 rounded bg-white/70 border border-brand-200">⊞ + ←</span>
@@ -436,10 +469,13 @@
             ))}
           </div>
           <div className="lg:hidden fixed bottom-0 inset-x-0 z-[160] p-3">
-            <div className="rounded-2xl bg-ink text-white p-4 shadow-lift flex items-start gap-3">
-              <span className="text-2xl shrink-0">🖥️</span>
+            <div className="rounded-2xl bg-ink text-white p-4 flex items-start gap-3 shadow-lift">
+              <div className="shrink-0 w-14 rounded-lg border border-white/15 p-1 flex gap-[2px] h-10 overflow-hidden">
+                <div className="flex-1 rounded bg-brand-500/40" />
+                <div className="flex-1 rounded bg-white/10 claude-slide-in" />
+              </div>
               <div className="flex-1">
-                <div className="font-black text-sm">오른쪽 화면에 Claude 데스크탑을 띄워주세요</div>
+                <div className="font-black text-sm">오른쪽에 Claude 데스크탑을 띄워주세요</div>
                 <p className="mt-1 text-xs text-white/70 leading-relaxed">화면을 반으로 나눠서 진행해요. 왼쪽 = 이 페이지 · 오른쪽 = 클로드</p>
               </div>
               <button onClick={onDismiss} className="shrink-0 rounded-lg bg-white/15 px-2.5 py-1 text-xs font-bold hover:bg-white/25 transition">닫기</button>
@@ -1050,7 +1086,7 @@
         </svg>
       );
     }
-    /* Day 21 trioCompare 서랍 속 망치 - "필요할 때 꺼내 쓰는 도구"라는 스킬 비유용 */
+    /* Day 21 skillScope 의 망치 - 스킬을 "업무에 붙는 연장"으로 보여주는 아이콘 */
     function IconHammer() {
       return (
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -1207,56 +1243,45 @@
       const ext = window.MJC_VISUALS && window.MJC_VISUALS[kind];
       if (ext) return ext({ card, row, UI });
 
-      /* Day 1 - 10문항 중 7문항이면 통과. v2(2026-08-17): v1은 70% 링 + 초록/빨강 10칸 + 🔒📋∞
-         이모지 줄이었다. 이모지가 톤을 깨는 것도 문제였지만, 더 큰 건 빨강 3칸이 "틀리면 안 된다"는
-         인상을 줘서 이 슬라이드가 하려는 말("틀려도 괜찮다")과 정반대로 읽혔다는 점.
-         v2는 실제 채점 결과 카드처럼 그린다 - 10칸 중 7칸이 채워지고 통과선이 그 자리에 그어져 있어,
-         "남은 3칸은 틀려도 되는 여유"로 보인다. 통과선 위 뱃지는 계속 살짝 떠 있어 시선을 잡는다 */
+      /* 10문항 중 7문항 = 통과. 채워진 칸 7개와 70% 게이지로 통과선을 한눈에 보여준다 */
       if (kind === "quizPass") {
         return (
           <div className={card}>
-            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft p-3.5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-[10px] font-black text-gray-400">채점 결과</span>
-                <span className="text-[10px] font-bold text-gray-400 tabular-nums">10문항</span>
-              </div>
-
-              {/* 통과선이 7번째 칸 뒤에 실제로 그어져 있다 */}
-              <div className="relative mt-2.5">
-                <div className="grid grid-cols-10 gap-1">
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <span key={i}
-                      className={"h-9 rounded-md " + (i < 7 ? "bg-emerald-500" : "bg-gray-100 border border-dashed border-gray-300")}
-                      style={{ animation: "popIn .26s " + (.15 + i * .05) + "s cubic-bezier(.2,.9,.3,1.15) both" }} />
-                  ))}
+            <div className="flex items-center gap-4">
+              <div className="relative w-[92px] h-[92px] shrink-0">
+                <svg viewBox="0 0 64 64" className="w-full h-full -rotate-90">
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="#FFE3D0" strokeWidth="7.5" />
+                  <circle cx="32" cy="32" r="26" fill="none" className="stroke-brand-500" strokeWidth="7.5" strokeLinecap="round"
+                    strokeDasharray="163.4" style={{ animation: "ringFill .9s .15s cubic-bezier(.2,.9,.3,1) both" }} />
+                </svg>
+                <div className="absolute inset-0 grid place-items-center">
+                  <div className="text-center leading-none">
+                    <div className="text-[22px] font-black text-ink tabular-nums">70<span className="text-[12px]">%</span></div>
+                    <div className="mt-1 text-[9.5px] font-bold text-gray-400">통과선</div>
+                  </div>
                 </div>
-                <div className="absolute -top-1.5 -bottom-1.5 w-[2px] rounded-full bg-brand-500"
-                  style={{ left: "70%", marginLeft: "-1px", animation: "revealUp .4s .7s both" }} />
-                <span className="absolute -top-[18px] text-[9px] font-black text-white bg-brand-500 rounded-full px-1.5 py-[2px] whitespace-nowrap"
-                  style={{ left: "70%", transform: "translateX(-50%)", animation: "revealUp .4s .8s both, floaty 2.8s 1.2s ease-in-out infinite" }}>
-                  통과선
-                </span>
               </div>
-
-              <div className="mt-3.5 flex items-baseline gap-1.5">
-                <span className="text-[22px] font-black text-emerald-600 tabular-nums leading-none">7개</span>
-                <span className="text-[11.5px] font-bold text-gray-500">맞히면 통과</span>
-                <span className="ml-auto text-[10.5px] font-bold text-gray-400">3개는 틀려도 돼요</span>
+              <div className="min-w-0">
+                <div className="text-[18px] font-black text-ink leading-tight">10문항 중 <span className="text-brand-600">7문항</span></div>
+                <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-500">
+                  🔒 6문항 이하 → 다음 Day 잠김
+                </div>
               </div>
             </div>
-
-            <div className="mt-2.5 space-y-1.5">
-              {[
-                { Icon: IconUndo, t: "그날 안에는 재시도 무제한", s: "몇 번이든 다시 풀 수 있어요" },
-                { Icon: IconListOutput, t: "틀린 문항만 모아서 리뷰", s: "고른 답 · 정답 · 왜 그런지까지" },
-              ].map((r2, i) => (
-                <div key={i} className="rounded-xl bg-white border border-gray-100 px-3 py-2 flex items-center gap-2.5"
-                  style={{ animation: "revealUp .4s " + (.95 + i * .12) + "s both" }}>
-                  <span className="shrink-0 w-4 h-4 text-brand-500"><r2.Icon /></span>
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-black text-ink">{r2.t}</div>
-                    <div className="text-[9px] font-semibold text-gray-500">{r2.s}</div>
-                  </div>
+            <div className="mt-5 grid grid-cols-10 gap-1.5">
+              {Array.from({ length: 10 }, (_, i) => (
+                <span key={i}
+                  className={"h-8 rounded-md grid place-items-center text-[13px] font-black " + (i < 7 ? "bg-emerald-500 text-white" : "bg-rose-500 text-white")}
+                  style={{ animation: "popIn .28s " + (.25 + i * .05) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                  {i < 7 ? "✓" : "✕"}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2">
+              {[["∞", "당일 재시도 무제한"], ["📋", "틀린 문항 · 정답 · 이유까지 리뷰"]].map(([ic, t], i) => (
+                <div key={i} className={row} style={{ animation: "revealUp .4s " + (.8 + i * .1) + "s both" }}>
+                  <span className="w-5 text-center text-[13px] font-black text-brand-500">{ic}</span>
+                  <span className="text-[12.5px] font-bold text-gray-600">{t}</span>
                 </div>
               ))}
             </div>
@@ -1264,62 +1289,37 @@
         );
       }
 
-      /* Day 1 - 연속 학습 불꽃. v2(2026-08-17): v1은 🔥 이모지를 크게 띄우고 칸마다 또 🔥/✕를
-         찍었다. 이모지는 이 파일의 다른 비주얼과 톤이 안 맞고, 무엇보다 OS마다 그림이 달라
-         "우리 서비스의 불꽃"으로 안 읽혔다. v2는 불꽃을 직접 그려서(안쪽 심지가 실제로 흔들린다)
-         실제 스트릭 달력처럼 배치했다 - 5일 이어지다 6일차에 끊기고, 그 칸만 회색 점선으로
-         주저앉는 게 한눈에 보인다 */
+      /* 연속 학습 불꽃. 이어지다 하루 끊기는 모습과 23:59 마감을 그림으로 붙여 보여준다 */
       if (kind === "streak") {
-        const Flame = ({ lit }) => (
-          <svg viewBox="0 0 20 24" className="w-full h-full">
-            <path d="M10 1.5 C13.5 6 16.5 8.5 16.5 13.2 C16.5 17.6 13.6 20.5 10 20.5 C6.4 20.5 3.5 17.6 3.5 13.2 C3.5 9.6 5.6 7.4 7.4 4.8 C8.2 6.6 9 7.2 9.6 7.6 C9.4 5.4 9.6 3.4 10 1.5 Z"
-              fill={lit ? "currentColor" : "none"} stroke="currentColor" strokeWidth={lit ? 0 : 1.4}
-              strokeLinejoin="round" opacity={lit ? 1 : .45} />
-            {lit && (
-              <path d="M10 9.2 C11.6 11.3 12.6 12.5 12.6 14.4 C12.6 16.4 11.4 17.8 10 17.8 C8.6 17.8 7.4 16.4 7.4 14.4 C7.4 12.9 8.4 11.7 10 9.2 Z"
-                fill="#FFE0B8" style={{ transformBox: "fill-box", transformOrigin: "bottom center",
-                  animation: "flameFlicker .55s ease-in-out infinite alternate" }} />
-            )}
-          </svg>
-        );
-        const days = [1, 1, 1, 1, 1, 0, -1];   // 1 = 완료, 0 = 끊김, -1 = 아직
         return (
           <div className={card}>
-            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft p-3.5">
-              <div className="flex items-center gap-2.5">
-                <span className="shrink-0 w-8 h-9 text-brand-500"><Flame lit /></span>
-                <div className="min-w-0">
-                  <div className="text-[16px] font-black text-ink leading-tight">연속 <span className="text-brand-600 tabular-nums">5</span>일 학습 중</div>
-                  <div className="text-[10px] font-semibold text-gray-500">그날 미션을 끝내면 이어져요</div>
+            <div className="flex items-center gap-3.5">
+              <span className="text-[38px] leading-none" style={{ animation: "flicker 1.9s ease-in-out infinite" }}>🔥</span>
+              <div>
+                <div className="text-[18px] font-black text-ink leading-tight">연속 <span className="text-brand-600 tabular-nums">n</span>일 학습 중</div>
+                <div className="mt-0.5 text-[12.5px] text-gray-400">그날 미션을 끝내면 유지돼요</div>
+              </div>
+            </div>
+            <div className="mt-5 flex items-end gap-2">
+              {[true, true, true, true, false].map((ok, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1.5"
+                  style={{ animation: (ok ? "popIn .3s " + (.15 + i * .08) + "s" : "shake .5s .55s") + " both" }}>
+                  <span className={"w-full h-11 rounded-xl grid place-items-center text-[16px] " +
+                    (ok ? "bg-brand-500 text-white" : "bg-white border-2 border-dashed border-gray-300 text-gray-300")}>
+                    {ok ? "🔥" : "✕"}
+                  </span>
+                  <span className={"text-[10px] font-black tabular-nums " + (ok ? "text-gray-400" : "text-gray-300")}>{i + 1}</span>
                 </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-7 gap-1">
-                {days.map((d, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1"
-                    style={{ animation: (d === 0 ? "shake .5s .75s both" : "popIn .28s " + (.12 + i * .07) + "s cubic-bezier(.2,.9,.3,1.15) both") }}>
-                    <span className={"w-full h-9 rounded-lg grid place-items-center p-1.5 " +
-                      (d === 1 ? "bg-brand-50 border border-brand-200 text-brand-500"
-                        : d === 0 ? "bg-gray-50 border-2 border-dashed border-gray-300 text-gray-300"
-                        : "bg-gray-50/60 border border-gray-100 text-gray-200")}>
-                      <Flame lit={d === 1} />
-                    </span>
-                    <span className={"text-[8.5px] font-black tabular-nums " + (d === 1 ? "text-gray-400" : "text-gray-300")}>{i + 1}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-1.5 text-center text-[9px] font-bold text-rose-500">6일차에 놓치면 여기서 끊겨요</div>
+              ))}
             </div>
-
-            <div className="mt-2.5 rounded-xl bg-ink px-3.5 py-2.5 flex items-center gap-2.5 text-white">
-              <span className="shrink-0 w-3.5 h-3.5 text-brand-300"><IconClock /></span>
-              <span className="text-[14px] font-black tabular-nums">23:59</span>
+            <div className="mt-4 rounded-xl bg-ink px-3.5 py-2.5 flex items-center gap-2.5 text-white">
+              <span className="text-[15px] font-black tabular-nums">23:59</span>
               <span className="h-3.5 w-px bg-white/25" />
-              <span className="text-[10px] font-bold text-white/70 leading-snug">넘기면 그날은 되돌릴 수 없어요</span>
+              <span className="text-[11px] font-bold text-white/70">넘기면 그날은 되돌릴 수 없어요</span>
             </div>
-            <div className="mt-2 rounded-xl bg-white border border-gray-100 px-3 py-2 flex items-center gap-2.5">
-              <span className="shrink-0 w-4 h-4 text-gray-400"><IconBook /></span>
-              <span className="text-[10.5px] font-bold text-gray-600">끊겨도 <b className="text-ink">강의 열람은 계속</b> 가능해요</span>
+            <div className={"mt-2 " + row}>
+              <span className="w-5 text-center text-[13px]">📖</span>
+              <span className="text-[12.5px] font-bold text-gray-600">끊겨도 <span className="text-gray-800">강의 열람은 계속</span> 가능해요</span>
             </div>
           </div>
         );
@@ -2098,21 +2098,58 @@
         );
       }
 
-      /* Day 21 - 남이 만든 스킬 받아 쓰기. 3단계는 StepFlow로 재사용하고, 아래에 출처 경고를 붙인다.
-         경고 아이콘만 계속 깜빡이게 해서 "이 한 줄은 그냥 넘기지 말 것"이라고 잡아둔다 */
-      if (kind === "skillInstall") {
-        const steps = [
-          { Icon: IconDownload, label: "스킬 폴더 내려받기", tone: "bg-sky-100 text-sky-600" },
-          { Icon: IconArchive, label: "zip으로 압축하기", tone: "bg-violet-100 text-violet-600" },
-          { Icon: IconUpload, label: "설정에서 업로드하기", tone: "bg-emerald-100 text-emerald-600" },
+      /* Day 21 - 스킬이 실제로 해결하는 문제. 같은 부탁("회의 메모 정리해줘")을 서로 다른 새 채팅에
+         넣었을 때 돌아오는 답이 제각각이라는 걸, 실제 채팅 화면처럼 보여준다. v1은 결과를 '줄 길이
+         패턴'이라는 추상 도형으로 그렸는데 무엇을 뜻하는지 전혀 안 읽힌다는 피드백을 받아(2026-08-18 v2)
+         돌아온 답을 한국어 한 줄로 직접 써 버렸다 - 뭘 비교하는지 글자로 읽히는 게 도형보다 낫다.
+         2026-08-18: 이 자리에 있던 skillInstall(스킬 폴더 내려받기 → zip 압축 → 업로드)은 실제로
+         존재하지 않는 절차라 폐기했고, 그 슬롯을 이 비주얼이 받았다 */
+      if (kind === "skillConsistency") {
+        const runs = [
+          { chat: "새 채팅 ①", got: "표로 정리해줌", ok: true },
+          { chat: "새 채팅 ②", got: "줄글 한 덩어리로 나옴", ok: false },
+          { chat: "새 채팅 ③", got: "결정사항을 빼먹음", ok: false },
         ];
         return (
           <div className={card}>
-            <StepFlow steps={steps} />
-            <div className="mt-3.5 rounded-xl bg-rose-50 border border-rose-200 px-3 py-2.5 flex items-start gap-2"
-              style={{ animation: "revealUp .4s .45s both" }}>
-              <span className="shrink-0 w-4 h-4 text-rose-500 mt-px" style={{ animation: "pulseSoft 2s ease-in-out infinite" }}><IconAlertTriangle /></span>
-              <span className="text-[10px] font-bold text-rose-600 leading-snug">출처를 모르는 스킬은 받지 마세요 - 절차를 담고 있어서 이상하게 동작할 수 있어요</span>
+            {/* 공통 부탁 - 세 채팅에 똑같이 넣은 말 */}
+            <div className="flex justify-end">
+              <div className="max-w-[88%] rounded-2xl rounded-br-md px-3 py-2 text-[10.5px] font-bold text-white leading-snug shadow-lift"
+                style={{ background: "linear-gradient(135deg,#FF8747,#E05500)", animation: "popIn .35s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                회의 메모 정리해줘
+              </div>
+            </div>
+            <div className="mt-2.5 space-y-1.5">
+              {runs.map((r, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-xl bg-white border border-gray-100 shadow-soft px-2.5 py-2"
+                  style={{ animation: "revealUp .4s " + (.15 + i * .1) + "s both" }}>
+                  <span className="shrink-0 text-[9px] font-black text-gray-400 w-[52px]">{r.chat}</span>
+                  <span className={"shrink-0 w-3.5 h-3.5 " + (r.ok ? "text-emerald-500" : "text-rose-400")}>
+                    {r.ok ? <IconCheckCircle /> : <IconXCircle />}
+                  </span>
+                  <span className="flex-1 text-[10px] font-bold text-gray-600 leading-snug">{r.got}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-400">클로드가 못하는 게 아니라 <b className="text-gray-500">매번 새로 추측하는</b> 거예요</div>
+
+            <div className="my-3 flex items-center gap-2">
+              <span className="flex-1 h-px bg-gray-200" />
+              <span className="text-[9px] font-black text-brand-500">스킬로 저장해두면</span>
+              <span className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <div className="rounded-2xl bg-brand-50 border border-brand-200 p-2.5" style={{ animation: "revealUp .4s .45s both" }}>
+              <div className="space-y-1.5">
+                {["새 채팅 ①", "새 채팅 ②", "새 채팅 ③"].map((c, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-xl bg-white border border-brand-100 px-2.5 py-2"
+                    style={{ animation: "popIn .3s " + (.5 + i * .08) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
+                    <span className="shrink-0 text-[9px] font-black text-gray-400 w-[52px]">{c}</span>
+                    <span className="shrink-0 w-3.5 h-3.5 text-brand-500"><IconCheckCircle /></span>
+                    <span className="flex-1 text-[10px] font-bold text-brand-600 leading-snug">내가 정한 다섯 항목 그대로</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -2493,6 +2530,28 @@
         );
       }
 
+      /* Day 23 - 스킬 만드는 메뉴 경로. 네 단계나 파고들어가야 해서 글로만 적으면 중간에 놓친다.
+         StepFlow(다른 순서 슬라이드와 같은 문법)로 세우고, 마지막 단계만 브랜드색으로 칠해
+         "여기가 지침 붙여넣는 칸"이라는 목적지를 분명히 한다 */
+      if (kind === "skillCreatePath") {
+        const steps = [
+          { Icon: IconChatPlus, label: "채팅창 + 버튼", tone: "bg-gray-100 text-gray-500" },
+          { Icon: IconHammer, label: "스킬", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconGear, label: "스킬 관리", tone: "bg-violet-100 text-violet-600" },
+          { Icon: IconPencil, label: "스킬 지침 작성하기", tone: "bg-brand-500 text-white" },
+        ];
+        return (
+          <div className={card}>
+            <StepFlow steps={steps} />
+            <div className="mt-3.5 rounded-xl bg-brand-50 border border-brand-100 px-3 py-2.5 flex items-start gap-2"
+              style={{ animation: "revealUp .4s .5s both" }}>
+              <span className="shrink-0 w-4 h-4 text-brand-500 mt-px"><IconBulb /></span>
+              <span className="text-[10px] text-gray-600 leading-relaxed">마지막 칸에 <b className="text-ink">저희가 드리는 지침</b>을 붙여넣고 저장하면 끝이에요</span>
+            </div>
+          </div>
+        );
+      }
+
       /* Day 23 - 스킬에 들어가야 할 네 요소를 번호 칩으로. 아래 노란 박스에 '클로드에게 시키기' 요령 하나만 남긴다 */
       if (kind === "skillElements") {
         const els = [
@@ -2657,7 +2716,7 @@
         );
       }
 
-      /* Day 18 - 프로젝트 안에 지식(자료)과 지침(방식) 두 칸이 있다는 구조를 실제 프로젝트 화면처럼.
+      /* Day 18 - 프로젝트 안에 컨텍스트(자료)와 지침(방식) 두 칸이 있다는 구조를 실제 프로젝트 화면처럼.
          두 칸이 아래 대화로 함께 흘러들어가는 걸 점선+드립으로 보여줘 "열면 이미 알고 시작한다"를 만든다 */
       if (kind === "projectAnatomy") {
         return (
@@ -2669,7 +2728,7 @@
               </div>
               <div className="p-2.5 space-y-2">
                 <div style={{ animation: "revealUp .4s .1s both" }}>
-                  <div className="mb-1 text-[9px] font-black text-gray-400 tracking-wide">지식 · 자료</div>
+                  <div className="mb-1 text-[9px] font-black text-gray-400 tracking-wide">컨텍스트 · 자료</div>
                   <div className="flex flex-wrap gap-1">
                     {["브랜드 가이드", "지난 보고서", "제품 설명서"].map((t, i) => (
                       <span key={i} className="inline-flex items-center gap-1 rounded-md bg-sky-50 border border-sky-200 px-1.5 py-1 text-[9px] font-bold text-sky-700">
@@ -2759,8 +2818,8 @@
         );
       }
 
-      /* Day 20 - 프로젝트 지식에 넣을 것과 뺄 것. 실제 지식 목록 패널처럼 그리고, 일회성 자료만
-         점선 처리해서 목록 바깥으로 밀려난 것처럼 보이게 했다 */
+      /* Day 20 - 프로젝트 컨텍스트에 넣을 것과 뺄 것. 실제 컨텍스트 목록 패널처럼 그리고, 일회성
+         자료만 점선 처리해서 목록 바깥으로 밀려난 것처럼 보이게 했다 */
       if (kind === "knowledgeWhat") {
         const keep = ["브랜드 가이드 · 톤앤매너", "제품 · 서비스 설명서", "자주 쓰는 양식 · 템플릿", "지난 보고서"];
         return (
@@ -2768,7 +2827,7 @@
             <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
               <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
                 <span className="w-3.5 h-3.5 text-brand-500"><IconFolder /></span>
-                <span className="text-[9.5px] font-black text-gray-400 tracking-wide">프로젝트 지식</span>
+                <span className="text-[9.5px] font-black text-gray-400 tracking-wide">프로젝트 컨텍스트</span>
               </div>
               <div className="divide-y divide-gray-100">
                 {keep.map((t, i) => (
@@ -2792,111 +2851,108 @@
         );
       }
 
-      /* Day 21 - '같은 걸 세 번' 규칙. 세 번째에서야 스킬이 켜진다는 걸 계속 도는 카운터로 보여준다.
-         게이지가 1→2→3 을 훑고 리셋되는 동안 세 번째 칸만 브랜드색이라 시선이 거기 남는다 */
-      if (kind === "threeTimesRule") {
-        const counts = [
-          { n: "1", label: "그냥 일" },
-          { n: "2", label: "우연" },
-          { n: "3", label: "계속 할 일", hit: true },
+      /* Day 21 - 어떤 업무가 스킬 후보인지. 이 자리에 있던 threeTimesRule('같은 걸 세 번 했다' 카운터,
+         1→2→3 게이지)은 무슨 말인지 모르겠다는 피드백으로 폐기했다(2026-08-18) - 추상적인 규칙 하나만
+         남기고 정작 "그래서 뭘 스킬로 만들라는 거냐"에는 답하지 않았기 때문. 대신 실제 업무 목록처럼
+         그려서 반복 주기(매주·매달·매일) 배지가 붙은 줄은 스킬 후보, 한 번뿐인 일은 점선으로 밀어낸다 */
+      if (kind === "skillWorthIt") {
+        const jobs = [
+          { job: "회의 메모를 회의록으로 정리", cycle: "매주" },
+          { job: "지점별 실적을 표로 요약", cycle: "매달" },
+          { job: "고객 문의 답장 초안 쓰기", cycle: "매일" },
         ];
         return (
           <div className={card}>
-            <div className="relative mx-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-              <div className="tally-fill h-full w-full rounded-full" style={{ background: "linear-gradient(90deg,#FFA778,#FF6000)" }} />
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              <div className="px-3.5 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
+                {/* IconChecklist 는 svg 에 className="w-7 h-6" 이 박혀 있어 래퍼 크기를 무시하고
+                    28x24 로 그려진다 - 여기 넣었더니 옆 글자 위로 겹쳐 나왔다. svg 에 크기 클래스가
+                    아예 없어 래퍼를 따라가는 아이콘만 이런 자리에 쓸 것 */}
+                <span className="shrink-0 w-3.5 h-3.5 text-brand-500"><IconListOutput /></span>
+                <span className="text-[9.5px] font-black text-gray-400 tracking-wide">내가 계속 반복하는 일</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {jobs.map((j, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-2"
+                    style={{ animation: "revealUp .4s " + (i * .1) + "s both" }}>
+                    <span className="shrink-0 rounded-md bg-violet-100 px-1.5 py-0.5 text-[9px] font-black text-violet-600">{j.cycle}</span>
+                    <span className="flex-1 text-[10px] font-bold text-gray-600 leading-snug">{j.job}</span>
+                    <span className="shrink-0 rounded-full bg-violet-600 px-2 py-0.5 text-[8.5px] font-black text-white">스킬로</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {counts.map((c, i) => (
-                <div key={i} className={"rounded-2xl border p-2.5 text-center " + (c.hit ? "bg-brand-50 border-brand-300 shadow-soft" : "bg-white border-gray-100")}
-                  style={{ animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
-                  <div className={"mx-auto w-7 h-7 rounded-full grid place-items-center text-[12px] font-black " + (c.hit ? "bg-brand-500 text-white" : "bg-gray-100 text-gray-400")}>{c.n}</div>
-                  <div className={"mt-1.5 text-[9.5px] font-black leading-tight " + (c.hit ? "text-brand-600" : "text-gray-400")}>{c.label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2.5 rounded-xl px-3 py-2.5 flex items-center justify-center gap-1.5 text-[10.5px] font-black text-white"
-              style={{ background: "linear-gradient(135deg,#FDBA74,#EA580C)" }}>
-              <span className="w-3.5 h-3.5 text-white" style={{ animation: "floaty 2.8s ease-in-out infinite" }}><IconSparkle /></span>
-              세 번째부터 스킬로 만드세요
-            </div>
-            <div className="mt-2 text-center text-[9.5px] text-gray-400">
-              한 번만 할 일은 <b className="text-gray-500">그냥 하는 게 빨라요</b>
+            <div className="mt-2 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3 py-2 flex items-center gap-2"
+              style={{ animation: "revealUp .4s .35s both" }}>
+              <span className="shrink-0 rounded-md bg-gray-200 px-1.5 py-0.5 text-[9px] font-black text-gray-400">한 번</span>
+              <span className="flex-1 text-[10px] font-bold text-gray-400 leading-snug">이번 행사 소개글 쓰기</span>
+              <span className="shrink-0 text-[8.5px] font-black text-gray-400">그냥 시키기</span>
             </div>
           </div>
         );
       }
 
-      /* Day 23 - 삼둥이 최종 정리(메모리·프로젝트·스킬). 21.2 trioCompare 가 메모리/지침/스킬을 줄로
-         비교했다면, 여기는 셋을 나란한 카드로 세워 '무엇을 저장하나 / 언제 적용되나'까지 못박는 마무리판 */
-      if (kind === "trioSummary") {
-        const trio = [
-          { Icon: IconPerson, eq: "나", desc: "내가 누구고 뭘 하는지", when: "알아서", tone: "text-sky-600", bg: "bg-sky-50", bd: "border-sky-200", chip: "bg-sky-500" },
-          { Icon: IconFolder, eq: "공간", desc: "이 일의 자료와 방식", when: "그 안에서", tone: "text-brand-600", bg: "bg-brand-50", bd: "border-brand-200", chip: "bg-brand-500" },
-          { Icon: IconSteps, eq: "절차", desc: "반복하는 작업 순서", when: "내가 불러서", tone: "text-violet-600", bg: "bg-violet-50", bd: "border-violet-200", chip: "bg-violet-500" },
-        ];
-        const names = ["메모리", "프로젝트", "스킬"];
-        return (
-          <div className={card}>
-            <div className="grid grid-cols-3 gap-2">
-              {trio.map((t, i) => (
-                <div key={i} className={"rounded-2xl border p-2.5 text-center " + t.bg + " " + t.bd}
-                  style={{ animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
-                  <span className={"inline-flex w-7 h-7 rounded-xl bg-white shadow-soft items-center justify-center p-1.5 " + t.tone}
-                    style={{ animation: "floaty " + (3.2 + i * .4) + "s " + (i * .35) + "s ease-in-out infinite" }}><t.Icon /></span>
-                  <div className="mt-1.5 text-[10px] font-black text-ink">{names[i]}</div>
-                  <div className={"text-[11px] font-black " + t.tone}>= {t.eq}</div>
-                  <div className="mt-1 text-[8px] text-gray-400 leading-snug">{t.desc}</div>
-                  <div className={"mt-1.5 rounded-full py-0.5 text-[8px] font-black text-white " + t.chip}>{t.when}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 rounded-xl px-3 py-2.5 text-center text-[10.5px] font-black text-white"
-              style={{ background: "linear-gradient(90deg,#0EA5E9,#8B5CF6,#FF6000)" }}>
-              "이건 셋 중 <span className="text-white">어디에 저장할까?</span>"
-            </div>
+      /* Day 23 의 trioSummary(삼둥이 = 메모리·프로젝트·스킬 최종 정리)는 2026-08-18에 삭제했다.
+         챕터 6은 실습 이틀이 전부 스킬 하나에 붙어 있어야 하는데, 마지막 날에 메모리·프로젝트까지
+         묶어 정리하게 하면 PJT 성격이 섞여 "그래서 오늘 뭘 하는 Day냐"가 흐려진다는 판단. */
+
+      /* Day 21 - 지침(그 프로젝트 안에서만) vs 스킬(채팅을 가리지 않음)의 '범위' 차이를
+         실제 클로드 사이드바 목업 하나로 보여준다.
+         v1(trioCompare, 메모리·지침=자동 배지 / 스킬=눌러야 작동하는 버튼)은 스킬의 핵심을
+         조작 방식으로 잘못 짚었고, v2(점선 박스 안팎에 "통해요 / 안 통해요" 칩)는 무엇을 그린
+         건지 여전히 안 읽힌다는 판정을 받아 2026-08-18에 v3으로 전면 교체했다.
+         v3의 요점: 다이어그램을 그리지 말고 학습자가 매일 보는 화면(사이드바 대화 목록)을 그린 뒤
+         뱃지만 얹는다. 주황 「지침」 뱃지는 프로젝트 블록 안에서 끊기고, 보라 「스킬」 뱃지는
+         프로젝트 안팎 모두에 붙는다 - 경계가 어디서 멈추는지가 배치만으로 읽힌다. */
+      if (kind === "skillScope") {
+        const Badge = ({ kind: k }) => (
+          <span className={"shrink-0 rounded px-1.5 py-[1px] text-[8px] font-black text-white " +
+            (k === "지침" ? "bg-brand-500" : "bg-violet-600")}>{k}</span>
+        );
+        const Row = ({ title, badges, delay }) => (
+          <div className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-100 px-2 py-1.5"
+            style={{ animation: "revealUp .35s " + delay + "s both" }}>
+            <span className="shrink-0 w-3 h-3 text-gray-300"><IconChatPlus /></span>
+            <span className="flex-1 min-w-0 truncate text-[9.5px] font-bold text-gray-600">{title}</span>
+            {badges.map((b, i) => <Badge key={i} kind={b} />)}
           </div>
         );
-      }
-
-      /* Day 21 - 메모리·지침(자동) vs 스킬(내가 꺼내 씀)의 차이를 아이콘 비교 줄 대신 실제 비유
-         그대로 그렸다: 위쪽은 "항상 켜져 배경에서 도는" 자동 배지 둘, 아래는 닫힌 서랍 홈에서
-         망치(스킬)가 주기적으로 올라왔다 내려가는 애니메이션 - "필요할 때 꺼내 쓴다"를 문장이 아니라
-         움직임으로 보여준다. 이전 버전(아이콘+줄 3개)은 이 파일의 다른 리스트형 비주얼과 톤이 겹쳐서
-         "다 똑같이 지루하다"는 피드백을 받고 교체(2026-08-13) */
-      /* Day 21 - 메모리·지침(자동) vs 스킬(내가 눌러서 씀). v1(서랍 슬라이드)이 overflow-hidden
-         박스 안에서 위가 잘려 보이는 버그로 "horrible" 판정을 받아 전면 리메이크(2026-08-13 v2).
-         흰 카드+회색 테두리 톤을 버리고 색이 있는 그라디언트 배경 위에 올려, 이 파일에서 반복되던
-         "흰 박스 + 검은 버튼" 톤과 확실히 갈라놓는다. 위쪽 배지는 은은한 글로우 링으로 "항상 켜짐"을,
-         아래쪽은 실제로 눌렸다 튀어 오르는 원형 버튼(btn-press)으로 "내가 눌러야 작동함"을 몸으로
-         보여준다 - 오프셋으로 서로 다른 리듬을 줘서 두 배지가 기계적으로 안 맞아 보이게 했다 */
-      if (kind === "trioCompare") {
         return (
-          <div className="relative rounded-3xl overflow-hidden p-5 sm:p-6 shadow-lift"
-            style={{ background: "linear-gradient(160deg,#EEF2FF 0%,#F5F0FF 45%,#FFF3ED 100%)" }}>
-            <div className="flex items-center justify-center gap-3">
-              {[
-                { label: "메모리", grad: "linear-gradient(135deg,#38BDF8,#0284C7)" },
-                { label: "지침", grad: "linear-gradient(135deg,#FF8747,#E05500)" },
-              ].map((m, i) => (
-                <div key={i} className="rounded-full px-4 py-2 text-white text-[11px] font-black shadow-lift flex items-center gap-1.5"
-                  style={{ background: m.grad, animation: "popIn .35s " + (i * .12) + "s cubic-bezier(.2,.9,.3,1.15) both" }}>
-                  <span className="w-2 h-2 rounded-full bg-white" style={{ animation: "pulseSoft " + (1.7 + i * .3) + "s " + (i * .4) + "s ease-in-out infinite" }} />
-                  {m.label}
+          <div className={card}>
+            {/* 클로드 사이드바 목업 */}
+            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+              {/* 프로젝트 블록 - 왼쪽 굵은 레일이 곧 프로젝트 경계다 */}
+              <div className="p-2 bg-brand-50/60 border-l-[3px] border-brand-400">
+                <div className="flex items-center gap-1.5 px-0.5 pb-1.5">
+                  <span className="shrink-0 w-3.5 h-3.5 text-brand-500"><IconFolder /></span>
+                  <span className="text-[9.5px] font-black text-brand-600">프로젝트 「주간 리포트」</span>
                 </div>
-              ))}
-            </div>
-            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-500">항상 켜져서 배경에서 조용히 작동해요</div>
-
-            <div className="mt-5 flex flex-col items-center" style={{ animation: "revealUp .4s .3s both" }}>
-              <div className="relative">
-                <span className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,.35),transparent 70%)", animation: "pulseSoft 3.4s ease-in-out infinite" }} />
-                <div className="btn-press relative w-16 h-16 rounded-full grid place-items-center text-white"
-                  style={{ background: "linear-gradient(160deg,#C4B5FD,#7C3AED)", boxShadow: "0 10px 24px -8px rgba(124,58,237,.6), inset 0 -3px 0 rgba(0,0,0,.15)" }}>
-                  <span className="w-7 h-7"><IconHammer /></span>
+                <div className="space-y-1">
+                  <Row title="2주차 매출 정리" badges={["지침", "스킬"]} delay={.1} />
+                  <Row title="회의록 정리해줘" badges={["지침", "스킬"]} delay={.18} />
                 </div>
               </div>
-              <div className="mt-2.5 text-[11.5px] font-black text-violet-700">스킬</div>
-              <div className="text-[9.5px] font-bold text-gray-500">내가 눌러야 작동해요</div>
+              {/* 프로젝트 밖 - 같은 사이드바, 경계 레일만 없다 */}
+              <div className="p-2 border-t border-gray-100">
+                <div className="px-0.5 pb-1.5 text-[9.5px] font-black text-gray-400">채팅</div>
+                <div className="space-y-1">
+                  <Row title="어제 회의록 정리해줘" badges={["스킬"]} delay={.26} />
+                  <Row title="부산 여행 계획 짜줘" badges={["스킬"]} delay={.34} />
+                </div>
+              </div>
+            </div>
+            {/* 범례 - 위 목업에서 뱃지가 어디까지 붙었는지를 한 줄씩 회수한다 */}
+            <div className="mt-2.5 space-y-1.5">
+              <div className="flex items-center gap-2 rounded-xl bg-brand-50 border border-brand-200 px-2.5 py-2"
+                style={{ animation: "revealUp .4s .45s both" }}>
+                <span className="shrink-0 rounded px-1.5 py-[1px] text-[8px] font-black text-white bg-brand-500">지침</span>
+                <span className="text-[9.5px] font-bold text-gray-600">이 <b className="text-brand-600">프로젝트 안에서만</b> 붙어요</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-violet-50 border border-violet-200 px-2.5 py-2"
+                style={{ animation: "revealUp .4s .55s both" }}>
+                <span className="shrink-0 rounded px-1.5 py-[1px] text-[8px] font-black text-white bg-violet-600">스킬</span>
+                <span className="text-[9.5px] font-bold text-gray-600">프로젝트든 아니든 <b className="text-violet-700">그 업무면 붙어요</b></span>
+              </div>
             </div>
           </div>
         );
@@ -3075,9 +3131,89 @@
       );
     }
 
-    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll, active }) {
+    /* 영상·캡처를 화면 가득 띄워 보는 창. 슬라이드 안에서는 작게 두고, 자세히 볼 때만 여기서 연다.
+       ESC 와 배경 클릭으로도 닫히고, 영상은 열자마자 컨트롤이 붙은 채 처음부터 재생된다 */
+    function MediaLightbox({ media, onClose }) {
+      useEffect(() => {
+        const on = (e) => { if (e.key === "Escape") onClose(); };
+        window.addEventListener("keydown", on);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { window.removeEventListener("keydown", on); document.body.style.overflow = prev; };
+      }, [onClose]);
+      if (!media) return null;
+      return (
+        <div className="fixed inset-0 z-[400] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 animate-fadeUp"
+          onClick={onClose}>
+          <button onClick={onClose} aria-label="닫기"
+            className="absolute top-4 right-4 z-10 w-11 h-11 rounded-full bg-white/12 hover:bg-white/25 border border-white/25 text-white grid place-items-center transition">
+            <svg viewBox="0 0 20 20" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M5 5 L15 15 M15 5 L5 15" />
+            </svg>
+          </button>
+          <div className="max-w-[92vw] max-h-[88vh]" onClick={(e) => e.stopPropagation()}>
+            {media.type === "video"
+              ? <video src={media.src} controls autoPlay loop={media.loop !== false} playsInline
+                  className="max-w-[92vw] max-h-[88vh] rounded-2xl shadow-lift" />
+              : <img src={media.src} alt={media.cap || ""} className="max-w-[92vw] max-h-[88vh] object-contain rounded-2xl shadow-lift" />}
+            {media.cap && <div className="mt-3 text-center text-sm text-white/60">{media.cap}</div>}
+          </div>
+          <div className="absolute bottom-5 inset-x-0 text-center text-[11px] text-white/40 pointer-events-none">
+            빈 곳을 누르거나 ESC 를 누르면 닫혀요
+          </div>
+        </div>
+      );
+    }
+
+    /* 슬라이드 안 미디어에 붙는 "눌러서 크게 보기" 표시. 미디어 위에 겹쳐두고, 마우스를 올리면
+       배경이 살짝 어두워지며 또렷해진다 - 누를 수 있다는 걸 모르고 지나치는 걸 막으려는 것 */
+    function EnlargeBadge() {
+      return (
+        <>
+          <span className="pointer-events-none absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/20 transition-colors" />
+          <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/65 group-hover:bg-black/85 px-2 py-1 text-[10px] font-black text-white shadow-lift transition-colors">
+            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3 H17 V8 M8 17 H3 V12 M17 3 L11 9 M3 17 L9 11" />
+            </svg>
+            크게 보기
+          </span>
+        </>
+      );
+    }
+
+    /* 슬라이드 안 미디어가 사진인지 영상인지 한눈에 구분되게 하는 표시. EnlargeBadge와 짝을 이뤄
+       미디어 좌상단에 얹는다 - "크게 보기"만 있으면 눌러보기 전엔 사진인지 영상인지 애매했다.
+       이모지 대신 SVG 아이콘을 쓴다(project 규칙) - viewBox만 있고 크기 클래스가 없어야 래퍼(w-3 h-3)를
+       그대로 따라간다, IconChecklist류의 함정(크기 클래스가 svg에 박혀 겹치는 문제)을 피하려는 것 */
+    function MediaTypeBadge({ type }) {
+      return (
+        <span className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/65 px-2 py-1 text-[10px] font-black text-white shadow-lift">
+          {type === "video" ? (
+            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="currentColor">
+              <path d="M5 4.2 C5 3.4 5.9 2.9 6.6 3.3 L16 8.6 C16.7 9 16.7 10 16 10.4 L6.6 15.7 C5.9 16.1 5 15.6 5 14.8 Z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2.5" y="4" width="15" height="12" rx="1.8" />
+              <circle cx="7" cy="8.3" r="1.3" fill="currentColor" stroke="none" />
+              <path d="M3.5 14.5 L8 10.5 L11 13 L14 10 L16.5 12.5" />
+            </svg>
+          )}
+          {type === "video" ? "영상" : "사진"}
+        </span>
+      );
+    }
+
+    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll, active, onOpenMedia }) {
       const paras = parasOf(slide, name);
       const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
+      /* 글이 많은 슬라이드는 영상·캡처를 반으로 줄여 옆에 세운다(비주얼 슬라이드와 같은 배치).
+         반대로 "영상 한 개 + 한 줄 설명"짜리는 지금처럼 큼직하게 두는 게 낫다 - 그런 슬라이드는
+         영상 자체가 내용이라 줄이면 오히려 손해다. 문단 3개 이상이거나 150자 이상이면 옆으로 세운다 */
+      /* 길이는 <b> 같은 태그를 뺀 실제 글자 수로 잰다 - 태그까지 세면 굵게 몇 군데 쓴 것만으로
+         기준을 넘어버려서, 짧은 슬라이드가 엉뚱하게 반쪽 배치로 넘어간다 */
+      const bodyLen = strip(paras.join("")).length;
+      const mediaAside = (slide.video || hasImg) && (paras.length >= 3 || bodyLen >= 150);
       const videoRef = useRef(null);
       /* 슬라이드가 화면에 실제로 들어올 때만 영상을 재생한다(모든 슬라이드가 미리 마운트돼 있어서 autoPlay만으로는 안 보이는 곳에서 먼저 끝나버림) */
       useEffect(() => {
@@ -3161,9 +3297,15 @@
             <RichInline text={slide.title} name={name} />
           </h2>
           <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
-          {slide.video && (
-            <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-              className="mt-3.5 mx-auto w-auto max-w-full max-h-[62vh] sm:max-h-[82vh] rounded-2xl shadow-soft" />
+          {/* 글이 적은 슬라이드에서만 영상을 위쪽에 큼직하게 깐다. 글이 많으면 아래 2단 배치로 간다 */}
+          {slide.video && !mediaAside && (
+            <button type="button" onClick={() => onOpenMedia({ type: "video", src: slide.video, loop: slide.videoLoop !== false })}
+              className="group relative block mt-3.5 mx-auto w-auto max-w-full cursor-zoom-in">
+              <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
+                className="w-auto max-w-full max-h-[62vh] sm:max-h-[82vh] rounded-2xl shadow-soft" />
+              <MediaTypeBadge type="video" />
+              <EnlargeBadge />
+            </button>
           )}
           {slide.featureCards ? (
             /* 눌러서 펼치는 기능 카드 그리드. paras[0]을 인트로 문장으로 쓰고, 설명은 카드 클릭으로
@@ -3203,15 +3345,47 @@
                 ))}
               </div>
             </div>
+          ) : mediaAside ? (
+            /* 글이 많은 영상·캡처 슬라이드. 미디어를 반으로 줄여 왼쪽에 세우고 글을 오른쪽에 붙인다 -
+               예전엔 영상이 위를 다 차지하고 그 아래로 긴 글이 밀려나 한 화면에 같이 안 들어왔다.
+               작아진 만큼 "크게 보기"로 원본을 띄울 수 있게 해서 잃는 게 없도록 했다 */
+            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
+              <figure key={active ? "media-on" : "media-off"} className="animate-revealUp sm:pr-5 m-0">
+                <button type="button"
+                  onClick={() => onOpenMedia(slide.video
+                    ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
+                    : { type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
+                  className="group relative block mx-auto w-auto max-w-full cursor-zoom-in">
+                  {slide.video
+                    ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
+                        className="w-auto max-w-full max-h-[30vh] sm:max-h-[42vh] rounded-2xl shadow-soft" />
+                    : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
+                        className="w-auto max-w-full max-h-[30vh] sm:max-h-[42vh] object-contain rounded-2xl border border-gray-200 shadow-soft" />}
+                  <MediaTypeBadge type={slide.video ? "video" : "img"} />
+                  <EnlargeBadge />
+                </button>
+                {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
+              </figure>
+              <div className="space-y-2.5 sm:pl-5">
+                {paras.map((p, i) => (
+                  <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
+                ))}
+              </div>
+            </div>
           ) : hasImg ? (
             /* 실제 화면 캡처도 그림이 주인공이니 visual과 같은 50:50 레이아웃을 쓴다 - 문단 아래
                작게 깔리던 걸 왼쪽 큰 칸으로 옮기니 캡처 속 글자까지 읽힌다. 이미지는 슬라이드에
                들어오는 순간 통째로 뜨고(reveal 계단에 안 묶임), 옆 글만 클릭으로 한 문단씩 연다 */
             <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
-              <figure key={active ? "img-on" : "img-off"} className="animate-revealUp sm:pr-5">
-                <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""} title="클릭하면 원본 크기로 열려요"
-                  onClick={() => { const w = window.open(); if (w) w.document.write('<img src="' + DATA.SHOTS[slide.img] + '" style="max-width:100%">'); }}
-                  className="mx-auto w-auto max-w-full max-h-[34vh] sm:max-h-[46vh] object-contain rounded-2xl border border-gray-200 shadow-soft cursor-zoom-in" />
+              <figure key={active ? "img-on" : "img-off"} className="animate-revealUp sm:pr-5 m-0">
+                <button type="button"
+                  onClick={() => onOpenMedia({ type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
+                  className="group relative block mx-auto w-auto max-w-full cursor-zoom-in">
+                  <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
+                    className="w-auto max-w-full max-h-[34vh] sm:max-h-[46vh] object-contain rounded-2xl border border-gray-200 shadow-soft" />
+                  <MediaTypeBadge type="img" />
+                  <EnlargeBadge />
+                </button>
                 {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
               </figure>
               <div className="space-y-2.5 sm:pl-5">
@@ -3246,6 +3420,7 @@
       const scrollRef = useRef(null);
       const prevPos = useRef({ i: 0, step: 1 });
       const [more, setMore] = useState(false);
+      const [lightbox, setLightbox] = useState(null);   // 크게 보기 창에 띄울 미디어
 
       const curSteps = stepsOf(slides[i], name);
       const finished = i === total - 1 && step >= curSteps;
@@ -3267,12 +3442,15 @@
       useEffect(() => {
         const on = (e) => {
           if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          /* 크게 보기 창이 열려 있으면 좌우 키는 슬라이드를 넘기지 않는다 - 창 뒤에서 몰래
+             넘어가 있으면 닫았을 때 엉뚱한 슬라이드가 떠 있다 */
+          if (lightbox) return;
           if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
           else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
         };
         window.addEventListener("keydown", on);
         return () => window.removeEventListener("keydown", on);
-      }, [next, prev]);
+      }, [next, prev, lightbox]);
 
       /* autoReveal 슬라이드는 탭 없이도 항목이 하나씩 순서대로 나타난다 */
       useEffect(() => {
@@ -3297,6 +3475,7 @@
 
       return (
         <div className="flex-1 min-h-0 flex flex-col gap-2.5">
+          {lightbox && <MediaLightbox media={lightbox} onClose={() => setLightbox(null)} />}
           {/* 진행바. 슬라이드가 아니라 포인트 기준 */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex-1 h-1.5 rounded-full bg-gray-200/70 overflow-hidden">
@@ -3326,7 +3505,7 @@
                   <SlideBody slide={s} name={name} theme={theme}
                     reveal={active ? step : stepsOf(s, name)}
                     innerRef={active ? scrollRef : null} onScroll={active ? syncMore : null}
-                    active={active} />
+                    active={active} onOpenMedia={setLightbox} />
                 </div>
               );
             })}
@@ -3443,7 +3622,7 @@
        붙여넣는 것이다. 예전엔 둘 다 "💬 프롬프트"로 똑같이 보여서 어디에 뭘 넣어야 하는지
        구분이 안 됐다. role로 머리말과 색을 갈라 놓는다.
          ask   - 클로드에게 그대로 보낼 말 (기본값)
-         paste - 지침·지식 같은 다른 칸에 넣을 재료
+         paste - 지침·컨텍스트 같은 다른 칸에 넣을 재료
          data  - 채팅에 붙여넣을 자료(표·메모 등) */
     const CARD_ROLE = {
       ask: { icon: "💬", title: "클로드에게 보낼 말", head: "bg-brand-500 text-white", body: "border-brand-200 bg-brand-50/40",
