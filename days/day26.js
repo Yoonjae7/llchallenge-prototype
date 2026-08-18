@@ -90,7 +90,7 @@
     return (
       <div className={card}>
         <div className="grid grid-cols-2 gap-2.5">
-          {/* 아티팩트 - 대화 흐름 안에서 결과가 딸려 나온다 */}
+          {/* 아티팩트, 대화 흐름 안에서 결과가 딸려 나온다 */}
           <div className="rounded-2xl bg-white border border-sky-200 overflow-hidden shadow-soft"
             style={{ animation: "revealUp .4s both" }}>
             <div className="px-2.5 py-1.5 bg-sky-50 border-b border-sky-100 flex items-center gap-1.5">
@@ -112,7 +112,7 @@
             </div>
           </div>
 
-          {/* Design - 처음부터 캔버스가 주인공인 작업실 */}
+          {/* Design, 처음부터 캔버스가 주인공인 작업실 */}
           <div className="rounded-2xl bg-white border border-violet-200 overflow-hidden shadow-soft"
             style={{ animation: "revealUp .4s .12s both" }}>
             <div className="px-2.5 py-1.5 bg-violet-50 border-b border-violet-100 flex items-center gap-1.5">
@@ -154,7 +154,7 @@
     const { IconDocFold, IconArrowSm } = UI;
     const outs = [
       { ext: "PPTX", desc: "진짜 파워포인트", tone: "text-orange-600", badge: "bg-orange-500" },
-      { ext: "PDF", desc: "인쇄 · 공유용", tone: "text-rose-600", badge: "bg-rose-500" },
+      { ext: "PDF", desc: "인쇄, 공유용", tone: "text-rose-600", badge: "bg-rose-500" },
       { ext: "ZIP", desc: "여러 개 한 번에", tone: "text-gray-600", badge: "bg-gray-500" },
       { ext: "Canva", desc: "이어서 더 다듬기", tone: "text-cyan-600", badge: "bg-cyan-500" },
     ];
@@ -198,27 +198,27 @@
     slides: [
       { title: "오늘부터는 '보기'를 다뤄요",
         visual: "designMakes",
-        body: "지금까지 만든 것들, <b>내용</b>은 좋았죠. 근데 남한테 보여줄 때는 좀 아쉬웠을 거예요.\n\n<b>Claude Design</b>은 클로드 안에 있는 <b>디자인 작업실</b>이에요. 발표 슬라이드, 한 장짜리 소개서, 앱 화면, 카드뉴스 - 보여주기 위한 것들을 만드는 곳이죠.\n\n오늘은 이게 뭔지만 알고 가요. 만드는 건 내일부터예요 😊",
+        body: "지금까지 만든 것들, <b>내용</b>은 좋았죠. 근데 남한테 보여줄 때는 좀 아쉬웠을 거예요.\n\n<b>Claude Design</b>은 클로드 안에 있는 <b>디자인 작업실</b>이에요. 발표 슬라이드, 한 장짜리 소개서, 앱 화면, 카드뉴스, 보여주기 위한 것들을 만드는 곳이죠.\n\n오늘은 이게 뭔지만 알고 가요. 만드는 건 내일부터예요 😊",
         note: "챕터 7 첫 화면. 예전 버전은 기능 목록부터 쏟아붓고 '정신없죠?'로 시작했는데, 정작 Claude Design이 뭔지 말한 적이 없어서 뜬금없었다. 지금은 '무엇을 위한 도구인가(보기)' → '뭘 만드나' 순으로 열고, 만들 수 있는 것 네 가지는 그림(designMakes)이 보여준다." },
       { title: "이거 아티팩트로 되는 거 아닌가요?",
         visual: "designVsArtifact",
         body: "둘 다 화면에 보이는 결과물을 만들어요. 그건 맞아요.\n\n결정적인 차이는 <b>어디서 시작하느냐</b>예요. 아티팩트는 대화하다가 「나온」 것이고, Design은 처음부터 <b>만들려고 들어간 공간</b>이에요.\n\n목적이 다르면 도구가 달라져요.",
-        note: "이 챕터 첫날의 핵심 과제 - '이미 하잖아?' 해소. 회피하지 말고 정면으로 다룬다. 두 화면 목업 대비(designVsArtifact)가 설명을 대신하고 글은 결론만 남긴다." },
+        note: "이 챕터 첫날의 핵심 과제, '이미 하잖아?' 해소. 회피하지 말고 정면으로 다룬다. 두 화면 목업 대비(designVsArtifact)가 설명을 대신하고 글은 결론만 남긴다." },
       { title: "그래서 뭐가 다른데요?",
         body: "세 가지가 달라요. 이것만 알면 돼요.\n\n<b>캔버스를 직접 만질 수 있어요.</b> 아티팩트는 말로만 고쳤죠. Design은 마우스로 직접 옮기고 바꿔요.\n\n<b>디자인을 고정할 수 있어요.</b> 색과 폰트를 정해두면 이후 만드는 모든 게 그 규칙을 따라요. 10장을 만들어도 다 같은 톤이에요.\n\n<b>다양하게 내보내요.</b> 이건 다음 장에서 따로 보여드릴게요.",
         note: "세 가지 차이 중 앞의 둘만 여기서 다루고, 내보내기는 그림이 있는 다음 슬라이드로 분리했다." },
       { title: "밖으로 꺼내는 길이 이렇게 많아요",
         visual: "designExports",
         body: "아티팩트는 파일로 내려받아도 결국 웹 화면이었어요. Design은 <b>진짜 쓸 수 있는 파일</b>로 나와요.\n\n회사에서 「PPT로 주세요」 하면 답이 없었잖아요 😅 이제 답이 여러 개예요.",
-        note: "내보내기 옵션은 실제 UI 기준 - PPTX/PDF/zip/Canva/독립형 HTML/Claude Code. 목록은 그림(designExports)이 맡고 글은 감정만 남긴다." },
+        note: "내보내기 옵션은 실제 UI 기준, PPTX/PDF/zip/Canva/독립형 HTML/Claude Code. 목록은 그림(designExports)이 맡고 글은 감정만 남긴다." },
       { title: "그럼 언제 뭘 써요?",
-        body: "간단한 기준을 드릴게요.\n\n<b>아티팩트</b>는 대화하다 「이거 그림으로 보고 싶은데」 싶을 때, 대시보드·계산기처럼 <b>동작</b>이 중요한 것, 빨리 한 번 보고 버릴 것에 쓰세요.\n\n<b>Claude Design</b>은 발표자료처럼 <b>보기</b>가 중요한 것, 여러 장을 <b>같은 톤</b>으로 맞춰야 할 때, PPTX·PDF로 <b>내보내야</b> 할 때 쓰세요.\n\n한 줄로 - <b>동작이 중요하면 아티팩트, 보기가 중요하면 Design.</b>",
+        body: "간단한 기준을 드릴게요.\n\n<b>아티팩트</b>는 대화하다 「이거 그림으로 보고 싶은데」 싶을 때, 대시보드, 계산기처럼 <b>동작</b>이 중요한 것, 빨리 한 번 보고 버릴 것에 쓰세요.\n\n<b>Claude Design</b>은 발표자료처럼 <b>보기</b>가 중요한 것, 여러 장을 <b>같은 톤</b>으로 맞춰야 할 때, PPTX, PDF로 <b>내보내야</b> 할 때 쓰세요.\n\n한 줄로, <b>동작이 중요하면 아티팩트, 보기가 중요하면 Design.</b>",
         note: "판단 기준을 한 줄로 남겨야 실제로 쓰인다. 앞 챕터와의 관계를 명확히 정리하는 자리." },
       { title: "시작 전 확인 하나",
         body: "Claude Design은 <b>유료 플랜(Pro 이상)</b>에서 쓸 수 있어요.\n\nDay 1에서 Pro 구독을 준비해달라고 말씀드렸죠? 여기서 쓰입니다.\n\n혹시 아직이시라면 오늘 안에 확인해주세요. 내일부터 바로 만들기 시작하거든요 😊",
-        note: "⚠️ 확인 필요 - Claude Design의 최소 플랜 요건을 출시 시점 요금제로 재확인할 것." },
+        note: "⚠️ 확인 필요, Claude Design의 최소 플랜 요건을 출시 시점 요금제로 재확인할 것." },
       { title: "오늘은 여기까지예요",
-        body: "정리하면요.\n\n· Claude Design엔 기능이 정말 많지만, 저희는 <b>핵심만</b> 골라 가르쳐드려요\n· 아티팩트는 <b>대화하다 나온 것</b>, Design은 <b>만들려고 들어간 공간</b>이에요\n· 내보내기는 <b>PPTX·PDF·zip·Canva·HTML·클로드 코드</b>까지 다양해요\n· <b>동작이 중요하면 아티팩트, 보기가 중요하면 Design</b>\n\n내일부터 직접 만들어요. 결과물이 예뻐서 꽤 재밌으실 거예요 🎨",
+        body: "정리하면요.\n\n· Claude Design엔 기능이 정말 많지만, 저희는 <b>핵심만</b> 골라 가르쳐드려요\n· 아티팩트는 <b>대화하다 나온 것</b>, Design은 <b>만들려고 들어간 공간</b>이에요\n· 내보내기는 <b>PPTX, PDF, zip, Canva, HTML, 클로드 코드</b>까지 다양해요\n· <b>동작이 중요하면 아티팩트, 보기가 중요하면 Design</b>\n\n내일부터 직접 만들어요. 결과물이 예뻐서 꽤 재밌으실 거예요 🎨",
         note: "개념 Day 요약 → 퀴즈." },
     ],
     quiz: [
@@ -229,9 +229,9 @@
       { q: "Claude Design에서 결과물을 밖으로 꺼내는 방법으로 <b>틀린</b> 것은?",
         choices: ["PPTX로 내보내기", "PDF로 내보내기", "Canva로 보내서 이어서 편집하기", "인스타그램에 자동으로 올리기"],
         answer: 3,
-        explain: "PPTX·PDF·zip·Canva·독립형 HTML로 꺼낼 수 있고 클로드 코드로 넘길 수도 있지만, SNS에 자동으로 올려주진 않아요." },
+        explain: "PPTX, PDF, zip, Canva, 독립형 HTML로 꺼낼 수 있고 클로드 코드로 넘길 수도 있지만, SNS에 자동으로 올려주진 않아요." },
       { q: "'디자인 시스템 고정'이 해주는 일은?",
-        choices: ["파일 용량을 줄인다", "이후 만드는 것들이 같은 색·폰트를 따르게 한다", "자동으로 저장한다", "번역을 해준다"],
+        choices: ["파일 용량을 줄인다", "이후 만드는 것들이 같은 색, 폰트를 따르게 한다", "자동으로 저장한다", "번역을 해준다"],
         answer: 1,
         explain: "10장을 만들어도 톤이 흐트러지지 않아요. 손으로 맞추려면 제일 귀찮은 일이죠." },
       { q: "발표자료를 만들어야 한다면 뭘 쓰는 게 좋을까요?",
