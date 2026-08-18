@@ -2914,29 +2914,46 @@
       /* Day 21 - 스킬은 설정 화면에 모여 있다. 예전엔 이 자리에 클로드 코드의 마켓플레이스 개념을
          그대로 옮긴 "플러그인"(스킬 여러 개를 한 번에 받는 묶음) 슬라이드가 있었는데, 이 코스는
          클로드 챗 기준이라 그런 절차가 없다 - 사용자 지적(2026-08-19)대로 skill-creator가 마치
-         플러그인으로 받아야 하는 대상처럼 읽히는 부작용도 있었다. 커넥터 토글 목록(connectorHub)과
-         같은 실제 설정 화면 톤으로 다시 그려, "스킬은 이미 다 여기 모여 있고 켜져 있다"는 올바른
-         개념으로 교체했다. 토글은 전부 켜진 초록으로 통일한다 - 무언가를 받으러 가는 그림이 아니라
-         이미 다 켜져 있는 걸 확인하는 그림이라는 게 이 슬라이드의 요점이다 */
+         플러그인으로 받아야 하는 대상처럼 읽히는 부작용도 있었다.
+         2026-08-19 사용자 확인으로 재수정: 설정 → 기능 → 스킬을 눌러도 토글 목록이 바로 안 뜨고,
+         그 안의 「Customize」 버튼을 한 번 더 눌러야 진짜 관리 화면이 열린다. 한 번에 다 보여주면
+         이 클릭 한 단계가 묻히므로, pluginBundle이 쓰던 "박스 → 구분선 → 카드" 레이아웃을 그대로
+         빌려 위에는 눌러야 할 Customize 버튼을, 아래는 그걸 누른 뒤에 나오는 진짜 목록을 그린다.
+         토글은 전부 켜진 초록으로 통일한다 - 무언가를 받으러 가는 그림이 아니라 이미 다 켜져 있는
+         걸 확인하는 그림이라는 게 이 슬라이드의 요점이다 */
       if (kind === "skillSettings") {
         const rows = [
-          { label: "엑셀 · 발표자료 · 워드 · PDF", desc: "공식 스킬, 이미 켜져 있어요" },
-          { label: "skill-creator", desc: "공식 스킬, 이미 켜져 있어요" },
+          { label: "엑셀 · 발표자료 · 워드 · PDF", desc: "공식 스킬" },
+          { label: "skill-creator", desc: "공식 스킬" },
           { label: "회의록 정리", desc: "내가 만든 스킬", mine: true },
         ];
         return (
           <div className={card}>
-            <div className="rounded-2xl bg-white border border-gray-100 shadow-soft overflow-hidden">
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-soft overflow-hidden">
               <div className="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
                 <span className="text-[10px]">⚙️</span>
                 <span className="text-[10.5px] font-black text-gray-400 tracking-wide">설정 → 기능 → 스킬</span>
               </div>
+              <div className="flex items-center justify-between gap-2 px-4 py-3">
+                <span className="text-[10px] font-bold text-gray-400">여긴 목록이 아니라 버튼 하나뿐이에요</span>
+                <span className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-[10.5px] font-black text-gray-700 shadow-soft"
+                  style={{ animation: "pulseSoft 2.2s ease-in-out infinite" }}>Customize</span>
+              </div>
+            </div>
+            <div className="my-2 flex items-center gap-2">
+              <span className="flex-1 h-px bg-gray-300/60" />
+              <span className="text-[9px] font-black text-emerald-600">누르면</span>
+              <span className="flex-1 h-px bg-gray-300/60" />
+            </div>
+            <div className="rounded-2xl bg-white border border-emerald-200 shadow-soft overflow-hidden"
+              style={{ animation: "popIn .35s .3s cubic-bezier(.2,.9,.3,1.15) both" }}>
+              <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100 text-[9px] font-black text-emerald-600 tracking-wide">진짜 스킬 목록</div>
               <div className="divide-y divide-gray-100">
                 {rows.map((r, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3" style={{ animation: "revealUp .4s " + (i * .1) + "s both" }}>
+                  <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ animation: "revealUp .4s " + (.4 + i * .1) + "s both" }}>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11.5px] font-bold text-ink truncate">{r.label}</div>
-                      <div className={"text-[9px] font-bold " + (r.mine ? "text-violet-500" : "text-gray-400")}>{r.desc}</div>
+                      <div className="text-[11px] font-bold text-ink truncate">{r.label}</div>
+                      <div className={"text-[8.5px] font-bold " + (r.mine ? "text-violet-500" : "text-gray-400")}>{r.desc}</div>
                     </div>
                     <span className="relative shrink-0 w-9 h-5 rounded-full" style={{ background: "linear-gradient(135deg,#22C55E,#16A34A)" }}>
                       <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white shadow" />
@@ -2945,7 +2962,7 @@
                 ))}
               </div>
             </div>
-            <div className="mt-2.5 text-center text-[10px] font-bold text-gray-500 leading-snug">
+            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-500 leading-snug">
               여기서 <b className="text-emerald-600">켜진 스킬만</b> 「/」 목록에 떠요
             </div>
           </div>
