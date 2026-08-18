@@ -35,13 +35,23 @@
     "챕터 12": "45일치 결과물을 손에 쥐고 환급까지 신청한다",
   };
 
+  /* 배포 잠금선 (index.html 의 window.MJC_RELEASE_MAX_DAY).
+     이 값보다 뒤에 있는 Day 는 콘텐츠 파일이 로드돼 있어도 승격시키지 않는다. 승격이 안 된
+     챕터는 data.js 의 upcoming 에 그대로 남아 전체 목차에서 "아직 준비 중" 잠금 카드로만 뜨고,
+     parseRoute 가 DATA.days 에 없는 Day 를 Day 1 로 되돌리므로 주소로 직접 들어와도 안 열린다.
+     안 정해두면 로드된 Day 를 전부 연다 - 내부에서 45일치를 다 볼 때가 그 경우다. */
+  const MAX_DAY = typeof window.MJC_RELEASE_MAX_DAY === "number" ? window.MJC_RELEASE_MAX_DAY : Infinity;
+
   const promoted = [];
   const stillUpcoming = [];
 
   (DATA.upcoming || []).forEach(function (u) {
+    /* 잠금선을 넘는 Day 가 하나라도 있으면 챕터 전체를 잠가둔다 - 앞부분만 열어 반쪽짜리
+       챕터를 만들면 나머지 Day 가 목차에서 아예 사라진다 */
+    const withinLimit = (u.days || []).every(function (d) { return d.day <= MAX_DAY; });
     /* 이 챕터의 Day 가 하나라도 authored 로 들어왔으면 실제 챕터로 올린다 */
     const hasContent = (u.days || []).some(function (d) { return EXT[d.day]; });
-    if (!hasContent) { stillUpcoming.push(u); return; }
+    if (!hasContent || !withinLimit) { stillUpcoming.push(u); return; }
 
     promoted.push({
       code: u.code,

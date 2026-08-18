@@ -175,6 +175,13 @@
   <!-- 커리큘럼 데이터: Day 메타 + 슬라이드/퀴즈/미션 콘텐츠 (Day 1~25) -->
   <script src="data.js"></script>
 
+  <!-- 배포 잠금선. 숫자를 넣으면 그 Day 까지만 열리고 그 뒤 챕터는 전체 목차에서
+       "아직 준비 중" 잠금 카드로만 보인다. 아래 dayNN.js 는 그대로 다 불러오되
+       days/_register.js 가 승격을 막는 방식이라 이 한 줄만 바꾸면 범위가 바뀐다.
+       null = 로드된 Day 를 전부 연다. 이 브랜치(main)는 45일치를 다 보는 작업용이라 null 이고,
+       고객에게 나가는 배포본은 release/day1-25 브랜치에서 25 로 잠가서 내보낸다. -->
+  <script>window.MJC_RELEASE_MAX_DAY = null;</script>
+
   <!-- Day 26~45. 한 Day = 한 파일이고, 그 안에 슬라이드·퀴즈·미션·전용 비주얼이 다 들어 있다.
        전부 평범한 <script src> 다 - type="text/babel" 을 쓰면 Babel이 그 파일을 네트워크로
        가져와야 해서 index.html 을 더블클릭(file://)했을 때 Day 26~45 가 통째로 안 붙는다.
@@ -1263,14 +1270,6 @@
         </div>
       );
     }
-    function IconPuzzle() {
-      return (
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 7.5 H5.6 A1.6 1.6 0 0 0 7.2 5.9 A1.9 1.9 0 1 1 11 5.9 A1.6 1.6 0 0 0 12.6 7.5 H17 V11.4 A1.6 1.6 0 0 1 15.4 13 A1.9 1.9 0 1 0 15.4 16.8 A1.6 1.6 0 0 1 17 18.4 H3 Z" />
-        </svg>
-      );
-    }
-
     function SlideVisual({ kind }) {
       /* 리퀴드 글래스 - 배경이 거의 비치도록 불투명도를 확 낮추고 블러를 키운다.
          위쪽에 얇은 하이라이트 선을 넣어 유리 표면에 빛이 맺힌 느낌을 준다 */
@@ -2919,55 +2918,64 @@
         );
       }
 
-      /* Day 21 - 플러그인. "스킬을 여러 개 묶어 한 번에 추가하는 것"이 요점이라, 위에는 스킬을
-         하나씩 만드는 흐린 상태를, 아래에는 실제 플러그인 카드처럼 생긴 목업(제목 + 「추가」 버튼 +
-         안에 든 스킬 목록)을 놓고 대비시킨다. 클릭 경로는 일부러 그리지 않는다 - 메뉴 위치는
-         출시 시점 UI에서 확인해야 하고, 확인 안 된 절차를 그림으로 못 박으면 zip 설치 슬라이드와
-         같은 실수가 된다(2026-08-18) */
-      if (kind === "pluginBundle") {
-        const inside = ["회의록 정리", "액션 아이템 뽑기", "주간 요약 만들기"];
+      /* Day 21 - 스킬은 설정 화면에 모여 있다. 예전엔 이 자리에 클로드 코드의 마켓플레이스 개념을
+         그대로 옮긴 "플러그인"(스킬 여러 개를 한 번에 받는 묶음) 슬라이드가 있었는데, 이 코스는
+         클로드 챗 기준이라 그런 절차가 없다 - 사용자 지적(2026-08-19)대로 skill-creator가 마치
+         플러그인으로 받아야 하는 대상처럼 읽히는 부작용도 있었다.
+         2026-08-19 사용자 확인으로 재수정: 설정 → 기능 → 스킬을 눌러도 토글 목록이 바로 안 뜨고,
+         그 안의 「Customize」 버튼을 한 번 더 눌러야 진짜 관리 화면이 열린다. 한 번에 다 보여주면
+         이 클릭 한 단계가 묻히므로, pluginBundle이 쓰던 "박스 → 구분선 → 카드" 레이아웃을 그대로
+         빌려 위에는 눌러야 할 Customize 버튼을, 아래는 그걸 누른 뒤에 나오는 진짜 목록을 그린다.
+         토글은 전부 켜진 초록으로 통일한다 - 무언가를 받으러 가는 그림이 아니라 이미 다 켜져 있는
+         걸 확인하는 그림이라는 게 이 슬라이드의 요점이다 */
+      if (kind === "skillSettings") {
+        const rows = [
+          { label: "엑셀 · 발표자료 · 워드 · PDF", desc: "공식 스킬" },
+          { label: "skill-creator", desc: "공식 스킬" },
+          { label: "회의록 정리", desc: "내가 만든 스킬", mine: true },
+        ];
         return (
           <div className={card}>
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-2.5">
-              <div className="mb-1.5 text-[9px] font-black text-gray-400">스킬을 하나씩 만들면</div>
-              <div className="flex gap-1.5">
-                {inside.map((s, i) => (
-                  <span key={i} className="flex-1 min-w-0 truncate rounded-lg bg-white border border-gray-200 px-1 py-1.5 text-center text-[8.5px] font-bold text-gray-400"
-                    style={{ animation: "revealUp .35s " + (i * .08) + "s both" }}>{s}</span>
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-soft overflow-hidden">
+              <div className="px-4 py-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center gap-1.5">
+                <span className="text-[10px]">⚙️</span>
+                <span className="text-[10.5px] font-black text-gray-400 tracking-wide">설정 → 기능 → 스킬</span>
+              </div>
+              <div className="flex items-center justify-between gap-2 px-4 py-3">
+                <span className="text-[10px] font-bold text-gray-400">여긴 목록이 아니라 버튼 하나뿐이에요</span>
+                <span className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-[10.5px] font-black text-gray-700 shadow-soft"
+                  style={{ animation: "pulseSoft 2.2s ease-in-out infinite" }}>Customize</span>
+              </div>
+            </div>
+            <div className="my-2 flex items-center gap-2">
+              <span className="flex-1 h-px bg-gray-300/60" />
+              <span className="text-[9px] font-black text-emerald-600">누르면</span>
+              <span className="flex-1 h-px bg-gray-300/60" />
+            </div>
+            <div className="rounded-2xl bg-white border border-emerald-200 shadow-soft overflow-hidden"
+              style={{ animation: "popIn .35s .3s cubic-bezier(.2,.9,.3,1.15) both" }}>
+              <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100 text-[9px] font-black text-emerald-600 tracking-wide">진짜 스킬 목록</div>
+              <div className="divide-y divide-gray-100">
+                {rows.map((r, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2.5" style={{ animation: "revealUp .4s " + (.4 + i * .1) + "s both" }}>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-bold text-ink truncate">{r.label}</div>
+                      <div className={"text-[8.5px] font-bold " + (r.mine ? "text-violet-500" : "text-gray-400")}>{r.desc}</div>
+                    </div>
+                    <span className="relative shrink-0 w-9 h-5 rounded-full" style={{ background: "linear-gradient(135deg,#22C55E,#16A34A)" }}>
+                      <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white shadow" />
+                    </span>
+                  </div>
                 ))}
               </div>
-              <div className="mt-1.5 text-[9px] text-gray-400">세 번 따로 만들어야 해요</div>
             </div>
-            <div className="my-2.5 flex items-center gap-2">
-              <span className="flex-1 h-px bg-gray-300/60" />
-              <span className="text-[9px] font-black text-violet-600">플러그인이면</span>
-              <span className="flex-1 h-px bg-gray-300/60" />
+            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-500 leading-snug">
+              여기서 <b className="text-emerald-600">켜진 스킬만</b> 「/」 목록에 떠요
             </div>
-            <div className="rounded-2xl bg-white border border-violet-200 shadow-soft overflow-hidden"
-              style={{ animation: "popIn .35s .3s cubic-bezier(.2,.9,.3,1.15) both" }}>
-              <div className="flex items-center gap-2 px-3 py-2 bg-violet-50 border-b border-violet-100">
-                <span className="shrink-0 w-4 h-4 text-violet-600"><IconPuzzle /></span>
-                <span className="flex-1 min-w-0 truncate text-[10px] font-black text-violet-700">회의 관리 팩</span>
-                <span className="shrink-0 rounded-full bg-violet-600 px-2 py-0.5 text-[8.5px] font-black text-white">추가</span>
-              </div>
-              <div className="p-2">
-                <div className="px-0.5 pb-1 text-[8.5px] font-black text-gray-400">이 안에 들어 있는 스킬</div>
-                <div className="space-y-1">
-                  {inside.map((s, i) => (
-                    <div key={i} className="flex items-center gap-1.5 rounded-lg bg-violet-50/60 border border-violet-100 px-2 py-1.5"
-                      style={{ animation: "revealUp .35s " + (.4 + i * .08) + "s both" }}>
-                      <span className="shrink-0 w-3 h-3 text-violet-500"><IconHammer /></span>
-                      <span className="flex-1 min-w-0 truncate text-[9.5px] font-bold text-violet-700">{s}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-2 text-center text-[9.5px] font-bold text-gray-500">한 번 추가하면 <b className="text-violet-700">스킬 3개가 한꺼번에</b> 들어와요</div>
           </div>
         );
       }
-      /* Day 21 - 「/」로 스킬을 부르는 순간. 플러그인으로 받아두기만 하고 부르지 않으면 아무 일도
+      /* Day 21 - 「/」로 스킬을 부르는 순간. 설정에서 켜두기만 하고 부르지 않으면 아무 일도
          안 일어난다는 게 이 장의 요점이라, 정지 화면 대신 타이핑이 계속 반복되는 루프로 그렸다.
          고른 이름이 파란 글씨가 되는 것 = "제대로 잡혔다"는 신호이고, 복붙한 「/…」는 검은 글씨
          그대로라 안 걸린다 - 이 대비가 Day 23 미션 2단계에서 그대로 필요하다.
