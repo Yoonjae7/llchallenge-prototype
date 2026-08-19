@@ -42,12 +42,10 @@
       presets: [[Babel.availablePresets.react, { runtime: "classic" }]],
     });
 
-    /* days/dayNN.js 안의 비주얼을 JSX 그대로 두면서도 이 페이지를 파일로 직접 열 수 있게 하는 장치.
-       type="text/babel" + src= 는 Babel이 그 파일을 네트워크로 가져와야 하는데, file:// 로 열면
-       브라우저가 그 요청을 막아버린다 - 그래서 예전엔 index.html 을 더블클릭하면 Day 26~45 가
-       통째로 안 붙었다(1~25 만 보였다). 이제 Day 파일은 평범한 <script src> 로 불러오고,
-       그 안의 비주얼만 문자열로 담아 여기서 Babel 로 컴파일한다. 가져올 파일이 없으니 file:// 에서도
-       그대로 돌아간다. JSX 문법은 그대로 쓸 수 있어서 편집 감각도 안 바뀐다. */
+    /* Day 를 한 파일씩 쪼개 담을 때(main 의 days/dayNN.js) 그 안의 비주얼을 JSX 그대로 두기
+       위한 장치. 이 브랜치에는 그 파일들이 없지만, main 과 합칠 때 되살아나야 하므로 남겨둔다.
+       type="text/babel" + src= 를 쓰면 Babel 이 파일을 네트워크로 가져와야 해서 file:// 로
+       열었을 때 통째로 안 붙는다. 그래서 비주얼만 문자열로 담아 여기서 컴파일한다 */
     window.MJC_JSX = function (src) {
       var out = Babel.transform("(" + src + ")", { presets: ["react-classic"] }).code;
       return (0, eval)(out);
@@ -165,6 +163,37 @@
     .deck-stack { display: grid; }
     .deck-stack > * { grid-area: 1 / 1; min-height: 0; }
 
+    /* ═══ 포커스 레이아웃 ═══════════════════════════════════════
+       한 섹션이 한 화면을 차지하는 슬라이드형인데, 판을 넘기는 건 클릭이 아니라 스크롤이다.
+       판 안의 글은 처음부터 다 있고 화면에 들어올 때 차례로 떠오르기만 한다 - 감추는 게 아니라
+       시선을 옮겨주는 용도라, 읽는 사람은 한 번도 다음 줄을 달라고 요청할 필요가 없다.
+       판 경계를 카드 테두리로 그리는 대신 지금 읽는 판만 또렷하게 남겨서, 클릭 없이도
+       "지금은 이 장면" 이라는 감각이 유지된다 */
+    /* 판을 붙잡는 일은 CSS scroll-snap 이 아니라 스크립트가 한다. proximity 는 손을 뗀 자리가
+       판 머리에서 멀면 아무 일도 안 일어나고(굴려도 그냥 굴러갈 뿐이다), mandatory 는 휠·트랙패드·
+       스크롤바마다 판정이 달라서 "얼마나 굴리면 넘어가는가" 를 우리가 정할 수가 없다.
+       위에 겹쳐 있는 두 줄(헤더 56 + 진행 띠 44)만큼 띄우는 값만 남겨둔다 */
+    .focus-panel { scroll-margin-top: 100px; }
+    @keyframes focusRise { from { opacity:0; transform: translateY(26px); } to { opacity:1; transform:none; } }
+    .focus-el { opacity: 0; }
+    .focus-seen .focus-el { animation: focusRise .6s cubic-bezier(.22,.9,.3,1) both; }
+    /* 표지 뒤에서 아주 느리게 도는 색 얼룩. 첫 화면이 완전히 정지해 있지 않게만 한다.
+       Day 테마의 진한 색을 아주 옅게 깔아야 크림 바탕 위에서 그나마 보인다 - 연한 색(emerald-50 류)은
+       바탕과 거의 같은 값이라 흐려놓으면 아예 사라진다 */
+    @keyframes focusGlow { 0%,100% { transform: translate3d(0,0,0) scale(1); opacity:.10 } 50% { transform: translate3d(2%,-4%,0) scale(1.12); opacity:.17 } }
+    .focus-glow { animation: focusGlow 11s ease-in-out infinite; }
+    /* 비주얼은 덱의 반쪽 칸(약 330px)에 맞춰 그려져 있어서, 화면 하나를 통째로 쓰는 판에 놓으면
+       캡션 10px 이 유독 작아 보인다. 폭이 넉넉한 화면에서만 통째로 키운다 - zoom 은 레이아웃 높이도
+       같이 커져서 옆 글과 겹치지 않고, 지원하지 않는 브라우저에서는 원래 크기 그대로 남는다 */
+    @media (min-width: 1024px) { .focus-visual { zoom: 1.25; } }
+    /* 첫 판에서만 뜨는 스크롤 안내. 아래로 흘러내렸다 사라진다 */
+    @keyframes focusDrip { 0% { transform: translateY(-3px); opacity:0 } 30% { opacity:1 } 100% { transform: translateY(9px); opacity:0 } }
+    .focus-drip { animation: focusDrip 1.9s cubic-bezier(.4,0,.5,1) infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      /* 지속시간만 0 이 되고 지연은 남으면, 판마다 글이 잠깐씩 빈 채로 뜬다 */
+      .focus-el { animation-delay: 0s !important; }
+    }
+
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -180,46 +209,17 @@
   <div id="root"></div>
   <!-- 설정 화면 스크린샷(base64). 용량이 커서 커리큘럼 데이터와 분리했다 -->
   <script src="assets.js"></script>
-  <!-- 커리큘럼 데이터: Day 메타 + 슬라이드/퀴즈/미션 콘텐츠 (Day 1~25) -->
+  <!-- 커리큘럼 데이터: Day 메타 + 슬라이드/퀴즈/미션 콘텐츠 (Day 10~14) -->
   <script src="data.js"></script>
-
-  <!-- 배포 잠금선. 숫자를 넣으면 그 Day 까지만 열리고 그 뒤 챕터는 전체 목차에서
-       "아직 준비 중" 잠금 카드로만 보인다. 아래 dayNN.js 는 그대로 다 불러오되
-       days/_register.js 가 승격을 막는 방식이라 이 한 줄만 바꾸면 범위가 바뀐다.
-       null = 로드된 Day 를 전부 연다. 이 브랜치(main)는 45일치를 다 보는 작업용이라 null 이고,
-       고객에게 나가는 배포본은 release/day1-25 브랜치에서 25 로 잠가서 내보낸다. -->
-  <script>window.MJC_RELEASE_MAX_DAY = null;</script>
-
-  <!-- Day 26~45. 한 Day = 한 파일이고, 그 안에 슬라이드·퀴즈·미션·전용 비주얼이 다 들어 있다.
-       전부 평범한 <script src> 다 - type="text/babel" 을 쓰면 Babel이 그 파일을 네트워크로
-       가져와야 해서 index.html 을 더블클릭(file://)했을 때 Day 26~45 가 통째로 안 붙는다.
-       그래서 비주얼의 JSX는 파일 안에서 MJC_JSX(`...`) 문자열로 두고 위쪽에서 컴파일한다.
-       순서는 지켜야 한다 - dayNN.js 전부 → _register.js → 아래 본체 스크립트. -->
-  <script src="days/day26.js"></script>
-  <script src="days/day27.js"></script>
-  <script src="days/day28.js"></script>
-  <script src="days/day29.js"></script>
-  <script src="days/day30.js"></script>
-  <script src="days/day31.js"></script>
-  <script src="days/day32.js"></script>
-  <script src="days/day33.js"></script>
-  <script src="days/day34.js"></script>
-  <script src="days/day35.js"></script>
-  <script src="days/day36.js"></script>
-  <script src="days/day37.js"></script>
-  <script src="days/day38.js"></script>
-  <script src="days/day39.js"></script>
-  <script src="days/day40.js"></script>
-  <script src="days/day41.js"></script>
-  <script src="days/day42.js"></script>
-  <script src="days/day43.js"></script>
-  <script src="days/day44.js"></script>
-  <script src="days/day45.js"></script>
-  <script src="days/_register.js"></script>
 
   <script type="text/babel" data-presets="react-classic">
     const { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback, createContext, useContext } = React;
     const DATA = window.MJC_DATA;
+    /* 이 빌드에 실제로 담긴 첫 Day. Day 1 을 상수로 박아두면 담는 범위를 좁힐 때마다
+       "처음으로" 가 없는 Day 로 데려간다 - 늘 데이터에서 뽑는다 */
+    const FIRST_DAY = (DATA.days[0] || { day: 1 }).day;
+    const LAST_DAY = (DATA.days[DATA.days.length - 1] || { day: 1 }).day;
+    const HOME = "#/day/" + FIRST_DAY;
 
     /* Day 타입별 앰비언트 컬러. 기획안 주석: concept 그린 · practice 앰버 · project 핑크 */
     const THEME = {
@@ -252,9 +252,9 @@
     /* 유틸 */
     function go(hash) { window.location.hash = hash; window.scrollTo({ top: 0, behavior: "auto" }); }
     function useHashRoute() {
-      const [route, setRoute] = useState(window.location.hash || "#/day/1");
+      const [route, setRoute] = useState(window.location.hash || HOME);
       useEffect(() => {
-        const on = () => setRoute(window.location.hash || "#/day/1");
+        const on = () => setRoute(window.location.hash || HOME);
         window.addEventListener("hashchange", on);
         return () => window.removeEventListener("hashchange", on);
       }, []);
@@ -717,7 +717,7 @@
             </div>
           )}
           <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-3">
-            <button onClick={() => go("#/day/1")} className="shrink-0" title="처음으로">
+            <button onClick={() => go(HOME)} className="shrink-0" title="처음으로">
               <img src="likelion-logo.svg" alt="멋쟁이사자처럼" className="h-5 w-auto" />
             </button>
             {subtitle && <span className="text-sm font-bold text-gray-400 truncate">{subtitle}</span>}
@@ -747,7 +747,7 @@
               <div>
                 <div className="text-xl font-black text-ink">📚 전체 목차</div>
                 <div className="text-sm text-gray-400 mt-0.5">
-                  총 {DATA.product.totalDays}일 중 <b className="text-brand-600">Day 1~{DATA.product.builtDays}</b> 구현됨
+                  총 {DATA.product.totalDays}일 중 <b className="text-brand-600">Day {FIRST_DAY}~{LAST_DAY}</b> 수록됨
                   <span className="ml-2 text-xs text-gray-400">🖼️ N = 첨부된 사진/영상 개수</span>
                 </div>
               </div>
@@ -777,28 +777,6 @@
                             <span className={"ml-auto shrink-0 text-xs " + (cur ? "text-white/80" : "text-gray-400")} title="첨부된 사진/영상 개수">🖼️ {media}</span>
                           )}
                         </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              {DATA.upcoming.map((u) => (
-                <div key={u.code} className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-black text-sm text-gray-500">{u.code}, {u.title}</span>
-                    <span className="shrink-0 text-[10px] text-gray-400 font-semibold">{u.range}</span>
-                  </div>
-                  <p className="mt-2 text-[11px] text-gray-400">아직 준비 중이라 미리보기만 볼 수 있어요</p>
-                  <div className="mt-2.5 flex flex-col gap-1.5">
-                    {(u.days || []).map((d) => {
-                      const t = THEME[d.type];
-                      return (
-                        <div key={d.day}
-                          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
-                          <span className="text-xs font-black w-12 shrink-0 text-gray-400">Day {d.day}</span>
-                          <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold " + t.badge}>{t.label}</span>
-                          <span className="text-xs truncate text-gray-500">{d.name}</span>
-                        </div>
                       );
                     })}
                   </div>
@@ -1352,9 +1330,9 @@
       );
     }
 
-    /* days/dayNN.js 가 비주얼을 그릴 때 쓰는 공용 재료 모음. 이 파일 안의 아이콘·헬퍼를
-       바깥 파일에서도 그대로 쓸 수 있게 한곳에 모아 window로 내보낸다 - 새 Day가 자기만의
-       아이콘을 새로 그리지 않고 기존 세트를 재사용해야 톤이 안 깨진다 */
+    /* 바깥 Day 파일(main 의 days/dayNN.js)이 비주얼을 그릴 때 쓰는 공용 재료 모음. 이 파일 안의
+       아이콘·헬퍼를 바깥에서도 그대로 쓸 수 있게 한곳에 모아 window 로 내보낸다 - 새 Day 가
+       자기만의 아이콘을 새로 그리지 않고 기존 세트를 재사용해야 톤이 안 깨진다 */
     const UI = {
       React, StepFlow, FlowRow,
       IconBook, IconChecklist, IconCursor, IconTray, IconPieces, IconRocket, IconArrowSm,
@@ -1396,10 +1374,9 @@
       const card = "relative rounded-3xl border border-white/40 bg-gradient-to-br from-white/20 via-brand-50/10 to-white/5 backdrop-blur-2xl p-5 sm:p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_8px_32px_rgba(31,38,135,0.15)]";
       const row = "flex items-center gap-2.5 rounded-xl bg-white border border-gray-100 px-3 py-2";
 
-      /* Day 26~45는 days/dayNN.js 한 파일에 콘텐츠와 비주얼이 같이 들어 있다. 여기서 먼저
-         레지스트리를 찾아보고, 있으면 그걸 그린다 - 새 Day를 추가할 때 이 거대한 if 체인을
-         건드리지 않아도 되게 하려는 확장점이다. 공용 재료(card/row/아이콘/StepFlow)를 넘겨줘서
-         Day 1~25와 같은 톤을 유지하게 한다 */
+      /* 바깥 파일이 자기 비주얼을 등록해두면 여기서 먼저 찾아 그린다 - 새 Day 를 더할 때
+         아래 거대한 if 체인을 건드리지 않아도 되게 하려는 확장점이다. 이 브랜치에는 등록하는
+         파일이 없어서 늘 비어 있고, main 에서는 days/dayNN.js 들이 채운다 */
       const ext = window.MJC_VISUALS && window.MJC_VISUALS[kind];
       if (ext) return ext({ card, row, UI });
 
@@ -3768,15 +3745,18 @@
        무엇이 실제로 읽기 편한지 판단하려고 만들었다. 그래서 Day 마다 레이아웃을 고정하지 않고,
        화면에 띄운 버튼으로 그 자리에서 갈아끼운다.
 
-       챕터 3(Day 10~12)과 PJT 1(Day 13~14)에만 켠다 - 세 벌을 다 만들어 비교하려면 한 챕터만
-       제대로 보는 게 낫고, 나머지 Day 는 기준선으로 남겨둬야 차이가 보인다.
+       이 브랜치에 남은 Day(챕터 3 ~ PJT 1) 전부에서 켠다. 담긴 게 그 다섯 Day 뿐이라 굳이
+       범위를 나눌 게 없다 - 기준선으로 쓸 덱은 같은 Day 에서 버튼으로 바로 바꿔 보면 된다.
+       ⚠️ Day 10~14 에는 영상도 캡처도 한 장 없어서, 그림이 들어간 판(좌우 배치)은 여기서
+       확인할 수 없다. 그걸 보려면 영상이 있는 Day 를 main 에서 가져와야 한다.
        고른 값은 localStorage 에 남아서 Day 를 옮겨다녀도 같은 레이아웃으로 이어 본다 */
-    const LAB_DAYS = { from: 10, to: 14 };
+    const LAB_DAYS = { from: FIRST_DAY, to: LAST_DAY };
     const inLab = (d) => d >= LAB_DAYS.from && d <= LAB_DAYS.to;
     const LAB_KEY = "mjc.lab.layout";
     const LAB_MODES = [
       { key: "deck",   label: "슬라이드",    desc: "지금 쓰는 덱. 한 화면에 맞추고 문단마다 클릭" },
       { key: "reader", label: "스크롤",      desc: "한 Day 를 한 편의 글로. 스크롤로만 읽음" },
+      { key: "focus",  label: "포커스",      desc: "한 섹션이 한 화면. 슬라이드처럼 보되 스크롤로 넘김" },
     ];
     function useLabLayout() {
       const [mode, setMode] = useState(() => {
@@ -3826,7 +3806,9 @@
 
     /* 화면에 들어와 있는 동안만 재생한다. 덱은 슬라이드가 활성일 때만 틀면 됐지만 리더는
        영상이 여러 개 동시에 문서 안에 있어서, 각자 자기가 보이는지를 알아야 한다 */
-    function LessonMedia({ slide, onOpenMedia }) {
+    /* wrapCls · sizeCls 는 포커스 레이아웃 때문에 열어둔 손잡이다. 리더에서는 미디어가 글줄 폭을
+       그대로 채우면 되지만, 포커스에서는 한 판이 화면 높이에 갇혀 있어서 세로를 묶어줘야 한다 */
+    function LessonMedia({ slide, onOpenMedia, wrapCls, sizeCls }) {
       const ref = useRef(null);
       const vidRef = useRef(null);
       const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
@@ -3841,7 +3823,7 @@
       }, [slide.video]);
       if (!slide.video && !hasImg) return null;
       return (
-        <figure ref={ref} className="mt-6 m-0">
+        <figure ref={ref} className={"m-0 " + (wrapCls || "mt-6")}>
           <button type="button"
             onClick={() => onOpenMedia(slide.video
               ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
@@ -3849,9 +3831,9 @@
             className="group relative block w-full cursor-zoom-in">
             {slide.video
               ? <video ref={vidRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-                  className="w-full h-auto rounded-2xl shadow-soft" />
+                  className={(sizeCls || "w-full h-auto") + " rounded-2xl shadow-soft"} />
               : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
-                  className="w-full h-auto object-contain rounded-2xl border border-gray-200 shadow-soft" />}
+                  className={(sizeCls || "w-full h-auto") + " object-contain rounded-2xl border border-gray-200 shadow-soft"} />}
             <MediaTypeBadge type={slide.video ? "video" : "img"} />
             <EnlargeBadge />
           </button>
@@ -4035,6 +4017,454 @@
               </div>
             </div>
           </article>
+        </>
+      );
+    }
+
+    /* ═══ 포커스 ════════════════════════════════════════════════
+       덱과 리더 사이의 세 번째 안이다. 슬라이드처럼 한 번에 한 판만 보되, 판을 여는 건 클릭이
+       아니라 스크롤이다.
+
+       덱은 한 화면에 맞추려고 글을 scale(0.74)까지 줄였고, 문단마다 클릭을 요구했다. 리더는 그 둘을
+       고쳤지만 한 Day 가 통째로 이어진 글이라 "지금 어느 장면인가" 가 흐려졌다. 포커스는 둘을 합친다.
+       한 섹션이 한 화면(100svh)을 통째로 갖고, 글은 처음부터 다 거기 있고, 화면에 들어올 때 차례로
+       떠오른다. 지금 읽는 판만 또렷하게 두고 앞뒤는 물러나게 해서, 카드 테두리 없이도 장면이 나뉜다.
+
+       넘기는 방법은 세 가지를 다 열어둔다 - 그냥 스크롤, 위아래 키·스페이스·PageUp/Down, 그리고
+       오른쪽 아래 버튼. 무엇을 쓰든 읽기가 막히지 않는다는 게 요점이라 어느 하나도 필수가 아니다.
+       섹션이 화면보다 길면 키를 눌러도 판을 건너뛰지 않고 그 안에서 한 화면씩 내려간다 */
+    const FOCUS_TOP = 100;          /* 헤더 56 + 진행 띠 44 */
+    const FOCUS_LINE = .42;         /* 화면 위에서 이만큼 내려온 줄을 "읽는 줄" 로 본다 */
+    /* 판 하나를 이만큼만 벗어나도 다음 판으로 붙여준다. 굴리는 손맛을 조절하는 손잡이라
+       여기 하나만 만지면 된다 - 키우면 둔해지고, 줄이면 살짝만 굴려도 넘어간다 */
+    const FOCUS_TRIG = .10;
+    const FOCUS_WAIT = 110;         /* 스크롤이 이만큼 조용하면 굴리기가 끝난 것으로 본다(ms) */
+
+    /* 왼쪽에 붙어 따라오는 척추. 평소엔 점만 보이고, 올려두면 제목까지 펼쳐진다 -
+       늘 펼쳐두면 본문 왼쪽에 읽을거리가 하나 더 생겨서 시선을 뺏는다.
+       본문 칸(1180) 왼쪽에 붙여 세운다. 화면이 아주 넓을 때 왼쪽 끝에 고정해두면 글에서
+       수백 px 떨어진 데 혼자 떠 있어서, 본문과 한 덩어리로 안 읽힌다 */
+    function FocusRail({ items, active, onJump, theme }) {
+      return (
+        <nav aria-label="섹션 이동" style={{ left: "max(1rem, calc(50vw - 650px))" }}
+          className="group fixed top-1/2 -translate-y-1/2 z-40 hidden xl:block">
+          <div className="absolute inset-0 rounded-3xl bg-white/0 group-hover:bg-white/95 group-hover:shadow-lift group-hover:ring-1 group-hover:ring-brand-100 transition-all duration-300 pointer-events-none" />
+          {/* 접혀 있을 때 264px 짜리 줄을 잘라내야 해서 가로는 숨기고, 섹션이 아주 많은 Day 에서
+              화면 밖으로 넘치지 않게 세로만 열어둔다 */}
+          <ul className="relative w-[52px] group-hover:w-[264px] max-h-[78vh] overflow-x-hidden overflow-y-auto no-scrollbar transition-[width] duration-300 ease-out py-2.5">
+            {/* 점들을 잇는 선. 지나온 만큼만 테마색으로 찬다. 채움은 높이 % 대신 scaleY 로 그린다 -
+                ul 높이가 내용에 따라 정해지는(auto) 자리라 % 높이는 0 으로 무너진다.
+                위아래 28px 은 첫 점과 끝 점의 한가운데다(줄 높이 36 의 절반 + 위 여백 10) */}
+            <span className="absolute left-[25px] top-[28px] bottom-[28px] w-px bg-gray-200" aria-hidden="true">
+              <span className={"absolute inset-0 origin-top transition-transform duration-500 ease-out " + theme.bar}
+                style={{ transform: "scaleY(" + (items.length > 1 ? active / (items.length - 1) : 0).toFixed(3) + ")" }} />
+            </span>
+            {items.map((it, i) => {
+              const on = i === active, passed = i < active;
+              return (
+                <li key={i}>
+                  {/* 줄 높이를 고정한다. 지금 칸의 점만 커지는데 줄까지 같이 늘어나면
+                      아래 점들이 그때마다 3px 씩 밀려 내려간다 */}
+                  <button onClick={() => onJump(i)} title={it.title}
+                    aria-current={on ? "true" : undefined}
+                    className="relative flex h-9 w-[264px] items-center gap-3 pr-4 text-left">
+                    <span className="relative grid w-[50px] shrink-0 place-items-center">
+                      <span className={"grid place-items-center rounded-full transition-all duration-300 " +
+                        (on ? "w-[22px] h-[22px] text-white text-[10px] font-black shadow-card " + theme.solid
+                           : passed ? "w-[10px] h-[10px] bg-gray-300 ring-4 ring-cream"
+                                    : "w-[9px] h-[9px] bg-brand-200 ring-4 ring-cream")}>
+                        {on ? it.n : ""}
+                      </span>
+                    </span>
+                    <span className={"min-w-0 flex-1 truncate text-[12.5px] leading-[1.5] opacity-0 transition-opacity duration-200 group-hover:opacity-100 " +
+                      (on ? "font-black text-ink" : passed ? "font-bold text-gray-400" : "font-bold text-gray-300")}>
+                      {it.title}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      );
+    }
+
+    /* 한 판. 바깥 section 은 위치를 재는 자라서 transform 을 걸지 않는다 - 여기에 scale 을 주면
+       getBoundingClientRect 값이 같이 움직여서, 또렷해지는 순간 판정이 흔들린다 */
+    function FocusPanel({ n, active, seen, refCb, children }) {
+      return (
+        <section ref={refCb} data-panel={n}
+          className="focus-panel relative flex min-h-[calc(100svh-100px)] flex-col justify-center py-20">
+          <div className={"w-full transition-[opacity,transform] duration-[600ms] ease-out " +
+            (seen ? "focus-seen " : "") + (active ? "opacity-100 scale-100" : "opacity-[.42] scale-[.985]")}>
+            {children}
+          </div>
+        </section>
+      );
+    }
+
+    /* 판 안에서 순서대로 떠오르게 하는 지연. 0.06초 간격이면 차례로 뜨는 건 읽히면서도
+       다음 줄을 기다리는 느낌은 안 든다 */
+    const riseAt = (k) => ({ animationDelay: (k * .06).toFixed(2) + "s" });
+
+    function FocusSectionBody({ slide, name, theme, n, dayNum, onOpenMedia, active, narrow }) {
+      const paras = parasOf(slide, name);
+      const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
+      /* 그림이 있는 판은 좌우로 나눠 세운다 - 화면 하나를 통째로 쓰는 판이라 세로로 쌓으면
+         글이 접힌 아래로 밀리는데, 옆에 두면 그림과 그 그림을 설명하는 글이 같이 보인다.
+         단, 옆 창 안내가 떠서 화면 절반이 클로드 자리로 나가 있을 때는 그냥 위아래로 쌓는다 -
+         남은 620px 을 둘로 또 쪼개면 글칸이 240px 이 되어 한 줄에 열몇 자밖에 안 들어간다.
+         가로 폭 기준(lg:)만으로는 이 경우를 못 잡는다, 창은 넓은데 쓸 수 있는 자리가 좁은 것이라서 */
+      const aside = !!(slide.visual || slide.video || hasImg);
+      const split = aside && !narrow;
+      /* 떠오르는 순서는 눈이 가는 순서 그대로다 - 번호, 제목, 그림, 그리고 문단.
+         자리를 하나씩 세면서 매기면 body 가 먼저 계산되는 바람에 문단이 제목보다 앞서 뜬다 */
+      const D_EYE = 0, D_TITLE = 1, D_MEDIA = 2, D_BODY = aside ? 3 : 2;
+      /* 옆에 세우든 혼자 놓든 활자는 안 줄인다. 판이 화면보다 길어지면 그만큼 스크롤하면 될 뿐이고,
+         읽는 크기를 배치 사정으로 깎는 건 덱에서 이미 실패한 방법이다 */
+      const body = (
+        <div className="space-y-4">
+          {paras.map((p, i) => (
+            <div key={i} className="focus-el" style={riseAt(D_BODY + i)}>
+              <ParaBlock html={p} big />
+            </div>
+          ))}
+        </div>
+      );
+      const after = D_BODY + paras.length;
+      return (
+        <div className="mx-auto w-full max-w-[1180px] px-6 sm:px-8">
+          <div className="focus-el flex items-center gap-3" style={riseAt(D_EYE)}>
+            <span className={"text-[13px] font-black tabular-nums " + theme.text}>{pad2(n + 1)}</span>
+            <span className="h-px w-10 bg-gray-200" />
+            {/* 대화로 이 부분을 짚을 때 쓰는 참조 태그. 덱에 있던 것과 같은 규칙(Day.섹션) */}
+            <span className="text-[10px] font-mono font-bold text-gray-300 tabular-nums">{dayNum}.{n + 1}</span>
+          </div>
+          <h2 className={"focus-el mt-3.5 font-black tracking-[-.02em] text-ink " +
+            (aside ? "text-[24px] sm:text-[30px] leading-[1.34]" : "text-[26px] sm:text-[36px] leading-[1.3] max-w-[840px]")}
+            style={riseAt(D_TITLE)}>
+            <RichInline text={slide.title} name={name} />
+          </h2>
+          {aside ? (
+            <div className={"mt-8 grid items-center gap-8 " +
+              (split ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12" : "")}>
+              <div className="focus-el min-w-0" style={riseAt(D_MEDIA)}>
+                {slide.visual
+                  ? <div className={split ? "focus-visual" : ""}><SlideVisual kind={slide.visual} /></div>
+                  : <LessonMedia slide={slide} onOpenMedia={onOpenMedia} wrapCls="mt-0"
+                      sizeCls={"mx-auto w-auto max-w-full " + (split ? "max-h-[46vh] lg:max-h-[54vh]" : "max-h-[38vh]")} />}
+              </div>
+              <div className="min-w-0">{body}</div>
+            </div>
+          ) : (
+            <div className="mt-7 max-w-[760px]">{body}</div>
+          )}
+          {slide.quadVisuals && (
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {slide.quadVisuals.map((kind, i) => (
+                <div key={i} className="focus-el flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-brand-100 bg-brand-50/40 p-4 text-center"
+                  style={riseAt(after + i)}>
+                  <RoadmapVisual kind={kind} />
+                  <p className="rich text-[13px] leading-[1.6] text-gray-700"
+                    dangerouslySetInnerHTML={{ __html: ((slide.quadCaps && slide.quadCaps[i]) || "").split("\n").join("<br/>") }} />
+                </div>
+              ))}
+            </div>
+          )}
+          {slide.featureCards && (
+            <div className="focus-el mt-8" style={riseAt(after)}>
+              <FeatureCardsGrid cards={slide.featureCards} outro={slide.featureNote} active={active} />
+            </div>
+          )}
+          {PLAN_NOTES && slide.note && (
+            <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-3.5 text-[13px] leading-relaxed text-gray-500">
+              <b className="text-gray-600">기획 노트</b> : {slide.note}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function FocusLesson({ slides, theme, name, dayNum, meta, onFinish, finishLabel, pointerOn, stageChips, isConceptLabel, narrow }) {
+      const [lightbox, setLightbox] = useState(null);
+      const total = slides.length;
+      const N = total + 2;                    /* 표지 + 섹션 + 마무리 */
+      const panels = useRef([]);
+      const [active, setActive] = useState(0);
+      const [seenTo, setSeenTo] = useState(0);
+      const [frac, setFrac] = useState(0);    /* 지금 판을 얼마나 지났는지 */
+
+      /* 우리가 굴려서 옮기는 중이라는 표시. 그 동안 들어오는 스크롤 이벤트로 또 붙잡으면
+         두 번 움직이게 된다. 사용자가 휠을 굴리거나 화면을 만지면 곧바로 풀어준다 - 우리 애니메이션
+         중이라도 손이 올라오면 그쪽이 이긴다 */
+      const lock = useRef(0);
+      const dir = useRef(1);
+      const lastY = useRef(0);
+      const glide = useCallback((top) => {
+        lock.current = Date.now() + 700;
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      }, []);
+
+      /* 지금 읽는 판, 그 판을 얼마나 지났는지, 어디까지 열어줬는지를 스크롤 한 번에 같이 잰다.
+
+         지금 판은 읽는 줄을 마지막으로 지나친 판이다 - 판이 화면보다 길어도 흔들리지 않는다.
+         칸이 차는 정도는 판이 제자리(헤더 바로 아래)에 앉은 순간을 0 으로 두고 판 높이로 나눈다.
+         판 높이만큼 내려가면 바로 다음 판이 그 자리에 앉으므로, 칸 하나가 정확히 판 하나에 대응한다.
+         화면 바닥 기준으로 재면 화면보다 짧은 판에서 칸이 먼저 다 차버린 뒤 한참을 멈춰 있었다.
+
+         등장은 판 머리가 화면 아래 9할 선을 넘는 순간 한 번만 열고 다시 닫지 않는다. 지나온 최대
+         번호 하나만 들고 있는데, 스크롤바를 확 끌어내리면 중간 판은 화면에 한 번도 안 걸리기
+         때문이다 - 문서 순서상 뒤를 봤다면 앞은 이미 지나온 것이다. 관찰자(IntersectionObserver)로
+         따로 재지 않는 건, 그게 안 도는 환경에서 글이 투명한 채로 남는 게 최악이라서다 */
+      useEffect(() => {
+        panels.current = panels.current.slice(0, N);
+        let raf = 0;
+        const measure = () => {
+          raf = 0;
+          const vh = document.documentElement.clientHeight;
+          const line = vh * FOCUS_LINE, edge = vh * .9;
+          let cur = 0, open = 0;
+          panels.current.forEach((el, i) => {
+            if (!el) return;
+            const t = el.getBoundingClientRect().top;
+            if (t <= line) cur = i;
+            if (t < edge) open = i;
+          });
+          setActive(cur);
+          setSeenTo((v) => (open > v ? open : v));
+          const el = panels.current[cur];
+          if (!el) return setFrac(0);
+          const r = el.getBoundingClientRect();
+          setFrac(Math.min(1, Math.max(0, (FOCUS_TOP - r.top) / Math.max(1, r.height))));
+        };
+        const on = () => { if (!raf) raf = requestAnimationFrame(measure); };
+        measure();
+        window.addEventListener("scroll", on, { passive: true });
+        window.addEventListener("resize", on);
+        return () => { window.removeEventListener("scroll", on); window.removeEventListener("resize", on); if (raf) cancelAnimationFrame(raf); };
+      }, [dayNum, N]);
+
+      const jump = useCallback((i) => {
+        const el = panels.current[Math.min(N - 1, Math.max(0, i))];
+        if (el) glide(window.scrollY + el.getBoundingClientRect().top - FOCUS_TOP);
+      }, [N, glide]);
+
+      /* 키로 넘길 때는 한 번에 최대 한 화면만 움직이되, 다음 판이 앉을 자리를 넘어가지는 않는다.
+         이 두 규칙이면 판이 화면에 맞을 땐 정확히 다음 판 머리에 서고, 판이 화면보다 길면 그 안을
+         한 화면씩 훑다가 마지막 한 번이 다음 판 머리에 딱 떨어진다 - 안 읽은 줄을 건너뛰는 일도,
+         판 중간에 어중간하게 걸리는 일도 없다 */
+      const advance = useCallback((way) => {
+        const y = window.scrollY;
+        /* 한 화면 = 위에 겹친 두 줄을 뺀, 실제로 글이 보이는 높이다. 창 높이로 잡으면 판 하나보다
+           늘 조금 모자라서 판 머리에 영영 못 앉는다 */
+        const step = Math.max(240, window.innerHeight - FOCUS_TOP);
+        /* 판의 "앉을 자리" 를 문서 좌표로 옮긴 값. 지금 판이 몇 번인지에 기대지 않고 위치로만
+           고르는 게 안전하다 - 지금 판은 판 머리가 앉기 전에 이미 바뀌어 있어서, 그걸 기준으로
+           다음 자리를 잡으면 판 하나를 통째로 건너뛴다 */
+        const seats = panels.current.map((el) => (el ? y + el.getBoundingClientRect().top - FOCUS_TOP : null));
+        let to;
+        if (way > 0) {
+          const next = seats.find((s) => s != null && s > y + 8);
+          to = next == null ? y + step : Math.min(next, y + step);
+        } else {
+          let prev = null;
+          seats.forEach((s) => { if (s != null && s < y - 8) prev = s; });
+          to = prev == null ? 0 : Math.max(prev, y - step);
+        }
+        glide(to);
+      }, [glide]);
+
+      /* ── 굴리기가 멎으면 판 머리로 데려간다 ────────────────────────
+         이게 없으면 스크롤은 그냥 스크롤이라, 판이 화면 중간에 어중간하게 걸린 채로 멈춘다.
+         보이는 높이의 12%(720 화면에서 75px 남짓)만 벗어나도 다음 판으로 붙여주니, 살짝만 굴려도
+         다음 장면으로 넘어간다. 되돌아오는 쪽도 같은 문턱이라 위로 조금 굴리면 앞 판으로 돌아간다.
+
+         화면보다 긴 판은 발치까지 내려오기 전에는 붙잡지 않는다 - 아직 안 읽은 줄이 남아 있는데
+         다음 판으로 끌고 가면 그게 제일 나쁘다. 마지막 판 아래(Day 이동 줄)도 놓아준다.
+         모션을 끈 사용자에게는 아예 걸지 않는다. 스스로 움직이는 화면이 그 설정의 요지라서다 */
+      useEffect(() => {
+        if (lightbox) return;
+        const mq = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)");
+        if (mq && mq.matches) return;
+        let t = 0;
+        const settle = () => {
+          t = 0;
+          if (Date.now() < lock.current) return;
+          const y = window.scrollY;
+          const view = Math.max(240, document.documentElement.clientHeight - FOCUS_TOP);
+          const els = panels.current;
+          const seats = els.map((el) => (el ? y + el.getBoundingClientRect().top - FOCUS_TOP : null));
+          let i = -1;
+          seats.forEach((s, k) => { if (s != null && s <= y + 4) i = k; });
+          if (i < 0 || !els[i]) return;
+          /* 마지막 판을 지나 아래로 내려갔으면 푸터를 보러 간 것이다 */
+          if (i >= N - 1 && y > seats[i] + 4) return;
+          const h = els[i].offsetHeight;
+          const within = y - seats[i];                 /* 이 판 머리에서 얼마나 내려왔나 */
+          const pitch = seats[i + 1] != null ? seats[i + 1] - seats[i] : h;
+          const trig = view * FOCUS_TRIG;
+          /* 넘치는 게 문턱보다 작으면 화면에 든 것으로 친다. 넘치는 부분은 어차피 판 아래 여백이라
+             글을 자르지 않는데, 이걸 "긴 판" 으로 세면 30px 남짓 때문에 붙잡기를 통째로 포기하게 된다 */
+          const tall = h > view + Math.max(48, trig);
+          let to = null;
+          if (!tall) {
+            /* 화면에 드는 판, 문턱만 넘으면 곧바로 붙인다 */
+            if (dir.current >= 0) to = within > trig && seats[i + 1] != null ? seats[i + 1] : seats[i];
+            else to = within < pitch - trig ? seats[i] : seats[i + 1];
+          } else {
+            /* 화면보다 긴 판, 안쪽은 자유롭게 읽게 두고 양 끝에서만 붙인다 */
+            const slack = h - view;                    /* 발치가 화면 바닥에 닿기까지 남은 거리 */
+            if (dir.current >= 0 && within > slack + trig && seats[i + 1] != null) to = seats[i + 1];
+            else if (dir.current < 0 && within < trig) to = seats[i];
+          }
+          if (to != null && Math.abs(to - y) > 2) glide(to);
+        };
+        const onScroll = () => {
+          const y = window.scrollY;
+          if (y !== lastY.current) dir.current = y > lastY.current ? 1 : -1;
+          lastY.current = y;
+          clearTimeout(t);
+          t = setTimeout(settle, FOCUS_WAIT);
+        };
+        const release = () => { lock.current = 0; };
+        lastY.current = window.scrollY;
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("wheel", release, { passive: true });
+        window.addEventListener("touchstart", release, { passive: true });
+        return () => {
+          clearTimeout(t);
+          window.removeEventListener("scroll", onScroll);
+          window.removeEventListener("wheel", release);
+          window.removeEventListener("touchstart", release);
+        };
+      }, [dayNum, N, glide, lightbox]);
+
+      useEffect(() => {
+        const on = (e) => {
+          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          if (lightbox) return;
+          const k = e.key;
+          if (k === "ArrowDown" || k === "PageDown" || k === " ") { e.preventDefault(); advance(1); }
+          else if (k === "ArrowUp" || k === "PageUp") { e.preventDefault(); advance(-1); }
+          else if (k === "Home") { e.preventDefault(); jump(0); }
+          else if (k === "End") { e.preventDefault(); jump(N - 1); }
+        };
+        window.addEventListener("keydown", on);
+        return () => window.removeEventListener("keydown", on);
+      }, [advance, jump, lightbox, N]);
+
+      const secIdx = Math.min(total - 1, Math.max(0, active - 1));
+      const onCover = active === 0, onEnd = active === N - 1;
+      const point = !onCover && !onEnd && slides[secIdx] && slides[secIdx].point;
+      /* 척추와 진행 띠가 같은 목록을 쓴다. 표지와 마무리도 판이니 자리를 하나씩 차지하되,
+         번호는 섹션에만 매긴다 - 표지를 01 로 세면 "05 / 05" 가 마지막 섹션을 안 가리킨다 */
+      const railItems = [{ n: "‧", title: "오늘의 표지" }]
+        .concat(slides.map((s, i) => ({ n: pad2(i + 1), title: strip(fill(s.title, name)) })))
+        .concat([{ n: "🏁", title: isConceptLabel ? "퀴즈로 가기" : "미션으로 가기" }]);
+
+      return (
+        <>
+          {lightbox && <MediaLightbox media={lightbox} onClose={() => setLightbox(null)} />}
+          {pointerOn && !lightbox && point && <ClaudeSpotPointer key={"pt-" + active} point={point} />}
+          {!narrow && <FocusRail items={railItems} active={active} onJump={jump} theme={theme} />}
+
+          {/* 읽는 동안 계속 따라오는 띠. 섹션 수만큼 칸을 나눠서, 몇 개짜리 Day 인지와
+              지금 칸을 얼마나 지났는지를 한 줄로 같이 보여준다 */}
+          <div className="sticky top-14 z-30 -mt-px border-b border-brand-100/70 bg-cream/92 backdrop-blur">
+            <div className="mx-auto flex h-11 max-w-[1180px] items-center gap-3 px-6 sm:px-8">
+              <button onClick={() => jump(active)} title="이 판 처음으로"
+                className="shrink-0 text-[11px] font-black tabular-nums text-gray-400 transition hover:text-gray-600">
+                {onCover ? "시작" : onEnd ? "완료" : <><span className={theme.text}>{pad2(secIdx + 1)}</span><span className="text-gray-300"> / {pad2(total)}</span></>}
+              </button>
+              <div role="group" aria-label="섹션 진행" className="flex min-w-0 flex-1 items-center gap-1">
+                {railItems.map((it, i) => {
+                  const edge = i === 0 || i === N - 1;
+                  const done = i < active ? 1 : i === active ? frac : 0;
+                  return (
+                    <button key={i} onClick={() => jump(i)} title={it.title} aria-label={it.title}
+                      className={"h-1.5 overflow-hidden rounded-full bg-brand-100/70 transition-colors duration-300 hover:bg-brand-200 " +
+                        (edge ? "w-3 shrink-0" : "min-w-0 flex-1")}>
+                      <span className={"block h-full rounded-full " + theme.bar}
+                        style={{ width: (done * 100).toFixed(1) + "%", transition: i === active ? "none" : "width .35s ease-out" }} />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="ml-auto shrink-0">{stageChips}</div>
+            </div>
+          </div>
+
+          <div className="relative">
+            {/* 표지 */}
+            <FocusPanel n={0} active={onCover} seen refCb={(el) => { panels.current[0] = el; }}>
+              <div className="relative mx-auto w-full max-w-[1180px] px-6 sm:px-8">
+                <div className={"focus-glow pointer-events-none absolute -left-24 -top-28 -z-10 h-[340px] w-[340px] rounded-full blur-3xl " + theme.solid} aria-hidden="true" />
+                <div className="focus-el flex items-center gap-2" style={riseAt(0)}>
+                  {meta.milestone && <span className="text-base">🚩</span>}
+                  <span className={"rounded-full px-2.5 py-1 text-[11px] font-black " + theme.badge}>{theme.emoji} {theme.label}</span>
+                  <span className="text-[11px] font-black tabular-nums text-gray-400">Day {dayNum}</span>
+                </div>
+                <h1 className="focus-el mt-5 max-w-[900px] text-[30px] font-black leading-[1.22] tracking-[-.025em] text-ink sm:text-[46px]" style={riseAt(1)}>
+                  {meta.name}
+                </h1>
+                <p className="focus-el mt-5 max-w-[620px] text-[15.5px] leading-[1.75] text-gray-500 sm:text-[17px]" style={riseAt(2)}>
+                  이 챕터가 끝나면, <b className="font-bold text-ink">{meta.chapterOutcome}</b>
+                </p>
+                {/* 오늘 몇 개짜리 글인지, 어디를 지나가는지 먼저 보여주고 시작한다 */}
+                <div className="focus-el mt-9 grid max-w-[840px] gap-1.5 sm:grid-cols-2" style={riseAt(3)}>
+                  {slides.map((s, i) => (
+                    <button key={i} onClick={() => jump(i + 1)}
+                      className="group flex items-start gap-2.5 rounded-xl border border-brand-100 bg-white/70 px-3 py-2.5 text-left transition hover:border-brand-200 hover:bg-white">
+                      <span className="mt-[2px] shrink-0 text-[11px] font-black tabular-nums text-gray-300 transition group-hover:text-brand-500">{pad2(i + 1)}</span>
+                      <span className="min-w-0 flex-1 text-[13.5px] font-bold leading-[1.5] text-gray-600 transition group-hover:text-ink">
+                        {strip(fill(s.title, name))}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="focus-el mt-9 flex flex-wrap items-center gap-4" style={riseAt(4)}>
+                  <button onClick={() => jump(1)}
+                    className={"rounded-2xl px-7 py-3.5 text-[15px] font-black text-white shadow-card transition active:scale-[.99] " + theme.solid + " " + theme.solidHover}>
+                    읽기 시작하기
+                  </button>
+                  <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-gray-400">
+                    <span className="focus-drip">↓</span> 그냥 스크롤해도 이어져요
+                  </span>
+                </div>
+              </div>
+            </FocusPanel>
+
+            {slides.map((s, i) => (
+              <FocusPanel key={i} n={i + 1} active={active === i + 1} seen={seenTo >= i + 1}
+                refCb={(el) => { panels.current[i + 1] = el; }}>
+                <FocusSectionBody slide={s} name={name} theme={theme} n={i} dayNum={dayNum} narrow={narrow}
+                  active={active === i + 1} onOpenMedia={setLightbox} />
+              </FocusPanel>
+            ))}
+
+            {/* 다 읽고 나면 다음 할 일 하나만 크게 남긴다 */}
+            <FocusPanel n={N - 1} active={onEnd} seen={seenTo >= N - 1} refCb={(el) => { panels.current[N - 1] = el; }}>
+              <div className="mx-auto w-full max-w-[560px] px-6 text-center">
+                <div className={"focus-el mx-auto grid h-14 w-14 place-items-center rounded-2xl text-2xl " + theme.badge} style={riseAt(0)}>{theme.emoji}</div>
+                <p className="focus-el mt-5 text-[22px] font-black text-ink" style={riseAt(1)}>여기까지가 오늘 읽을 내용이에요</p>
+                <p className="focus-el mt-2 text-[14.5px] leading-relaxed text-gray-500" style={riseAt(2)}>
+                  {isConceptLabel ? "이제 퀴즈로 확인해볼까요?" : "이제 직접 해볼 차례예요"}
+                </p>
+                <div className="focus-el mt-7" style={riseAt(3)}>
+                  <ThemedCTA theme={theme} size="lg" onClick={onFinish}>{finishLabel} →</ThemedCTA>
+                </div>
+              </div>
+            </FocusPanel>
+          </div>
+
+          {/* 스크롤이든 키든 이걸로든, 넘기는 길을 하나 더 열어둔다. 마지막 판에서는 할 일이
+              화면 한가운데 CTA 하나뿐이라 치운다 */}
+          {!lightbox && !onEnd && (
+            <button onClick={() => advance(1)} title="다음 (↓, Space)" aria-label="다음"
+              className="fixed bottom-24 right-5 z-40 grid h-12 w-12 place-items-center rounded-full bg-ink text-white shadow-lift transition hover:scale-105 active:scale-95 sm:bottom-6">
+              <span className="text-lg leading-none">↓</span>
+            </button>
+          )}
         </>
       );
     }
@@ -4759,9 +5189,12 @@
       const labOn = inLab(dayNum);
       const layout = labOn ? labMode : "deck";
       const readerMode = layout === "reader";
+      const focusMode = layout === "focus";
+      /* 페이지 자체가 스크롤되는 레이아웃에서는 위아래 키가 곧 스크롤이라 Day 이동을 걸지 않는다 */
+      const pageScroll = readerMode || focusMode;
 
       useEffect(() => {
-        if (readerMode) return;
+        if (pageScroll) return;
         const on = (e) => {
           if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
           if (e.key === "ArrowUp") { if (next) { e.preventDefault(); go("#/day/" + next.day); } }
@@ -4769,7 +5202,7 @@
         };
         window.addEventListener("keydown", on);
         return () => window.removeEventListener("keydown", on);
-      }, [prev, next, readerMode]);
+      }, [prev, next, pageScroll]);
 
       const missionReady = checked.length > 0 && checked.every(Boolean) && vals.every((v) => v.trim().length > 0);
       const stages = isConcept
@@ -4831,6 +5264,30 @@
           {labOn && learnMode && <LayoutLabBar mode={labMode} onPick={setLabMode} dayNum={dayNum} />}
         </>
       );
+
+      /* 포커스로 읽는 Day 의 학습 화면. 리더와 마찬가지로 페이지가 스크롤되지만, 한 섹션이
+         화면 하나를 통째로 갖는다. 왼쪽 척추는 옆 창 안내가 떠 있으면 접는다 - 화면 절반이
+         클로드 창 자리로 나가 있는데 왼쪽에 하나 더 띄우면 본문이 낄 자리가 없다 */
+      if (learnMode && focusMode) {
+        return (
+          <div className="bg-cream min-h-screen text-ink">
+            {overlays}
+            <div className={showHint ? "lg:pr-[50vw] pb-[120px] lg:pb-0" : ""}>
+              <TopHeader sticky subtitle={meta.chapter + ", " + meta.chapterTitle} badge={badge}
+                progress={dayNum / DATA.product.totalDays} />
+              <FocusLesson key={"focus-" + dayNum} slides={content.slides} theme={theme} name={name}
+                dayNum={dayNum} meta={meta} pointerOn={!showHint} narrow={showHint}
+                stageChips={<div className="flex items-center gap-1.5"><StageChips compact /><NameBtn /><NoteBtn /></div>}
+                isConceptLabel={isConcept}
+                finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => { setStage("act"); window.scrollTo({ top: 0 }); }} />
+              {/* 실험 바가 화면 아래에 떠 있으니 그만큼 자리를 비워준다 */}
+              <div className={"max-w-[1180px] mx-auto px-6 sm:px-8 border-t border-brand-100 pt-6 " + (labOn ? "pb-28" : "pb-16")}>
+                <DayFooterNav prev={prev} next={next} />
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       /* 리더로 읽는 Day 의 학습 화면. 덱과 달리 페이지 자체가 스크롤되므로 뷰포트에 가두지 않는다 */
       if (learnMode && readerMode) {
@@ -4987,7 +5444,7 @@
             )}
 
             <div className="mt-10 text-center">
-              <button onClick={() => go("#/day/1")} className="rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">Day 1로 가기 →</button>
+              <button onClick={() => go(HOME)} className="rounded-2xl bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 font-black transition">Day {FIRST_DAY}로 가기 →</button>
             </div>
           </div>
         </div>
@@ -4996,14 +5453,17 @@
 
     /* 라우터 + 루트 */
     function parseRoute(hash) {
-      const h = (hash || "#/day/1").replace(/^#/, "");
+      const h = (hash || HOME).replace(/^#/, "");
       if (h.indexOf("/day/") === 0) {
         const n = parseInt(h.split("/")[2], 10);
-        return { name: "day", day: DATA.days.some((d) => d.day === n) ? n : 1 };
+        /* 담기지 않은 Day 를 가리키는 주소는 첫 Day 로 돌린다. 예전엔 1 로 떨어뜨려도
+           Day 1 이 늘 있었지만, 담는 범위를 좁힌 뒤로는 그 자체가 없는 Day 라 화면이 통째로
+           죽었다 - 남한테 보낸 링크나 브라우저에 남은 주소 하나로 페이지가 안 열린다 */
+        return { name: "day", day: DATA.days.some((d) => d.day === n) ? n : FIRST_DAY };
       }
       if (h.indexOf("/rules") === 0) return { name: "rules" };
       if (h.indexOf("/refund") === 0) return { name: "refund" };
-      return { name: "day", day: 1 };
+      return { name: "day", day: FIRST_DAY };
     }
 
     function NameModal({ onClose }) {
