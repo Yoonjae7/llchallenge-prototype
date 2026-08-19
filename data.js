@@ -211,6 +211,7 @@
         note: "학습자에게는 '이름=급, 숫자=세대'라는 원리만 남으면 충분하다." },
       { title: "이 챌린지에서는 Sonnet으로 통일해요",
         video: "model-select-final.mp4",
+        point: { at: "bottomCenter", label: "모델 고르는 곳", sub: "입력창 바로 아래에 있어요" },
         body: "좋은 도구를 아끼는 것도 실력이에요. 챌린지 기간에는 <b>Sonnet</b>, 약속해요? 🤝\n\n왜냐고요? 다음 장에서 짧게 알려드릴게요.",
         note: "'비싼 게 좋은 것'이라는 직관을 여기서 한 번 꺾어둬야 사용량 이슈가 줄어든다. 정적 스크린샷(modelList) 대신 모델 선택 안내 영상(model-select-final.mp4)으로 교체. 이유 설명은 다음 슬라이드(sonnetReasons)로 분리했다." },
       { title: "왜냐고요? 두 가지 이유예요",
