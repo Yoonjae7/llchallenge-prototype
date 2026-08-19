@@ -153,18 +153,6 @@
     .animate-floaty   { animation: floaty 4s ease-in-out infinite; }
     .animate-shake    { animation: shake .4s ease both; }
     .animate-nudgeR   { animation: nudgeR 1.4s ease-in-out infinite; }
-
-    /* ── 스테이지 슬라이드(챕터 4) 활자 ─────────────────────────
-       덱의 글씨가 작아 보이는 건 폰트를 작게 잡아서가 아니라, 캔버스가 커져도 14px 에 고정돼
-       있었기 때문이다. 큰 화면에서는 넓은 카드 한가운데 작은 글씨가 떠 있는 꼴이 된다.
-       여기서는 반대로 캔버스를 따라 활자가 같이 커진다. vw 로 재되 위아래를 clamp 로 묶어서,
-       스플릿스크린(960 근처)에서는 최소값에 붙고 1920 에서는 최대값 가까이 간다.
-       vh 도 같이 보는 건 화면이 납작할 때 제목이 세로를 다 잡아먹는 걸 막기 위해서다 */
-    .stage-title { font-size: clamp(25px, min(2.45vw, 4.6vh), 44px); line-height: 1.24; letter-spacing: -.02em; }
-    .stage-body  { font-size: clamp(16.5px, min(1.32vw, 2.5vh), 25px); line-height: 1.75; }
-    .stage-card  { font-size: clamp(15px, min(1.14vw, 2.1vh), 21px); line-height: 1.62; }
-    .stage-sub   { font-size: clamp(13.5px, min(1.02vw, 1.9vh), 19px); line-height: 1.58; }
-    .stage-meta  { font-size: clamp(11px, min(.72vw, 1.35vh), 15px); }
     .sheen { background-image: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.55) 50%, transparent 62%);
              background-size: 220% 100%; animation: sheen 2.6s ease-in-out infinite; }
 
@@ -3323,19 +3311,18 @@
     /* big = 레슨 리더용 큰 활자. 덱은 한 화면에 다 욱여넣느라 14px 에서 시작해 필요하면 scale 로
        더 줄이지만, 리더는 줄여야 할 이유가 없으니 처음부터 읽기 편한 크기로 간다.
        파싱과 카드 구조는 하나만 두고 크기만 갈아끼운다 */
-    /* 세 가지 크기를 쓴다. 기본(덱), big(리더의 고정 큰 활자), stage(캔버스를 따라 커지는 활자) */
-    function ParaBlock({ html, big, stage }) {
+    /* 두 가지 크기를 쓴다. 기본(덱)과 big(리더의 큰 활자) */
+    function ParaBlock({ html, big }) {
       const parsed = useMemo(() => parseBlocks(html), [html]);
-      const plain = stage
-        ? "rich stage-body text-gray-700"
-        : big ? "rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
-              : "rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]";
-      const cardTx = stage ? "stage-card" : big ? "text-[15px] sm:text-[15.5px] leading-[1.7]" : "text-[13px] leading-[1.6]";
-      const subTx  = stage ? "stage-sub"  : big ? "text-[14px] leading-[1.65]" : "text-[12.5px] leading-[1.55]";
-      const pad    = stage ? "px-4 py-3 sm:px-5 sm:py-3.5" : big ? "px-4 py-3" : "px-3 py-2.5";
-      const padDot = stage ? "px-4 py-2.5 sm:px-5 sm:py-3" : big ? "px-4 py-2.5" : "px-3 py-1.5";
-      const iconTx = stage ? "stage-card" : big ? "text-[17px]" : "text-[15px]";
-      const roomy  = big || stage;
+      const plain = big
+        ? "rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
+        : "rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]";
+      const cardTx = big ? "text-[15px] sm:text-[15.5px] leading-[1.7]" : "text-[13px] leading-[1.6]";
+      const subTx  = big ? "text-[14px] leading-[1.65]" : "text-[12.5px] leading-[1.55]";
+      const pad    = big ? "px-4 py-3" : "px-3 py-2.5";
+      const padDot = big ? "px-4 py-2.5" : "px-3 py-1.5";
+      const iconTx = big ? "text-[17px]" : "text-[15px]";
+      const roomy  = big;
       if (!parsed.items.length) {
         return <p className={plain} dangerouslySetInnerHTML={{ __html: html.split("\n").join("<br/>") }} />;
       }
@@ -3789,7 +3776,6 @@
     const LAB_KEY = "mjc.lab.layout";
     const LAB_MODES = [
       { key: "deck",   label: "슬라이드",    desc: "지금 쓰는 덱. 한 화면에 맞추고 문단마다 클릭" },
-      { key: "stage",  label: "큰 슬라이드", desc: "화면을 채우고 활자가 같이 커짐. 클릭 없이 차례로" },
       { key: "reader", label: "스크롤",      desc: "한 Day 를 한 편의 글로. 스크롤로만 읽음" },
     ];
     function useLabLayout() {
@@ -4190,202 +4176,6 @@
         </div>
       );
     }
-
-    /* ═══ 스테이지 덱 ═══════════════════════════════════════════
-       챕터 4(Day 15~17) 시험 적용. 슬라이드라는 형식은 그대로 두고 세 가지만 바꾼다.
-
-       하나, 캔버스가 화면을 쓴다. 덱은 max-w-4xl(896) 에 max-h 800 으로 묶여 있어서, 큰
-       모니터에서는 넓은 여백 한가운데 작은 카드가 떠 있었다. 여기서는 캔버스가 뷰포트를 채운다.
-
-       둘, 활자가 캔버스를 따라 커진다. 예전엔 캔버스가 아무리 커져도 본문이 14px 이었고,
-       넘치면 scale 로 더 줄여 10px 까지 내려갔다. 방향이 반대였다 - 자리가 남으면 키우고,
-       모자라면 그때 줄이는 게 맞다. stage-* 클래스가 그 일을 한다.
-
-       셋, 문단이 클릭을 기다리지 않는다. 슬라이드에 들어오는 순간 위에서부터 차례로 떠오른다.
-       한 장씩 넘기는 리듬은 그대로 남기고, 한 장 안에서 손이 가는 것만 없앴다.
-    ═══════════════════════════════════════════════════════════ */
-
-    /* 커스텀 비주얼은 반쪽 칸(대략 400px)에 맞춰 그려져 있어서, 넓은 무대에 그대로 놓으면
-       가운데 작게 뜬다. 안쪽 글씨까지 통째로 키우려면 결국 확대하는 수밖에 없다 -
-       transform 은 레이아웃 높이를 바꾸지 않으니 바깥 칸 높이를 배율만큼 직접 잡아준다 */
-    /* vhBudget - 폭만 보고 키우면 세로로 넘친다. 노트북처럼 납작한 화면에서는 남는 게 폭이지
-       높이가 아니라서, 칸 너비에 맞춰 1.5배로 키운 그림이 캔버스 아래로 잘려나갔다.
-       둘 중 더 빡빡한 쪽을 따른다 */
-    function ScaledVisual({ kind, natural = 400, max = 2.05, vhBudget = .44 }) {
-      const boxRef = useRef(null), artRef = useRef(null);
-      const [st, setSt] = useState({ k: 1, h: 0 });
-      useLayoutEffect(() => {
-        const box = boxRef.current, art = artRef.current;
-        if (!box || !art) return;
-        const fit = () => {
-          const natH = art.offsetHeight;   /* offsetHeight 는 transform 전 값이라 배율에 안 흔들린다 */
-          const byW = box.clientWidth / natural;
-          const byH = natH > 0 ? (window.innerHeight * vhBudget) / natH : max;
-          const k = Math.max(1, Math.min(max, byW, byH));
-          const h = natH * k;
-          /* 바깥 높이를 우리가 바꾸면 관찰자가 다시 울린다. 값이 그대로면 같은 객체를 돌려줘
-             리렌더를 끊어야 무한 루프가 안 생긴다 */
-          setSt((p) => (Math.abs(p.k - k) < .002 && Math.abs(p.h - h) < .5 ? p : { k, h }));
-        };
-        fit();
-        const ro = new ResizeObserver(fit);
-        ro.observe(box); ro.observe(art);
-        window.addEventListener("resize", fit);
-        return () => { ro.disconnect(); window.removeEventListener("resize", fit); };
-      }, [kind, natural, max, vhBudget]);
-      return (
-        <div ref={boxRef} className="w-full" style={{ height: st.h || undefined }}>
-          <div ref={artRef} style={{ width: natural, margin: "0 auto",
-                                     transform: "scale(" + st.k + ")", transformOrigin: "top center" }}>
-            <SlideVisual kind={kind} />
-          </div>
-        </div>
-      );
-    }
-
-    function StageSlide({ slide, name, theme, active, onOpenMedia }) {
-      const paras = parasOf(slide, name);
-      const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
-      const hasMedia = !!slide.video || hasImg;
-      const split = !!slide.visual || hasMedia;
-      const videoRef = useRef(null);
-      useEffect(() => {
-        const v = videoRef.current;
-        if (!v) return;
-        if (active) { v.currentTime = 0; v.play().catch(() => {}); }
-        else v.pause();
-      }, [active, slide.video]);
-
-      /* 들어오는 순간 제목 → 그림 → 문단 순으로 차례차례. 클릭이 아니라 시간이 넘긴다 */
-      const rise = (n) => (active ? { animation: "revealUp .52s " + (.06 + n * .11) + "s both" } : { opacity: 0 });
-
-      const media = slide.visual ? (
-        <ScaledVisual kind={slide.visual} />
-      ) : hasMedia ? (
-        <button type="button"
-          onClick={() => onOpenMedia(slide.video
-            ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
-            : { type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
-          className="group relative block w-full cursor-zoom-in">
-          {slide.video
-            ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-                className="w-full h-auto max-h-[30vh] lg:max-h-[44vh] object-contain rounded-2xl shadow-soft" />
-            : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
-                className="w-full h-auto max-h-[30vh] lg:max-h-[44vh] object-contain rounded-2xl border border-gray-200 shadow-soft" />}
-          <MediaTypeBadge type={slide.video ? "video" : "img"} />
-          <EnlargeBadge />
-        </button>
-      ) : null;
-
-      const body = (
-        <div className={split ? "space-y-4" : "space-y-5"}>
-          {paras.map((p, i) => (
-            <div key={i} style={rise(i + (split ? 2 : 1))}><ParaBlock html={p} stage /></div>
-          ))}
-        </div>
-      );
-
-      /* 넘칠 땐 스크롤되게 열어둔다. 여기서 no-scrollbar 로 막대까지 감추면 잘린 걸 알 방법이 없다 */
-      return (
-        <div className="h-full w-full flex flex-col justify-center px-6 sm:px-10 lg:px-14 py-5 overflow-y-auto">
-          <h2 className="stage-title font-black text-ink" style={rise(0)}>
-            <RichInline text={slide.title} name={name} />
-          </h2>
-          <div className={"mt-3 h-1 w-12 rounded-full shrink-0 " + theme.bar} style={rise(0)} />
-          {split ? (
-            /* 그림이 있는 장은 좌우로 나눈다. 세로로 쌓으면 큰 화면에서 둘 다 작아진다 */
-            <div className="mt-5 lg:mt-8 grid lg:grid-cols-2 gap-6 lg:gap-12 items-center">
-              <div style={rise(1)}>{media}</div>
-              <div>{body}</div>
-            </div>
-          ) : (
-            /* 글만 있는 장은 한 줄이 너무 길어지지 않게 재는 폭을 잡아둔다 */
-            <div className="mt-6 lg:mt-8 max-w-[52rem]">{body}</div>
-          )}
-          {slide.imgCap && hasMedia && (
-            <p className="mt-3 stage-meta text-gray-400" style={rise(1)}>{slide.imgCap}</p>
-          )}
-          {PLAN_NOTES && slide.note && (
-            <div className="mt-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed">
-              <b className="text-gray-600">기획 노트</b> : {slide.note}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    function StageDeck({ slides, theme, name, onFinish, finishLabel, dayNum, pointerOn }) {
-      const [i, setI] = useState(0);
-      const [dir, setDir] = useState(1);
-      const [lightbox, setLightbox] = useState(null);
-      const total = slides.length;
-      const last = i === total - 1;
-
-      const go2 = useCallback((n, d) => { if (n < 0 || n >= total) return; setDir(d); setI(n); }, [total]);
-      const next = useCallback(() => go2(i + 1, 1), [i, go2]);
-      const prev = useCallback(() => go2(i - 1, -1), [i, go2]);
-
-      useEffect(() => {
-        const on = (e) => {
-          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-          if (lightbox) return;
-          if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
-          else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
-        };
-        window.addEventListener("keydown", on);
-        return () => window.removeEventListener("keydown", on);
-      }, [next, prev, lightbox]);
-
-      const point = slides[i] && slides[i].point;
-      return (
-        <div className="flex-1 min-h-0 flex flex-col gap-3">
-          {lightbox && <MediaLightbox media={lightbox} onClose={() => setLightbox(null)} />}
-          {pointerOn && !lightbox && point && <ClaudeSpotPointer key={"pt-" + i} point={point} />}
-
-          <div className={"deck-stack relative rounded-[28px] bg-white border shadow-soft flex-1 min-h-0 overflow-hidden " + theme.border}>
-            <div className="absolute top-3 left-4 z-30 pointer-events-none select-none flex items-center gap-2">
-              <span className="stage-meta font-black tabular-nums text-gray-300">{pad2(i + 1)} / {pad2(total)}</span>
-              <span className="text-[9.5px] font-mono font-bold text-gray-200 tabular-nums">{dayNum}.{i + 1}</span>
-            </div>
-            {slides.map((s, n) => {
-              const active = n === i;
-              return (
-                <div key={n} aria-hidden={!active}
-                  className={active ? (dir > 0 ? "anim-in-r relative z-10 h-full" : "anim-in-l relative z-10 h-full") : "invisible pointer-events-none h-full"}>
-                  <StageSlide slide={s} name={name} theme={theme} active={active} onOpenMedia={setLightbox} />
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 진행 막대가 곧 슬라이드 목록이다. 칸을 누르면 그 장으로 간다 */}
-          <div className="shrink-0 flex items-center gap-3">
-            <button onClick={prev} disabled={i === 0}
-              className="shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white grid place-items-center text-lg text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">‹</button>
-            <div className="flex-1 flex items-center gap-1.5">
-              {slides.map((_, n) => (
-                <button key={n} onClick={() => go2(n, n > i ? 1 : -1)} aria-label={"슬라이드 " + (n + 1)}
-                  className={"h-1.5 flex-1 rounded-full transition-all duration-300 " +
-                    (n === i ? theme.bar : n < i ? "bg-gray-300" : "bg-gray-200/70 hover:bg-gray-300")} />
-              ))}
-            </div>
-            <button onClick={next} disabled={last}
-              className="shrink-0 w-10 h-10 rounded-full border border-gray-200 bg-white grid place-items-center text-lg text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">›</button>
-          </div>
-
-          <div className="shrink-0 h-[52px] flex items-center">
-            {last ? (
-              <ThemedCTA theme={theme} onClick={onFinish} extra="animate-fadeUp">{finishLabel} →</ThemedCTA>
-            ) : (
-              <p className="w-full text-center text-xs text-gray-400">
-                <b className="text-gray-500">→</b> 키나 화살표로 다음 장으로 넘어가세요
-              </p>
-            )}
-          </div>
-        </div>
-      );
-    }
-
     /* 제공 자료 */
     function parseSegments(text) {
       const lines = text.split("\n"); const segs = []; let buf = [], tbl = [];
@@ -4969,7 +4759,6 @@
       const labOn = inLab(dayNum);
       const layout = labOn ? labMode : "deck";
       const readerMode = layout === "reader";
-      const stageMode = layout === "stage";
 
       useEffect(() => {
         if (readerMode) return;
@@ -5076,7 +4865,7 @@
               {/* 학습 화면은 뷰포트에 꽉 맞춘다. 목차는 헤더의 "전체 목차" 링크로 항상 열 수 있어서
                   여기서는 따로 뜨는 FAB 을 두지 않고, 그만큼 카드에 높이를 돌려준다. */}
               <main className={"flex-1 min-h-0 w-full mx-auto flex flex-col gap-2.5 " +
-                (stageMode ? "max-w-[1600px] px-4 sm:px-6 pt-3 " : "max-w-4xl px-4 pt-3 ") +
+                "max-w-4xl px-4 pt-3 " +
                 (labOn
                   ? (showHint ? "pb-[168px] lg:pb-[66px]" : "pb-[66px]")
                   : (showHint ? "pb-[112px] lg:pb-2.5" : "pb-2.5"))}>
@@ -5087,13 +4876,9 @@
                   <NameBtn />
                   <NoteBtn />
                 </div>
-                {stageMode
-                  ? <StageDeck key={"stage-" + dayNum} slides={content.slides} theme={theme} name={name} dayNum={dayNum}
-                      pointerOn={!showHint}
-                      finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
-                  : <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name} dayNum={dayNum}
-                      pointerOn={!showHint}
-                      finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />}
+                <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name} dayNum={dayNum}
+                  pointerOn={!showHint}
+                  finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
                 <DayFooterNav prev={prev} next={next} compact />
               </main>
             </div>
