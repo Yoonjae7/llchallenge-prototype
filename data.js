@@ -143,6 +143,7 @@
         note: "실습 Day 첫날. 스플릿스크린은 오늘부터 시작. ⚠️ 확인 필요, 데스크탑 앱 다운로드 경로 스크린샷 첨부." },
       { title: "먼저 계정부터 확인해요",
         video: "pro-confirm-final.mp4",
+        point: { at: "bottomLeft", label: "계정 이름과 Pro" },
         body: "Day 1에서 알려드린 것처럼, <b>클로드 Pro 구독이 되어 있는 계정</b>인지 확인해주세요. 설정에서 지금 로그인된 계정과 플랜을 볼 수 있어요. <b>왼쪽 하단에 계정 이름과 Pro</b>라고 써있다면 Pro 계정이 맞아요.",
         note: "왼쪽 하단 「이름, Pro」 확인법을 정적 스크린샷(proBadge) 대신 pro확인 안내 영상(pro-confirm-final.mp4) + 텍스트로 안내." },
       { title: "그리고 하나 더, 클로드 언어를 한국어로 설정해주세요",
