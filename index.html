@@ -569,6 +569,14 @@
       topRight:     { x: .92, y: .07, name: "오른쪽 위" },
       right:        { x: .92, y: .5,  name: "오른쪽" },
       bottomRight:  { x: .92, y: .95, name: "오른쪽 맨 아래" },
+      /* 네 구석만으로는 못 짚는 자리들. 클로드 창에서 자주 가리키게 되는 곳이라 이름을 따로 준다.
+         입력창은 사이드바 오른쪽에 놓이니 창 기준으로는 왼쪽 끝이 아니라 중앙 아래쪽이고,
+         그 + 버튼은 입력창의 왼쪽 끝이라 창 기준으로 3분의 1 지점쯤에 온다 */
+      sidebarTop:   { x: .11, y: .15, name: "왼쪽 사이드바 위쪽" },
+      sidebar:      { x: .11, y: .45, name: "왼쪽 사이드바" },
+      composer:     { x: .55, y: .90, name: "아래 입력창" },
+      composerPlus: { x: .33, y: .90, name: "입력창 왼쪽 아래" },
+      panelRight:   { x: .78, y: .45, name: "오른쪽 패널" },
     };
 
     function ClaudeSpotPointer({ point }) {
