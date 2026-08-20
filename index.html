@@ -161,9 +161,57 @@
     .stagger > *:nth-child(3){animation-delay:.16s} .stagger > *:nth-child(4){animation-delay:.22s}
     .stagger > *:nth-child(5){animation-delay:.28s} .stagger > *:nth-child(6){animation-delay:.34s}
 
-    /* 슬라이드를 같은 그리드 칸에 겹쳐 쌓는다. 덱 높이가 고정되어 아래 컨트롤이 안 튄다. */
-    .deck-stack { display: grid; }
-    .deck-stack > * { grid-area: 1 / 1; min-height: 0; }
+    /* ═══ 시네마 레이아웃 ═══════════════════════════════════════
+       학습 화면은 이 레이아웃 하나로 간다. 한 화면에 한 장, 좌우로 넘기는 모양은 예전 덱과 같고
+       움직임만 다시 짰다. 한 장이 들어올 때 요소들이 제각각 튀지 않고 한 방향으로 차례차례
+       자리를 잡는다 - 번호, 제목, 밑줄, 그림, 문단 순서다.
+       원칙은 하나만 쓴다, 화려한 것과 시끄러운 것은 다르다 */
+    /* 장을 같은 그리드 칸에 겹쳐 쌓는다. 무대 높이가 고정되어 아래 컨트롤 바가 안 튄다 */
+    .cine-deck { display: grid; }
+    .cine-deck > * { grid-area: 1 / 1; min-height: 0; }
+    /* 장 전체가 진행 방향에서 미끄러져 들어온다. 폭은 34px 정도가 딱 좋다 -
+       더 크면 넘길 때마다 눈이 따라 움직여야 해서 피곤해진다 */
+    @keyframes cineInR  { from { opacity:0; transform: translate3d(34px,0,0); } to { opacity:1; transform:none; } }
+    @keyframes cineInL  { from { opacity:0; transform: translate3d(-34px,0,0); } to { opacity:1; transform:none; } }
+    @keyframes cineOut  { from { opacity:1; } to { opacity:0; } }
+    .cine-in-r { animation: cineInR .44s cubic-bezier(.22,.9,.28,1) both; }
+    .cine-in-l { animation: cineInL .44s cubic-bezier(.22,.9,.28,1) both; }
+    /* 지나간 장은 자리에 남되 안 보이고 안 눌린다. 아예 빼버리면 넘길 때 화면이 한 번 꺼졌다 켜진다 */
+    .cine-out  { animation: cineOut .26s ease both; visibility: hidden; }
+    /* 요소가 아래에서 올라온다. 장의 가로 이동과 겹쳐 대각선으로 들어오는 결이 생긴다 */
+    @keyframes cineUp   { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:none; } }
+    .cine-el { opacity: 0; }
+    .cine-in-r .cine-el, .cine-in-l .cine-el { animation: cineUp .52s cubic-bezier(.22,.9,.28,1) both; }
+    /* 제목만 다른 동작을 준다. 아래에서 위로 닦아내듯 드러나는 이 한 수가 이 레이아웃의 서명이다.
+       끝값을 -20% 로 열어두는 건 받침이나 괄호 아래가 잘리지 않게 하려는 것 */
+    @keyframes cineWipe { from { opacity:0; clip-path: inset(0 0 105% 0); transform: translateY(12px); }
+                          to   { opacity:1; clip-path: inset(0 0 -20% 0); transform:none; } }
+    .cine-el-wipe { opacity: 0; }
+    .cine-in-r .cine-el-wipe, .cine-in-l .cine-el-wipe { animation: cineWipe .62s cubic-bezier(.2,.85,.3,1) both; }
+    /* 제목 밑줄이 왼쪽에서 그어진다 */
+    @keyframes cineDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .cine-rule { transform-origin: left; transform: scaleX(0); }
+    .cine-in-r .cine-rule, .cine-in-l .cine-rule { animation: cineDraw .5s cubic-bezier(.22,.9,.28,1) both; }
+    /* 그림은 살짝 작았다가 제 크기를 찾는다 */
+    @keyframes cinePop  { from { opacity:0; transform: scale(.955); } to { opacity:1; transform:none; } }
+    .cine-el-pop { opacity: 0; }
+    .cine-in-r .cine-el-pop, .cine-in-l .cine-el-pop { animation: cinePop .58s cubic-bezier(.2,.85,.3,1) both; }
+    /* 마지막 장에서만 나타나는 다음 단계 버튼 */
+    @keyframes cineCta  { from { opacity:0; transform: translateX(-8px) scale(.94); } to { opacity:1; transform:none; } }
+    .cine-cta { animation: cineCta .38s cubic-bezier(.2,.9,.3,1.1) both; }
+    /* 배경 얼룩. Day 테마의 진한 색을 아주 옅게 깔고 아주 느리게 돌린다 */
+    @keyframes cineDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); opacity:.07; }
+                           50%     { transform: translate3d(5%,-7%,0) scale(1.18); opacity:.12; } }
+    .cine-blob { animation: cineDrift 15s ease-in-out infinite; }
+    .cine-blob-b { animation-duration: 21s; animation-direction: reverse; }
+    /* 비주얼은 옛 덱의 반쪽 칸(약 330px)에 맞춰 그려져 있어서 넓은 무대에서는 헐렁해 보인다.
+       폭이 넉넉한 화면에서만 통째로 키운다 - zoom 은 레이아웃 높이도 같이 커져서 옆 글과
+       겹치지 않고, 지원하지 않는 브라우저에서는 원래 크기 그대로 남는다 */
+    @media (min-width: 1024px) { .cine-visual { zoom: 1.2; } }
+    @media (prefers-reduced-motion: reduce) {
+      /* 지연이 남으면 요소가 잠깐씩 빈 채로 뜬다. 끝난 모습에서 바로 시작하게 한다 */
+      .cine-el, .cine-el-wipe, .cine-el-pop, .cine-rule { animation-delay: 0s !important; }
+    }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -272,6 +320,9 @@
     function saveLS(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
     function fill(t, n) { return (t || "").split("{{name}}").join(n || DATA.DEMO_NAME); }
     const strip = (s) => (s || "").replace(/<[^>]+>/g, "");
+    /* 장 번호는 01, 02 처럼 자리를 맞춰 적는다. 한 자리와 두 자리가 섞이면 넘길 때마다
+       번호 옆의 글자가 좌우로 흔들린다 */
+    const pad2 = (n) => (n < 10 ? "0" + n : "" + n);
 
     function RichInline({ text, name, className }) {
       return <span className={"rich " + (className || "")} dangerouslySetInnerHTML={{ __html: fill(text, name) }} />;
@@ -810,13 +861,8 @@
       );
     }
 
-    /* ═══ 슬라이드 덱 ═══════════════════════════════════════════
-       한 번에 한 포인트씩 공개하고, 덱 높이는 뷰포트에 맞춰 고정한다.
-    ═══════════════════════════════════════════════════════════ */
+    /* 한 장의 본문을 문단으로 끊는다. 빈 줄 하나가 문단 경계다 */
     const parasOf = (s, n) => fill(s.body, n).split("\n\n").filter((p) => p.trim());
-    /* 이미지·비디오·visual 은 슬라이드에 들어오는 순간 통째로 뜨고 별도 reveal 계단을 먹지 않는다 -
-       계단은 문단 수만큼만 있다 */
-    const stepsOf = (s, n) => parasOf(s, n).length;
 
     /* 로드맵 슬라이드용 미니 아이콘 - 문장마다 어울리는 작은 애니메이션을 하나씩 붙인다.
        전부 등장 애니메이션이 끝나도 멈춰 보이지 않도록, 하나씩은 계속 움직이는 요소를 남겨둔다. */
@@ -3308,35 +3354,38 @@
       return { head: head.join("<br/>"), items };
     }
 
+    /* 활자 크기는 하나다. 예전 덱은 한 화면에 다 욱여넣느라 14px 에서 시작해 필요하면 scale 로
+       더 줄였는데, 시네마는 넘치면 그 장 안에서 굴려 읽으면 되니 줄여야 할 이유가 없다.
+       그래서 처음부터 읽기 편한 크기로 두고 어디서도 깎지 않는다 */
     function ParaBlock({ html }) {
       const parsed = useMemo(() => parseBlocks(html), [html]);
-      const plain = "rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]";
+      const plain = "rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]";
       if (!parsed.items.length) {
         return <p className={plain} dangerouslySetInnerHTML={{ __html: html.split("\n").join("<br/>") }} />;
       }
       return (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {parsed.head && <p className={plain} dangerouslySetInnerHTML={{ __html: parsed.head }} />}
           {/* 항목이 둘 이상이면 2열로 흘려 세로 길이를 절반으로 줄인다.
               비교(일반 대화 vs 연구 모드)나 목록(켜세요/안 켜도 돼요) 모두 나란히 놓는 게 읽기도 낫다 */}
           <div className={"grid gap-1.5 " + (parsed.items.length >= 2 ? "sm:grid-cols-2" : "")}>
             {parsed.items.map((it, i) => it.bullet ? (
-              <div key={i} className="flex items-start gap-2 rounded-xl bg-white border border-gray-100 px-3 py-1.5">
-                <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
-                <span className="rich flex-1 min-w-0 text-[13px] text-gray-700 leading-[1.6]"
+              <div key={i} className="flex items-start gap-2 rounded-xl bg-white border border-gray-100 px-4 py-2.5">
+                <span className="mt-[9px] w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
+                <span className="rich flex-1 min-w-0 text-[15px] sm:text-[15.5px] text-gray-700 leading-[1.7]"
                       dangerouslySetInnerHTML={{ __html: it.text }} />
               </div>
             ) : (
-              <div key={i} className="flex items-start gap-2.5 rounded-2xl bg-white border border-gray-100 px-3 py-2.5">
-                <span className="shrink-0 w-6 text-center text-[15px] leading-[1.45]">{it.icon}</span>
+              <div key={i} className="flex items-start gap-2.5 rounded-2xl bg-white border border-gray-100 px-4 py-3">
+                <span className="shrink-0 w-6 text-center text-[17px] leading-[1.45]">{it.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="rich text-[13px] text-gray-700 leading-[1.6]" dangerouslySetInnerHTML={{ __html: it.text }} />
+                  <div className="rich text-[15px] sm:text-[15.5px] text-gray-700 leading-[1.7]" dangerouslySetInnerHTML={{ __html: it.text }} />
                   {it.subs.length > 0 && (
                     <div className="mt-1.5 space-y-1">
                       {it.subs.map((s, j) => (
                         <div key={j} className="flex items-start gap-1.5">
-                          {s.dot && <span className="mt-[7px] w-1 h-1 rounded-full bg-brand-300 shrink-0" />}
-                          <span className="rich flex-1 min-w-0 text-[12.5px] text-gray-500 leading-[1.55]"
+                          {s.dot && <span className="mt-[8px] w-1 h-1 rounded-full bg-brand-300 shrink-0" />}
+                          <span className="rich flex-1 min-w-0 text-[14px] text-gray-500 leading-[1.65]"
                                 dangerouslySetInnerHTML={{ __html: s.t }} />
                         </div>
                       ))}
@@ -3346,19 +3395,6 @@
               </div>
             ))}
           </div>
-        </div>
-      );
-    }
-
-    /* 문단은 항상 전부(최종 높이 기준으로) 그려 넣고, 아직 안 열린 것만 visibility로 숨긴다.
-       이렇게 해야 클릭할 때마다 레이아웃 높이가 바뀌면서 이미 보이던 글이 위로 밀려 올라가는 일이 없다.
-       공개되는 순간에만 key를 바꿔 그 문단만 새로 마운트시켜, 그때 딱 한 번 페이드업 애니메이션이 재생되게 한다.
-       (SlideBody 안에서 정의하면 렌더마다 새 함수가 되어 매 클릭마다 전부 리마운트되니, 여기 모듈 스코프에 둔다) */
-    function RevealPara({ i, reveal, children }) {
-      const on = i < reveal;
-      return (
-        <div key={on ? "on" : "off"} className={on ? "animate-revealUp" : "invisible"}>
-          {children}
         </div>
       );
     }
@@ -3430,10 +3466,10 @@
             <span className={"shrink-0 w-9 h-9 rounded-xl p-2 " + (FEATURE_TONE[tone] || FEATURE_TONE.sky)}>
               <FeatureIcon kind={icon} />
             </span>
-            <span className="rich flex-1 min-w-0 text-[13px] sm:text-[13.5px] font-black text-ink leading-snug"
+            <span className="rich flex-1 min-w-0 text-[15px] sm:text-[15.5px] font-black text-ink leading-snug"
               dangerouslySetInnerHTML={{ __html: title }} />
           </div>
-          <p className="rich mt-2 text-[12.5px] sm:text-[13px] text-gray-600 leading-[1.6] pl-[46px]"
+          <p className="rich mt-2 text-[14px] sm:text-[14.5px] text-gray-600 leading-[1.65] pl-[46px]"
             dangerouslySetInnerHTML={{ __html: desc }} />
         </div>
       );
@@ -3442,16 +3478,16 @@
       return (
         <div key={active ? "feat-on" : "feat-off"}>
           {intro && (
-            <p className="rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
+            <p className="rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
               dangerouslySetInnerHTML={{ __html: intro.split("\n").join("<br/>") }} />
           )}
-          <div className="mt-3.5 grid sm:grid-cols-2 gap-2 sm:gap-2.5">
+          <div className="mt-4 grid sm:grid-cols-2 gap-2.5 sm:gap-3">
             {cards.map((c, i) => (
               <FeatureCard key={i} icon={c.icon} tone={c.tone} title={c.title} desc={c.desc} delay={i * 0.07} />
             ))}
           </div>
           {outro && (
-            <div className="rich mt-3 rounded-xl bg-ink px-3.5 py-2.5 text-[11.5px] text-white/80 text-center"
+            <div className="rich mt-3 rounded-xl bg-ink px-4 py-3 text-[13.5px] text-white/80 text-center"
               style={{ animation: "revealUp .4s .3s both" }} dangerouslySetInnerHTML={{ __html: outro }} />
           )}
         </div>
@@ -3492,57 +3528,84 @@
       );
     }
 
-    /* 슬라이드 안 미디어에 붙는 "눌러서 크게 보기" 표시. 미디어 위에 겹쳐두고, 마우스를 올리면
-       배경이 살짝 어두워지며 또렷해진다 - 누를 수 있다는 걸 모르고 지나치는 걸 막으려는 것 */
-    function EnlargeBadge() {
+    /* ═══ 시네마 ════════════════════════════════════════════════
+       학습 화면의 유일한 레이아웃. 모양은 예전 슬라이드 덱에서 가져오고, 조작과 마감은 다시 했다.
+
+       덱과 같은 것 - 한 화면에 한 장, 좌우로 넘긴다. 페이지가 스크롤로 흘러가지 않는다.
+       덱과 다른 것 - 한 장 안의 글은 처음부터 다 있다. 문단마다 클릭해서 여는 계단이 없고,
+       한 화면에 맞추려고 활자를 scale 로 깎지도 않는다. 넘치면 그 장 안에서 굴려 읽는다.
+       대신 장이 바뀔 때 요소가 하나씩 차례로 자리를 잡는다. 번호가 들어오고, 제목이 아래에서
+       위로 닦이듯 드러나고, 그 밑에 선이 그어지고, 그림이 살아나고, 문단이 차례로 떠오른다.
+       움직임은 한 장에 한 가지 원칙만 쓴다 - 전부 제각각 움직이면 화려한 게 아니라 시끄럽다.
+
+       이모지는 이 레이아웃의 UI 에서 전부 걷어내고 선으로 그린 아이콘으로 바꿨다. 본문 안의
+       이모지는 콘텐츠라서 그대로 둔다 - 그건 우리가 고를 수 있는 게 아니다.
+
+       넘기는 방법은 좌우 키, 스페이스, 아래 컨트롤 바, 그리고 휠이다. 휠은 그 장 안에서 읽을 게
+       남아 있으면 먼저 그걸 굴리고, 끝에 닿았을 때만 다음 장으로 넘어간다 */
+    const CINE_WHEEL_LOCK = 620;   /* 휠 한 번에 한 장. 관성으로 여러 장 넘어가는 걸 막는다(ms) */
+
+    /* 선으로 그린 아이콘 한 벌. 24 그리드, 굵기 1.75 로 통일해서 어디에 놓아도 같은 무게로 보인다 */
+    function CineGlyph({ name, className }) {
+      const p = {
+        concept: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.5.4.8 1 .9 1.6l.1.6h5.2l.1-.6c.1-.6.4-1.2.9-1.6A6 6 0 0 0 12 3Z",
+        practice: "M5 3.5 18.5 11l-5.6 1.6L10.4 18 5 3.5Z",
+        project: "M5.5 21V4m0 0h11l-2.2 3.6L16.5 11h-11",
+        prev: "M14.5 6 8.5 12l6 6",
+        next: "M9.5 6l6 6-6 6",
+        check: "M4.5 12.5 9 17l10.5-10.5",
+        user: "M4.5 20a7.5 7.5 0 0 1 15 0M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+        note: "M6 3.5h7.5L18.5 8v12.5h-13V3.5Zm7 0V8h5m-9.5 4.5h7m-7 4h5",
+        arrow: "M4.5 12h14m-5.5-6 6 6-6 6",
+        expand: "M9 4.5H4.5V9m10.5-4.5h4.5V9M9 19.5H4.5V15m10.5 4.5h4.5V15",
+        play: "M8 5.5v13l11-6.5-11-6.5Z",
+        image: "M3.5 5.5h17v13h-17v-13Zm0 9.5 4.5-4 4 3.5 3.5-3 5 4.5M15.5 9.5h.01",
+      }[name] || "";
       return (
-        <>
-          <span className="pointer-events-none absolute inset-0 rounded-2xl bg-black/0 group-hover:bg-black/20 transition-colors" />
-          <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/65 group-hover:bg-black/85 px-2 py-1 text-[10px] font-black text-white shadow-lift transition-colors">
-            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3 H17 V8 M8 17 H3 V12 M17 3 L11 9 M3 17 L9 11" />
-            </svg>
-            크게 보기
-          </span>
-        </>
+        <svg viewBox="0 0 24 24" aria-hidden="true" className={className || "w-4 h-4"}
+          fill={name === "play" ? "currentColor" : "none"} stroke="currentColor"
+          strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d={p} />
+        </svg>
       );
     }
 
-    /* 슬라이드 안 미디어가 사진인지 영상인지 한눈에 구분되게 하는 표시. EnlargeBadge와 짝을 이뤄
-       미디어 좌상단에 얹는다 - "크게 보기"만 있으면 눌러보기 전엔 사진인지 영상인지 애매했다.
-       이모지 대신 SVG 아이콘을 쓴다(project 규칙) - viewBox만 있고 크기 클래스가 없어야 래퍼(w-3 h-3)를
-       그대로 따라간다, IconChecklist류의 함정(크기 클래스가 svg에 박혀 겹치는 문제)을 피하려는 것 */
-    function MediaTypeBadge({ type }) {
+    /* 이 레이아웃 전용 버튼. 학습자용 CTA 하나에 톤을 다 걸고, 나머지는 조용한 회색으로 둔다 */
+    function CineButton({ theme, onClick, disabled, tone, children }) {
+      const base = "group inline-flex items-center gap-2 rounded-full font-black transition-all duration-200 active:scale-[.97] disabled:pointer-events-none disabled:opacity-35";
+      if (tone === "cta") {
+        return (
+          <button onClick={onClick} disabled={disabled}
+            className={base + " px-6 py-3 text-[14.5px] text-white shadow-[0_10px_30px_-10px_rgba(31,41,55,.5)] hover:shadow-[0_14px_36px_-10px_rgba(31,41,55,.55)] hover:-translate-y-[1px] " + theme.solid + " " + theme.solidHover}>
+            {children}
+            <CineGlyph name="arrow" className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-[3px]" />
+          </button>
+        );
+      }
       return (
-        <span className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/65 px-2 py-1 text-[10px] font-black text-white shadow-lift">
-          {type === "video" ? (
-            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="currentColor">
-              <path d="M5 4.2 C5 3.4 5.9 2.9 6.6 3.3 L16 8.6 C16.7 9 16.7 10 16 10.4 L6.6 15.7 C5.9 16.1 5 15.6 5 14.8 Z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 20 20" className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2.5" y="4" width="15" height="12" rx="1.8" />
-              <circle cx="7" cy="8.3" r="1.3" fill="currentColor" stroke="none" />
-              <path d="M3.5 14.5 L8 10.5 L11 13 L14 10 L16.5 12.5" />
-            </svg>
-          )}
-          {type === "video" ? "영상" : "사진"}
-        </span>
+        <button onClick={onClick} disabled={disabled}
+          className={base + " h-10 w-10 justify-center bg-white text-gray-500 ring-1 ring-ink/[.08] shadow-[0_2px_10px_-4px_rgba(31,41,55,.25)] hover:text-ink hover:ring-ink/20 hover:-translate-y-[1px]"}>
+          {children}
+        </button>
       );
     }
 
-    function SlideBody({ slide, name, reveal, theme, innerRef, onScroll, active, onOpenMedia }) {
+    /* 한 장. 바깥은 자리만 잡고, 안쪽 요소들이 각자 차례로 들어온다 */
+    function CineSlide({ slide, name, theme, n, total, dayNum, active, dir, onOpenMedia, narrow }) {
       const paras = parasOf(slide, name);
       const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
-      /* 글이 많은 슬라이드는 영상·캡처를 반으로 줄여 옆에 세운다(비주얼 슬라이드와 같은 배치).
-         반대로 "영상 한 개 + 한 줄 설명"짜리는 지금처럼 큼직하게 두는 게 낫다 - 그런 슬라이드는
-         영상 자체가 내용이라 줄이면 오히려 손해다. 문단 3개 이상이거나 150자 이상이면 옆으로 세운다 */
-      /* 길이는 <b> 같은 태그를 뺀 실제 글자 수로 잰다 - 태그까지 세면 굵게 몇 군데 쓴 것만으로
-         기준을 넘어버려서, 짧은 슬라이드가 엉뚱하게 반쪽 배치로 넘어간다 */
-      const bodyLen = strip(paras.join("")).length;
-      const mediaAside = (slide.video || hasImg) && (paras.length >= 3 || bodyLen >= 150);
+      /* 기능 카드와 2x2 로드맵은 그 자체가 한 장의 본문이라, 옆에 세우지 않고 폭을 다 쓴다 */
+      const cards = slide.featureCards || null;
+      const quad = slide.quadVisuals || null;
+      const wide = !!(cards || quad);
+      const aside = !wide && !!(slide.visual || slide.video || hasImg);
+      const split = aside && !narrow;
+      const scrollRef = useRef(null);
+      const [more, setMore] = useState(false);
       const videoRef = useRef(null);
-      /* 슬라이드가 화면에 실제로 들어올 때만 영상을 재생한다(모든 슬라이드가 미리 마운트돼 있어서 autoPlay만으로는 안 보이는 곳에서 먼저 끝나버림) */
+
+      /* 화면에 올라와 있는 장만 영상을 튼다. 모든 장이 미리 그려져 있어서 autoPlay 만으로는
+         안 보이는 곳에서 혼자 다 돌아버린다 */
       useEffect(() => {
         const v = videoRef.current;
         if (!v) return;
@@ -3550,328 +3613,224 @@
         else v.pause();
       }, [active, slide.video]);
 
-      /* 캔버스(덱 박스)는 그대로 두고 내용을 캔버스에 맞춘다.
-         내용이 넘치면 스크롤 대신 살짝 줄여 한 화면에 담고, 짧으면 세로 가운데로 모아
-         아래쪽에 빈 공간이 크게 남지 않게 한다. scrollHeight 는 transform 의 영향을
-         받지 않는 레이아웃 높이라서 축소된 상태에서 다시 재도 원래 높이가 나온다. */
-      const boxRef = useRef(null);
-      const sizerRef = useRef(null);
-      const contentRef = useRef(null);
-      const attachBox = useCallback((el) => {
-        boxRef.current = el;
-        if (innerRef) innerRef.current = el;
-      }, [innerRef]);
-
-      useLayoutEffect(() => {
-        const box = boxRef.current, el = contentRef.current, sizer = sizerRef.current;
-        if (!box || !el || !sizer || !active) return;
-        let raf = 0;
-        const vid = el.querySelector("video, figure img");
-        const apply = () => {
-          /* 항상 원래 크기로 되돌린 뒤 다시 잰다. 영상은 메타데이터가 늦게 와서
-             높이가 나중에 바뀌는데, 줄여둔 상태에서 재면 값이 어긋난다. */
-          el.style.transform = "none";
-          sizer.style.height = "auto";
-          if (vid) vid.style.maxHeight = "";
-          const cs = getComputedStyle(box);
-          const avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-          let need = el.scrollHeight;
-          /* 영상은 크게 보여주는 게 우선이라 왠만하면 안 줄인다 - 바닥값을 넉넉히 잡아두고,
-             그래도 다 안 들어가면 아래 전체 scale()이 글까지 같이 줄여서 맞춘다 */
-          if (need > avail && vid) {
-            const vh = vid.getBoundingClientRect().height;
-            const room = Math.max(380, avail - (need - vh));
-            if (room < vh) { vid.style.maxHeight = room + "px"; need = el.scrollHeight; }
-          }
-          if (avail > 0 && need > avail) {
-            const s = Math.max(.74, avail / need);
-            el.style.transform = "scale(" + s + ")";
-            el.style.transformOrigin = "top center";
-            sizer.style.height = Math.ceil(need * s) + "px";
-            sizer.style.overflow = "hidden";
-            box.classList.remove("justify-center");
-          } else {
-            sizer.style.overflow = "";
-            box.classList.add("justify-center");
-          }
-        };
-        /* 첫 계산은 그리기 전에 바로 하고, 이후 변화(영상 로드·폰트 로드·창 크기)만 모아서 다시 잰다.
-           폰트가 늦게 적용되면 주변 글줄 높이가 바뀌어 가용 높이가 살짝 달라지는데, 그 보정을 놓치면
-           같은 슬라이드인데도 처음 볼 때와 나중에 다시 볼 때 크기가 달라 보인다.
-           reveal 은 의존성에 넣지 않는다 - 문단은 안 열렸을 때도 이미 공간을 차지하고 있어서(visibility만
-           숨김) 다시 잴 필요가 없고, 오히려 넣으면 다음 버튼을 누를 때마다 재계산이 돌면서 영상·글씨
-           크기가 미세하게 늘었다 줄었다 하는 게 보였다. 슬라이드에 들어올 때 딱 한 번만 재서 그 크기로
-           고정해야 클릭할 때마다 크기가 흔들리지 않는다 */
-        apply();
-        const schedule = () => { clearTimeout(raf); raf = setTimeout(apply, 0); };
-        const ro = new ResizeObserver(schedule);
-        ro.observe(box);
-        if (vid) { vid.addEventListener("loadedmetadata", schedule); vid.addEventListener("load", schedule); }
-        window.addEventListener("resize", schedule);
-        if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
-        return () => {
-          clearTimeout(raf); ro.disconnect();
-          window.removeEventListener("resize", schedule);
-          if (vid) { vid.removeEventListener("loadedmetadata", schedule); vid.removeEventListener("load", schedule); }
-        };
-      }, [active, slide, name]);
-      return (
-        <div ref={attachBox} onScroll={onScroll || undefined}
-          className="h-full overflow-y-auto overscroll-y-contain no-scrollbar px-5 sm:px-7 py-5 sm:py-6 flex flex-col justify-center">
-        <div ref={sizerRef} className="w-full shrink-0">
-        <div ref={contentRef}>
-          <h2 className="text-base sm:text-xl font-black leading-snug text-ink">
-            <RichInline text={slide.title} name={name} />
-          </h2>
-          <div className={"mt-1.5 h-1 w-9 rounded-full " + theme.bar} />
-          {/* 글이 적은 슬라이드에서만 영상을 위쪽에 큼직하게 깐다. 글이 많으면 아래 2단 배치로 간다 */}
-          {slide.video && !mediaAside && (
-            <button type="button" onClick={() => onOpenMedia({ type: "video", src: slide.video, loop: slide.videoLoop !== false })}
-              className="group relative block mt-3.5 mx-auto w-auto max-w-full cursor-zoom-in">
-              <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-                className="w-auto max-w-full max-h-[62vh] sm:max-h-[82vh] rounded-2xl shadow-soft" />
-              <MediaTypeBadge type="video" />
-              <EnlargeBadge />
-            </button>
-          )}
-          {slide.featureCards ? (
-            /* 눌러서 펼치는 기능 카드 그리드. paras[0]을 인트로 문장으로 쓰고, 설명은 카드 클릭으로
-               직접 펼쳐 보게 해 이모지 목록보다 손이 가는 슬라이드로 만든다 */
-            <div className="mt-3.5">
-              <FeatureCardsGrid intro={paras[0]} cards={slide.featureCards} outro={slide.featureNote} active={active} />
-            </div>
-          ) : slide.quadVisuals ? (
-            /* 2x2 사분면. 네 개가 슬라이드에 들어오는 순간 한 번에 다 뜬다 - 캡션은 문단 reveal과
-               무관한 별도 필드(quadCaps)라서 클릭 스텝을 잡아먹지 않는다.
-               active가 바뀔 때마다 key로 강제 리마운트해 아이콘 애니메이션을 다시 들어올 때마다 처음부터 재생시킨다 */
-            <div key={active ? "quad-on" : "quad-off"}>
-              <p className="rich mt-3.5 text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.7]"
-                 dangerouslySetInnerHTML={{ __html: (paras[0] || "").split("\n").join("<br/>") }} />
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3.5">
-              {slide.quadVisuals.map((kind, i) => (
-                <div key={i} className="rounded-2xl border border-brand-100 bg-brand-50/40 p-3 sm:p-4 flex flex-col items-center justify-center text-center gap-2.5"
-                  style={{ animation: "revealUp .45s " + (i * .1) + "s both" }}>
-                  <RoadmapVisual kind={kind} />
-                  <p className="rich text-[12px] sm:text-[13px] text-gray-700 leading-[1.6]"
-                     dangerouslySetInnerHTML={{ __html: ((slide.quadCaps && slide.quadCaps[i]) || "").split("\n").join("<br/>") }} />
-                </div>
-              ))}
-              </div>
-            </div>
-          ) : slide.visual ? (
-            /* 2026-08-13 실험: 3:2였던 비율을 정확히 50:50으로, 둘 사이에 실제 경계선(divide-x)을
-               넣었다 - 전엔 그림 칸이 더 넓어서 시각적으로 경계를 넘어서는 것처럼 보인다는 지적이 있었다.
-               모바일은 위아래로 쌓이니 경계선 없이 gap만 유지(sm: 접두사) */
-            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
-              <div key={active ? "vis-on" : "vis-off"} className="animate-revealUp sm:pr-5">
-                <SlideVisual kind={slide.visual} />
-              </div>
-              <div className="space-y-2.5 sm:pl-5">
-                {paras.map((p, i) => (
-                  <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
-                ))}
-              </div>
-            </div>
-          ) : mediaAside ? (
-            /* 글이 많은 영상·캡처 슬라이드. 미디어를 반으로 줄여 왼쪽에 세우고 글을 오른쪽에 붙인다 -
-               예전엔 영상이 위를 다 차지하고 그 아래로 긴 글이 밀려나 한 화면에 같이 안 들어왔다.
-               작아진 만큼 "크게 보기"로 원본을 띄울 수 있게 해서 잃는 게 없도록 했다 */
-            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
-              <figure key={active ? "media-on" : "media-off"} className="animate-revealUp sm:pr-5 m-0">
-                <button type="button"
-                  onClick={() => onOpenMedia(slide.video
-                    ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
-                    : { type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
-                  className="group relative block mx-auto w-auto max-w-full cursor-zoom-in">
-                  {slide.video
-                    ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-                        className="w-auto max-w-full max-h-[30vh] sm:max-h-[42vh] rounded-2xl shadow-soft" />
-                    : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
-                        className="w-auto max-w-full max-h-[30vh] sm:max-h-[42vh] object-contain rounded-2xl border border-gray-200 shadow-soft" />}
-                  <MediaTypeBadge type={slide.video ? "video" : "img"} />
-                  <EnlargeBadge />
-                </button>
-                {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
-              </figure>
-              <div className="space-y-2.5 sm:pl-5">
-                {paras.map((p, i) => (
-                  <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
-                ))}
-              </div>
-            </div>
-          ) : hasImg ? (
-            /* 실제 화면 캡처도 그림이 주인공이니 visual과 같은 50:50 레이아웃을 쓴다 - 문단 아래
-               작게 깔리던 걸 왼쪽 큰 칸으로 옮기니 캡처 속 글자까지 읽힌다. 이미지는 슬라이드에
-               들어오는 순간 통째로 뜨고(reveal 계단에 안 묶임), 옆 글만 클릭으로 한 문단씩 연다 */
-            <div className="mt-4 grid sm:grid-cols-2 gap-4 sm:gap-0 sm:divide-x sm:divide-gray-200 items-center">
-              <figure key={active ? "img-on" : "img-off"} className="animate-revealUp sm:pr-5 m-0">
-                <button type="button"
-                  onClick={() => onOpenMedia({ type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
-                  className="group relative block mx-auto w-auto max-w-full cursor-zoom-in">
-                  <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
-                    className="w-auto max-w-full max-h-[34vh] sm:max-h-[46vh] object-contain rounded-2xl border border-gray-200 shadow-soft" />
-                  <MediaTypeBadge type="img" />
-                  <EnlargeBadge />
-                </button>
-                {slide.imgCap && <figcaption className="mt-2 text-center text-xs text-gray-400">{slide.imgCap}</figcaption>}
-              </figure>
-              <div className="space-y-2.5 sm:pl-5">
-                {paras.map((p, i) => (
-                  <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="mt-3.5 space-y-2.5">
-              {paras.map((p, i) => (
-                <RevealPara key={i} i={i} reveal={reveal}><ParaBlock html={p} /></RevealPara>
-              ))}
-            </div>
-          )}
-          {PLAN_NOTES && slide.note && (
-            <div className="mt-4 rounded-xl bg-gray-50 border border-dashed border-gray-300 p-3 text-xs text-gray-500 leading-relaxed">
-              <b className="text-gray-600">기획 노트</b> : {slide.note}
-            </div>
-          )}
-        </div>
-        </div>
-        </div>
-      );
-    }
-
-    function SlideDeck({ slides, theme, name, onFinish, finishLabel, dayNum, pointerOn }) {
-      const [i, setI] = useState(0);
-      const [step, setStep] = useState(1);
-      const [dir, setDir] = useState(1);
-      const total = slides.length;
-      const scrollRef = useRef(null);
-      const prevPos = useRef({ i: 0, step: 1 });
-      const [more, setMore] = useState(false);
-      const [lightbox, setLightbox] = useState(null);   // 크게 보기 창에 띄울 미디어
-
-      const curSteps = stepsOf(slides[i], name);
-      const finished = i === total - 1 && step >= curSteps;
-
-      const allSteps = useMemo(() => slides.map((s) => stepsOf(s, name)), [slides, name]);
-      const totalSteps = allSteps.reduce((a, b) => a + b, 0);
-      const doneSteps = allSteps.slice(0, i).reduce((a, b) => a + b, 0) + step;
-
-      const next = useCallback(() => {
-        if (step < curSteps) return setStep(step + 1);
-        if (i < total - 1) { setDir(1); setI(i + 1); setStep(1); }
-      }, [i, step, curSteps, total]);
-      const prev = useCallback(() => {
-        if (step > 1) return setStep(step - 1);
-        if (i > 0) { setDir(-1); setI(i - 1); setStep(stepsOf(slides[i - 1], name)); }
-      }, [i, step, slides, name]);
-      const jump = useCallback((n) => { setDir(n > i ? 1 : -1); setI(n); setStep(stepsOf(slides[n], name)); }, [i, slides, name]);
-
-      useEffect(() => {
-        const on = (e) => {
-          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-          /* 크게 보기 창이 열려 있으면 좌우 키는 슬라이드를 넘기지 않는다 - 창 뒤에서 몰래
-             넘어가 있으면 닫았을 때 엉뚱한 슬라이드가 떠 있다 */
-          if (lightbox) return;
-          if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); next(); }
-          else if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
-        };
-        window.addEventListener("keydown", on);
-        return () => window.removeEventListener("keydown", on);
-      }, [next, prev, lightbox]);
-
-      /* autoReveal 슬라이드는 탭 없이도 항목이 하나씩 순서대로 나타난다 */
-      useEffect(() => {
-        if (!slides[i].autoReveal || step >= curSteps) return;
-        const t = setTimeout(() => setStep((s) => Math.min(s + 1, curSteps)), 750);
-        return () => clearTimeout(t);
-      }, [i, step, curSteps, slides]);
-
+      /* 한 장에 다 안 들어가면 안에서 굴려 읽는다. 활자를 줄이는 선택지는 없다 */
       const syncMore = useCallback(() => {
         const el = scrollRef.current;
         setMore(!!el && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
       }, []);
-
       useEffect(() => {
-        const el = scrollRef.current; if (!el) return;
-        if (prevPos.current.i !== i) el.scrollTop = 0;
-        else if (step > prevPos.current.step) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-        prevPos.current = { i, step };
-        const t = setTimeout(syncMore, 380);
-        return () => clearTimeout(t);
-      }, [i, step, syncMore]);
+        if (!active) return;
+        const el = scrollRef.current;
+        if (el) el.scrollTop = 0;
+        const t = setTimeout(syncMore, 420);
+        window.addEventListener("resize", syncMore);
+        return () => { clearTimeout(t); window.removeEventListener("resize", syncMore); };
+      }, [active, syncMore]);
+
+      const D = { eye: 0, title: 1, rule: 2, media: 3, body: aside ? 4 : 3 };
+      const at = (k) => ({ animationDelay: (.06 + k * .07).toFixed(2) + "s" });
+      const body = (
+        <div className="space-y-4">
+          {paras.map((p, i) => (
+            <div key={i} className="cine-el" style={at(D.body + i)}>
+              <ParaBlock html={p} />
+            </div>
+          ))}
+        </div>
+      );
 
       return (
-        <div className="flex-1 min-h-0 flex flex-col gap-2.5">
+        <div className={"relative h-full min-h-0 " + (active ? (dir > 0 ? "cine-in-r" : "cine-in-l") : "cine-out pointer-events-none")}
+          aria-hidden={!active}>
+          {/* 번호를 달아둔다. 모든 장이 같은 칸에 겹쳐 쌓여 있어서, 휠을 처리할 때
+              "지금 장의" 스크롤 상태를 집으려면 첫 번째가 아니라 이 번호로 찾아야 한다 */}
+          <div ref={scrollRef} onScroll={syncMore} data-cine={n}
+            className="h-full overflow-y-auto overscroll-contain no-scrollbar flex flex-col">
+            <div className="my-auto w-full max-w-[1120px] mx-auto px-6 sm:px-10 py-8">
+              <div className="cine-el flex items-center gap-3" style={at(D.eye)}>
+                <span className={"text-[12px] font-black tabular-nums " + theme.text}>{pad2(n + 1)}</span>
+                <span className="text-[12px] font-black tabular-nums text-gray-300">/ {pad2(total)}</span>
+                <span className="h-px w-8 bg-gray-200" />
+                {/* 대화로 이 대목을 짚을 때 쓰는 참조 태그. 덱에 있던 것과 같은 규칙(Day.장) */}
+                <span className="text-[10px] font-mono font-bold text-gray-300 tabular-nums">{dayNum}.{n + 1}</span>
+              </div>
+              <h2 className={"cine-el-wipe mt-4 font-black tracking-[-.022em] text-ink " +
+                (aside ? "text-[25px] sm:text-[31px] leading-[1.32]" : "text-[27px] sm:text-[38px] leading-[1.28] max-w-[900px]")}
+                style={at(D.title)}>
+                <RichInline text={slide.title} name={name} />
+              </h2>
+              <div className={"cine-rule mt-4 h-[3px] w-14 rounded-full " + theme.bar} style={at(D.rule)} />
+
+              {cards ? (
+                /* 기능 카드. paras[0] 이 인트로 문장이고, 카드는 처음부터 다 펼쳐진 채로 뜬다 */
+                <div className="cine-el-pop mt-7 max-w-[900px]" style={at(D.body)}>
+                  <FeatureCardsGrid intro={paras[0]} cards={cards} outro={slide.featureNote} active={active} />
+                </div>
+              ) : quad ? (
+                /* 2x2 사분면. 캡션은 문단이 아니라 별도 필드(quadCaps)라 본문 순서와 따로 논다.
+                   active 가 바뀔 때마다 key 로 리마운트해 아이콘 애니메이션을 처음부터 다시 재생시킨다 */
+                <div key={active ? "quad-on" : "quad-off"} className="mt-7">
+                  <div className="cine-el" style={at(D.body)}>
+                    <p className="rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
+                      dangerouslySetInnerHTML={{ __html: (paras[0] || "").split("\n").join("<br/>") }} />
+                  </div>
+                  <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
+                    {quad.map((kind, i) => (
+                      <div key={i} style={at(D.body + 1 + i)}
+                        className="cine-el-pop rounded-2xl border border-brand-100 bg-brand-50/40 p-4 flex flex-col items-center justify-center text-center gap-2.5">
+                        <RoadmapVisual kind={kind} />
+                        <p className="rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.6]"
+                          dangerouslySetInnerHTML={{ __html: ((slide.quadCaps && slide.quadCaps[i]) || "").split("\n").join("<br/>") }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : aside ? (
+                <div className={"mt-8 grid items-center gap-8 " + (split ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12" : "")}>
+                  <div className="cine-el-pop min-w-0" style={at(D.media)}>
+                    {slide.visual ? (
+                      <div className={split ? "cine-visual" : ""}><SlideVisual kind={slide.visual} /></div>
+                    ) : (
+                      <button type="button"
+                        onClick={() => onOpenMedia(slide.video
+                          ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
+                          : { type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
+                        className="group relative block w-full cursor-zoom-in">
+                        {slide.video
+                          ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
+                              className={"mx-auto w-auto max-w-full rounded-2xl shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />
+                          : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
+                              className={"mx-auto w-auto max-w-full object-contain rounded-2xl ring-1 ring-ink/[.08] shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />}
+                        {/* 이모지 배지 대신 선 아이콘 + 라벨. 열어볼 수 있다는 신호는 유지한다 */}
+                        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-ink/75 px-2.5 py-1 text-[10.5px] font-black text-white backdrop-blur">
+                          <CineGlyph name={slide.video ? "play" : "image"} className="w-3 h-3" />
+                          {slide.video ? "영상" : "화면"}
+                        </span>
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10.5px] font-black text-gray-600 opacity-0 ring-1 ring-ink/[.06] backdrop-blur transition group-hover:opacity-100">
+                          <CineGlyph name="expand" className="w-3 h-3" /> 크게 보기
+                        </span>
+                      </button>
+                    )}
+                    {slide.imgCap && !slide.visual && (
+                      <p className="mt-2.5 text-center text-[12.5px] text-gray-400">{slide.imgCap}</p>
+                    )}
+                  </div>
+                  <div className="min-w-0">{body}</div>
+                </div>
+              ) : (
+                <div className="mt-7 max-w-[800px]">{body}</div>
+              )}
+
+              {PLAN_NOTES && slide.note && (
+                <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50/80 p-3.5 text-[13px] leading-relaxed text-gray-500">
+                  <b className="text-gray-600">기획 노트</b> : {slide.note}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* 아직 아래에 더 있다는 신호. 컨트롤 바에 가려지지 않게 살짝 띄운다 */}
+          {active && more && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cream via-cream/80 to-transparent" />
+          )}
+        </div>
+      );
+    }
+
+    /* 무대. 장을 겹쳐 쌓아두고 활성인 하나만 보여주며, 아래 컨트롤 바가 이동을 다 맡는다 */
+    function CineStage({ slides, theme, name, dayNum, onFinish, finishLabel, pointerOn, narrow }) {
+      const [i, setI] = useState(0);
+      const [dir, setDir] = useState(1);
+      const [lightbox, setLightbox] = useState(null);
+      const total = slides.length;
+      const wheelLock = useRef(0);
+      const scroller = useRef(null);
+      const last = i === total - 1;
+
+      useEffect(() => { setI(0); setDir(1); }, [dayNum]);
+
+      const go = useCallback((n) => {
+        const t = Math.min(total - 1, Math.max(0, n));
+        setDir(t >= i ? 1 : -1);
+        setI(t);
+      }, [i, total]);
+      const next = useCallback(() => go(i + 1), [go, i]);
+      const prev = useCallback(() => go(i - 1), [go, i]);
+
+      useEffect(() => {
+        const on = (e) => {
+          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          if (lightbox) return;
+          const k = e.key;
+          if (k === "ArrowRight" || k === " " || k === "PageDown") { e.preventDefault(); next(); }
+          else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); prev(); }
+          else if (k === "Home") { e.preventDefault(); go(0); }
+          else if (k === "End") { e.preventDefault(); go(total - 1); }
+        };
+        window.addEventListener("keydown", on);
+        return () => window.removeEventListener("keydown", on);
+      }, [next, prev, go, total, lightbox]);
+
+      /* 휠은 그 장 안에서 먼저 쓰인다. 안에 읽을 게 남아 있는데 장을 넘겨버리면 글을 건너뛰는
+         것이고, 다 읽고 났는데 아무 일도 안 일어나면 막힌 것처럼 느껴진다 */
+      const onWheel = useCallback((e) => {
+        if (lightbox || Math.abs(e.deltaY) < 6) return;
+        const down = e.deltaY > 0;
+        const el = scroller.current && scroller.current.querySelector('[data-cine="' + i + '"]');
+        if (el) {
+          const room = down
+            ? el.scrollHeight - el.scrollTop - el.clientHeight > 2
+            : el.scrollTop > 2;
+          if (room) return;
+        }
+        if (Date.now() < wheelLock.current) return;
+        wheelLock.current = Date.now() + CINE_WHEEL_LOCK;
+        if (down) next(); else prev();
+      }, [next, prev, lightbox, i]);
+
+      return (
+        <div className="relative flex-1 min-h-0 flex flex-col">
           {lightbox && <MediaLightbox media={lightbox} onClose={() => setLightbox(null)} />}
-          {/* 옆 창을 가리키는 표시. 슬라이드가 바뀌면 key 로 다시 그려 애니메이션을 처음부터 재생한다.
-              크게 보기 창이 떠 있을 땐 그 위로 삐져나오지 않게 숨긴다 */}
           {pointerOn && !lightbox && slides[i].point &&
             <ClaudeSpotPointer key={"pt-" + i} point={slides[i].point} />}
-          {/* 진행바. 슬라이드가 아니라 포인트 기준 */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex-1 h-1.5 rounded-full bg-gray-200/70 overflow-hidden">
-              <div className={"h-full rounded-full transition-all duration-300 ease-out " + theme.bar}
-                   style={{ width: ((doneSteps / totalSteps) * 100).toFixed(1) + "%" }} />
-            </div>
-            <span className="text-[11px] font-black text-gray-400 tabular-nums shrink-0">{i + 1} / {total}</span>
+
+          {/* 아주 느리게 도는 색 얼룩 두 덩이. 화면이 완전히 죽어 있지 않게만 한다 */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <span className={"cine-blob absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full blur-3xl " + theme.solid} />
+            <span className={"cine-blob cine-blob-b absolute -right-40 bottom-[-10%] h-[460px] w-[460px] rounded-full blur-3xl " + theme.solid} />
           </div>
 
-          {/* 덱, 남은 공간을 채운다 */}
-          <div className={"deck-stack rounded-3xl bg-white border shadow-soft flex-1 min-h-0 max-h-[580px] sm:max-h-[800px] overflow-hidden relative " + theme.border}>
-            {/* 슬라이드 참조 태그, {Day}.{슬라이드 순번}-{그 슬라이드 안에서 몇 번째로 열린 문단인지}.
-                "Day 8 슬라이드 8.1-2에서 이거 고쳐줘" 처럼 대화로 특정 문단을 정확히 짚을 수 있게 하는
-                용도라 늘 떠 있어야 한다, ?notes=1 뒤에 숨겨뒀더니 안 보인다는 얘기가 나와서 뺐다 */}
-            {dayNum != null && (
-              <div className="absolute top-2 left-2.5 z-30 pointer-events-none select-none">
-                <span className="inline-block rounded-md bg-ink/75 text-white/90 text-[9.5px] font-mono font-bold px-1.5 py-0.5 tracking-wide">
-                  {dayNum}.{i + 1}-{step}
-                </span>
+          {/* 무대 */}
+          <div ref={scroller} onWheel={onWheel} className="cine-deck relative flex-1 min-h-0">
+            {slides.map((s, n) => (
+              <CineSlide key={n} slide={s} name={name} theme={theme} n={n} total={total} dayNum={dayNum}
+                active={n === i} dir={dir} onOpenMedia={setLightbox} narrow={narrow} />
+            ))}
+          </div>
+
+          {/* 컨트롤 바. 떠 있는 유리판 하나에 이동, 진행, 다음 단계를 다 모았다.
+              장이 열 개를 넘는 Day 가 있어서 점 줄은 넘치면 안에서 가로로 굴러간다 */}
+          <div className="relative z-20 shrink-0 px-4 pb-4 pt-1 flex justify-center">
+            <div className="flex max-w-full items-center gap-3 rounded-full bg-white/80 px-3 py-2.5 ring-1 ring-ink/[.07] backdrop-blur-xl shadow-[0_10px_44px_-14px_rgba(31,41,55,.34)]">
+              <CineButton onClick={prev} disabled={i === 0}><CineGlyph name="prev" className="w-[18px] h-[18px]" /></CineButton>
+              <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {slides.map((s, n) => (
+                  <button key={n} onClick={() => go(n)} title={strip(fill(s.title, name))}
+                    aria-label={pad2(n + 1) + ". " + strip(fill(s.title, name))}
+                    aria-current={n === i ? "true" : undefined}
+                    className={"h-1.5 shrink-0 rounded-full transition-all duration-300 ease-out " +
+                      (n === i ? "w-8 " + theme.bar : n < i ? "w-1.5 bg-ink/25 hover:bg-ink/40" : "w-1.5 bg-ink/[.12] hover:bg-ink/25")} />
+                ))}
               </div>
-            )}
-            {slides.map((s, n) => {
-              const active = n === i;
-              return (
-                <div key={n} aria-hidden={!active}
-                  className={active ? (dir > 0 ? "anim-in-r relative z-10 h-full" : "anim-in-l relative z-10 h-full") : "invisible pointer-events-none h-full"}>
-                  <SlideBody slide={s} name={name} theme={theme}
-                    reveal={active ? step : stepsOf(s, name)}
-                    innerRef={active ? scrollRef : null} onScroll={active ? syncMore : null}
-                    active={active} onOpenMedia={setLightbox} />
+              <CineButton onClick={next} disabled={last}><CineGlyph name="next" className="w-[18px] h-[18px]" /></CineButton>
+              <span className="shrink-0 pl-1 pr-1 text-[11.5px] font-black tabular-nums text-gray-400">
+                <span className={theme.text}>{pad2(i + 1)}</span> / {pad2(total)}
+              </span>
+              {last && (
+                <div className="cine-cta shrink-0 pl-1">
+                  <CineButton theme={theme} tone="cta" onClick={onFinish}>{finishLabel}</CineButton>
                 </div>
-              );
-            })}
-            {more && (
-              <div className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex justify-center items-end pb-2 h-14 bg-gradient-to-t from-white via-white/80 to-transparent">
-                <span className="text-[10px] font-black text-gray-400 animate-floaty">↓ 아래로 더 있어요</span>
-              </div>
-            )}
-          </div>
-
-          {/* 컨트롤. 좌우 화살표 사이에 도트를 가운데 배치 */}
-          <div className="shrink-0 flex items-center justify-center gap-4">
-            <button onClick={prev} disabled={i === 0 && step === 1}
-              className="w-9 h-9 rounded-full border border-gray-200 bg-white grid place-items-center text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">‹</button>
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-[60%]">
-              {slides.map((_, n) => (
-                <button key={n} onClick={() => jump(n)} aria-label={"슬라이드 " + (n + 1)}
-                  className={"h-2 rounded-full transition-all duration-300 " + (n === i ? "w-6 " + theme.bar : n < i ? "w-2 bg-gray-300" : "w-2 bg-brand-100")} />
-              ))}
+              )}
             </div>
-            <button onClick={next} disabled={finished}
-              className="w-9 h-9 rounded-full border border-gray-200 bg-white grid place-items-center text-gray-400 disabled:opacity-25 hover:bg-brand-50 transition">›</button>
-          </div>
-
-          {/* CTA 자리. 높이를 항상 차지해 레이아웃이 흔들리지 않게 한다 */}
-          <div className="shrink-0 h-[52px] flex items-center">
-            {finished ? (
-              <ThemedCTA theme={theme} onClick={onFinish} extra="animate-fadeUp">{finishLabel} →</ThemedCTA>
-            ) : (
-              <p className="w-full text-center text-xs text-gray-400">
-                {curSteps - step > 0
-                  ? <>이 장에 <b className="text-gray-500">{curSteps - step}개</b> 더 남았어요. <b className="text-gray-500">→</b> 키로 이어서 보세요</>
-                  : <>→ 키나 화살표로 다음 장으로 넘어가세요</>}
-              </p>
-            )}
           </div>
         </div>
       );
@@ -4452,16 +4411,9 @@
         setVals(mission && mission.fields ? mission.fields.map(() => "") : []);
       }, [dayNum]);
 
-      /* ↑ 다음 Day · ↓ 이전 Day. 좌우 화살표는 슬라이드 안 이동에 이미 쓰이고 있어서 위아래로 분리했다 */
-      useEffect(() => {
-        const on = (e) => {
-          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-          if (e.key === "ArrowUp") { if (next) { e.preventDefault(); go("#/day/" + next.day); } }
-          else if (e.key === "ArrowDown") { if (prev) { e.preventDefault(); go("#/day/" + prev.day); } }
-        };
-        window.addEventListener("keydown", on);
-        return () => window.removeEventListener("keydown", on);
-      }, [prev, next]);
+      /* 위아래 키로 Day 를 옮기던 단축키는 뺐다. 시네마에서는 한 장에 다 안 들어가는 글을
+         그 장 안에서 위아래 키로 굴려 읽는데, 같은 키가 Day 를 옮겨버리면 한 줄 내리려다
+         읽던 자리를 통째로 잃는다. Day 이동은 아래 이전/다음 버튼이 맡는다 */
 
       const missionReady = checked.length > 0 && checked.every(Boolean) && vals.every((v) => v.trim().length > 0);
       const stages = isConcept
@@ -4501,11 +4453,6 @@
         </div>
       );
 
-      const NameBtn = () => (
-        <button onClick={openName} title="내 이름 설정"
-          className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold border bg-white text-gray-400 border-gray-200 hover:text-gray-600 transition">🦁</button>
-      );
-
       const NoteBtn = () => (
         <button onClick={() => setNoteOpen((v) => !v)} title="내 노트. 자동 저장되고 .txt 로 내려받을 수 있어요"
           className={"relative shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold border transition " +
@@ -4515,6 +4462,58 @@
         </button>
       );
 
+      /* 학습 화면의 크롬. 같은 정보를 이모지 없이, 선으로 그린 아이콘과 활자만으로 짰다 -
+         무대 안이 전부 선 아이콘인데 머리만 이모지면 두 벌이 섞여 보인다.
+         퀴즈·미션 화면은 예전 크롬(badge / StageChips)을 그대로 쓴다 */
+      const cineBadge = (
+        <>
+          {meta.milestone && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-2.5 py-1 text-[11px] font-black text-white">
+              <CineGlyph name="project" className="w-3.5 h-3.5" /> 프로젝트
+            </span>
+          )}
+          <span className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-black " + theme.badge}>
+            <CineGlyph name={meta.type} className="w-3.5 h-3.5" /> {theme.label}
+          </span>
+          <span className="text-[13px] font-black tabular-nums text-gray-400 whitespace-nowrap">
+            Day {dayNum}<span className="text-gray-300"> / {DATA.product.totalDays}</span>
+          </span>
+        </>
+      );
+
+      const CineChips = () => (
+        <div className="flex items-center gap-1.5">
+          {stages.map((st, i) => {
+            const active = i === stageIdx, passed = i < stageIdx;
+            const reachable = i <= 1 || (i === 2 && missionReady) || i <= stageIdx;
+            return (
+              <React.Fragment key={st.key}>
+                {i > 0 && <span className={"h-px w-3 rounded transition-colors duration-500 " + (i <= stageIdx ? theme.bar : "bg-ink/15")} />}
+                <button onClick={() => reachable && setStage(st.key)} disabled={!reachable}
+                  className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-black whitespace-nowrap transition ring-1 " +
+                    (active ? theme.chip + " ring-transparent"
+                      : passed ? "bg-white " + theme.text + " ring-ink/[.08]"
+                      : reachable ? "bg-white text-gray-400 ring-ink/[.08] hover:text-ink"
+                      : "bg-white/60 text-gray-300 ring-ink/[.05] cursor-not-allowed")}>
+                  {passed ? <CineGlyph name="check" className="w-3 h-3" /> : <span className="tabular-nums">{i + 1}</span>}
+                  {st.label}
+                </button>
+              </React.Fragment>
+            );
+          })}
+          <button onClick={openName} title="내 이름 설정"
+            className="ml-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-gray-400 ring-1 ring-ink/[.08] transition hover:text-ink">
+            <CineGlyph name="user" className="w-[15px] h-[15px]" />
+          </button>
+          <button onClick={() => setNoteOpen((v) => !v)} title="내 노트. 자동 저장되고 .txt 로 내려받을 수 있어요"
+            className={"relative grid h-7 w-7 shrink-0 place-items-center rounded-full ring-1 transition " +
+              (noteOpen ? "bg-ink text-white ring-ink" : "bg-white text-gray-400 ring-ink/[.08] hover:text-ink")}>
+            <CineGlyph name="note" className="w-[15px] h-[15px]" />
+            {hasNote && !noteOpen && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-cream" />}
+          </button>
+        </div>
+      );
+
       const overlays = (
         <>
           {showHint && <SplitScreenHint onDismiss={() => setHintOff(true)} />}
@@ -4522,28 +4521,27 @@
         </>
       );
 
+      /* 학습 화면. 무대를 뷰포트에 가둬두고 좌우로 넘긴다 - 페이지가 스크롤되면 안 되므로
+         화면 높이에 맞춰 잠근다. 목차는 헤더의 "전체 목차" 링크로 항상 열 수 있어서 따로 뜨는
+         FAB 을 두지 않고, 그만큼 무대에 높이를 돌려준다 */
       if (learnMode) {
         return (
           <div className="h-[100svh] flex flex-col bg-cream text-ink overflow-hidden">
             {overlays}
-            <div className={"flex flex-col h-full " + (showHint ? "lg:pr-[50vw]" : "")}>
-              <TopHeader subtitle={meta.chapter + ", " + meta.chapterTitle} badge={badge} progress={dayNum / DATA.product.totalDays} />
-              {/* 학습 화면은 뷰포트에 꽉 맞춘다. 목차는 헤더의 "전체 목차" 링크로 항상 열 수 있어서
-                  여기서는 따로 뜨는 FAB 을 두지 않고, 그만큼 카드에 높이를 돌려준다. */}
-              <main className={"flex-1 min-h-0 w-full max-w-4xl mx-auto px-4 pt-3 flex flex-col gap-2.5 " +
-                (showHint ? "pb-[112px] lg:pb-2.5" : "pb-2.5")}>
-                <div className="shrink-0 flex items-center gap-2.5">
-                  {meta.milestone && <span className="shrink-0 text-sm">🚩</span>}
-                  <h1 className="text-[15px] font-black truncate flex-1 min-w-0">{meta.name}</h1>
-                  <StageChips compact />
-                  <NameBtn />
-                  <NoteBtn />
-                </div>
-                <SlideDeck key={"deck-" + dayNum} slides={content.slides} theme={theme} name={name} dayNum={dayNum}
-                  pointerOn={!showHint}
-                  finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
+            <div className={"flex flex-col h-full min-h-0 " + (showHint ? "lg:pr-[50vw]" : "")}>
+              <TopHeader subtitle={meta.chapter + ", " + meta.chapterTitle} badge={cineBadge}
+                progress={dayNum / DATA.product.totalDays} />
+              <div className="shrink-0 mx-auto w-full max-w-[1120px] px-6 sm:px-10 pt-3 flex items-center gap-3">
+                <h1 className="min-w-0 flex-1 truncate text-[15px] font-black">{meta.name}</h1>
+                <CineChips />
+              </div>
+              <CineStage key={"cine-" + dayNum} slides={content.slides} theme={theme} name={name}
+                dayNum={dayNum} pointerOn={!showHint} narrow={showHint}
+                finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
+              <div className={"shrink-0 mx-auto w-full max-w-[1120px] px-6 sm:px-10 " +
+                (showHint ? "pb-[104px] lg:pb-3" : "pb-3")}>
                 <DayFooterNav prev={prev} next={next} compact />
-              </main>
+              </div>
             </div>
           </div>
         );
