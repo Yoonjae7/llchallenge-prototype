@@ -189,6 +189,54 @@
     /* 첫 판에서만 뜨는 스크롤 안내. 아래로 흘러내렸다 사라진다 */
     @keyframes focusDrip { 0% { transform: translateY(-3px); opacity:0 } 30% { opacity:1 } 100% { transform: translateY(9px); opacity:0 } }
     .focus-drip { animation: focusDrip 1.9s cubic-bezier(.4,0,.5,1) infinite; }
+
+    /* ═══ 시네마 레이아웃 ═══════════════════════════════════════
+       덱과 같은 모양(한 화면에 한 장, 좌우로 넘김)에 움직임만 다시 짰다. 한 장이 들어올 때
+       요소들이 제각각 튀지 않고 한 방향으로 차례차례 자리를 잡는다 - 번호, 제목, 밑줄, 그림,
+       문단 순서다. 원칙은 하나만 쓴다, 화려한 것과 시끄러운 것은 다르다 */
+    .cine-deck { display: grid; }
+    .cine-deck > * { grid-area: 1 / 1; min-height: 0; }
+    /* 장 전체가 진행 방향에서 미끄러져 들어온다. 폭은 34px 정도가 딱 좋다 -
+       더 크면 넘길 때마다 눈이 따라 움직여야 해서 피곤해진다 */
+    @keyframes cineInR  { from { opacity:0; transform: translate3d(34px,0,0); } to { opacity:1; transform:none; } }
+    @keyframes cineInL  { from { opacity:0; transform: translate3d(-34px,0,0); } to { opacity:1; transform:none; } }
+    @keyframes cineOut  { from { opacity:1; } to { opacity:0; } }
+    .cine-in-r { animation: cineInR .44s cubic-bezier(.22,.9,.28,1) both; }
+    .cine-in-l { animation: cineInL .44s cubic-bezier(.22,.9,.28,1) both; }
+    /* 지나간 장은 자리에 남되 안 보이고 안 눌린다. 아예 빼버리면 넘길 때 화면이 한 번 꺼졌다 켜진다 */
+    .cine-out  { animation: cineOut .26s ease both; visibility: hidden; }
+    /* 요소가 아래에서 올라온다. 장의 가로 이동과 겹쳐 대각선으로 들어오는 결이 생긴다 */
+    @keyframes cineUp   { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:none; } }
+    .cine-el { opacity: 0; }
+    .cine-in-r .cine-el, .cine-in-l .cine-el { animation: cineUp .52s cubic-bezier(.22,.9,.28,1) both; }
+    /* 제목만 다른 동작을 준다. 아래에서 위로 닦아내듯 드러나는 이 한 수가 이 레이아웃의 서명이다.
+       끝값을 -20% 로 열어두는 건 받침이나 괄호 아래가 잘리지 않게 하려는 것 */
+    @keyframes cineWipe { from { opacity:0; clip-path: inset(0 0 105% 0); transform: translateY(12px); }
+                          to   { opacity:1; clip-path: inset(0 0 -20% 0); transform:none; } }
+    .cine-el-wipe { opacity: 0; }
+    .cine-in-r .cine-el-wipe, .cine-in-l .cine-el-wipe { animation: cineWipe .62s cubic-bezier(.2,.85,.3,1) both; }
+    /* 제목 밑줄이 왼쪽에서 그어진다 */
+    @keyframes cineDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    .cine-rule { transform-origin: left; transform: scaleX(0); }
+    .cine-in-r .cine-rule, .cine-in-l .cine-rule { animation: cineDraw .5s cubic-bezier(.22,.9,.28,1) both; }
+    /* 그림은 살짝 작았다가 제 크기를 찾는다 */
+    @keyframes cinePop  { from { opacity:0; transform: scale(.955); } to { opacity:1; transform:none; } }
+    .cine-el-pop { opacity: 0; }
+    .cine-in-r .cine-el-pop, .cine-in-l .cine-el-pop { animation: cinePop .58s cubic-bezier(.2,.85,.3,1) both; }
+    /* 마지막 장에서만 나타나는 다음 단계 버튼 */
+    @keyframes cineCta  { from { opacity:0; transform: translateX(-8px) scale(.94); } to { opacity:1; transform:none; } }
+    .cine-cta { animation: cineCta .38s cubic-bezier(.2,.9,.3,1.1) both; }
+    /* 배경 얼룩. Day 테마의 진한 색을 아주 옅게 깔고 아주 느리게 돌린다 */
+    @keyframes cineDrift { 0%,100% { transform: translate3d(0,0,0) scale(1); opacity:.07; }
+                           50%     { transform: translate3d(5%,-7%,0) scale(1.18); opacity:.12; } }
+    .cine-blob { animation: cineDrift 15s ease-in-out infinite; }
+    .cine-blob-b { animation-duration: 21s; animation-direction: reverse; }
+    /* 비주얼은 덱의 반쪽 칸(약 330px)에 맞춰 그려져 있어서 넓은 무대에서는 헐렁해 보인다 */
+    @media (min-width: 1024px) { .cine-visual { zoom: 1.2; } }
+    @media (prefers-reduced-motion: reduce) {
+      /* 지연이 남으면 요소가 잠깐씩 빈 채로 뜬다. 끝난 모습에서 바로 시작하게 한다 */
+      .cine-el, .cine-el-wipe, .cine-el-pop, .cine-rule { animation-delay: 0s !important; }
+    }
     @media (prefers-reduced-motion: reduce) {
       /* 지속시간만 0 이 되고 지연은 남으면, 판마다 글이 잠깐씩 빈 채로 뜬다 */
       .focus-el { animation-delay: 0s !important; }
@@ -3741,14 +3789,14 @@
        콘텐츠는 한 글자도 건드리지 않는다 - 슬라이드 하나가 섹션 하나가 될 뿐이다.
        Day 3~14(챕터 1 ~ PJT 1) 에서 먼저 써보고 나머지 Day 는 기존 덱을 그대로 쓴다 */
     /* ── 레이아웃 실험실 ────────────────────────────────────────
-       이 브랜치는 배포용이 아니라 비교용이다. 같은 Day 를 세 가지 레이아웃으로 번갈아 보면서
+       이 브랜치는 배포용이 아니라 비교용이다. 같은 Day 를 네 가지 레이아웃으로 번갈아 보면서
        무엇이 실제로 읽기 편한지 판단하려고 만들었다. 그래서 Day 마다 레이아웃을 고정하지 않고,
        화면에 띄운 버튼으로 그 자리에서 갈아끼운다.
 
-       이 브랜치에 남은 Day(챕터 3 ~ PJT 1) 전부에서 켠다. 담긴 게 그 다섯 Day 뿐이라 굳이
-       범위를 나눌 게 없다 - 기준선으로 쓸 덱은 같은 Day 에서 버튼으로 바로 바꿔 보면 된다.
-       ⚠️ Day 10~14 에는 영상도 캡처도 한 장 없어서, 그림이 들어간 판(좌우 배치)은 여기서
-       확인할 수 없다. 그걸 보려면 영상이 있는 Day 를 main 에서 가져와야 한다.
+       이 브랜치에 남은 Day(챕터 1, PJT 1) 전부에서 켠다. 담긴 게 일곱 Day 뿐이라 굳이 범위를
+       나눌 게 없다 - 기준선으로 쓸 덱은 같은 Day 에서 버튼으로 바로 바꿔 보면 된다.
+       챕터 1 에는 영상(Day 3)도 캡처(Day 3·5·7)도 비주얼도 다 들어 있어서, 그림이 들어간 판이
+       어떻게 서는지까지 여기서 다 볼 수 있다.
        고른 값은 localStorage 에 남아서 Day 를 옮겨다녀도 같은 레이아웃으로 이어 본다 */
     const LAB_DAYS = { from: FIRST_DAY, to: LAST_DAY };
     const inLab = (d) => d >= LAB_DAYS.from && d <= LAB_DAYS.to;
@@ -3757,6 +3805,7 @@
       { key: "deck",   label: "슬라이드",    desc: "지금 쓰는 덱. 한 화면에 맞추고 문단마다 클릭" },
       { key: "reader", label: "스크롤",      desc: "한 Day 를 한 편의 글로. 스크롤로만 읽음" },
       { key: "focus",  label: "포커스",      desc: "한 섹션이 한 화면. 슬라이드처럼 보되 스크롤로 넘김" },
+      { key: "cine",   label: "시네마",      desc: "덱과 같은 모양에, 클릭 계단 없이 요소가 차례로 등장" },
     ];
     function useLabLayout() {
       const [mode, setMode] = useState(() => {
@@ -4466,6 +4515,284 @@
             </button>
           )}
         </>
+      );
+    }
+
+    /* ═══ 시네마 ════════════════════════════════════════════════
+       네 번째 안. 모양은 슬라이드(덱)에서 가져오고, 조작과 마감은 전부 다시 했다.
+
+       덱과 같은 것 - 한 화면에 한 장, 좌우로 넘긴다. 스크롤로 흘러가지 않는다.
+       덱과 다른 것 - 한 장 안의 글은 처음부터 다 있다. 문단마다 클릭해서 여는 계단이 없다.
+       대신 장이 바뀔 때 요소가 하나씩 차례로 자리를 잡는다. 번호가 들어오고, 제목이 아래에서
+       위로 닦이듯 드러나고, 그 밑에 선이 그어지고, 그림이 살아나고, 문단이 차례로 떠오른다.
+       움직임은 한 장에 한 가지 원칙만 쓴다 - 전부 제각각 움직이면 화려한 게 아니라 시끄럽다.
+
+       이모지는 이 레이아웃의 UI 에서 전부 걷어내고 선으로 그린 아이콘으로 바꿨다. 본문 안의
+       이모지는 콘텐츠라서 그대로 둔다 - 그건 우리가 고를 수 있는 게 아니다.
+
+       넘기는 방법은 좌우 키, 스페이스, 아래 컨트롤 바, 그리고 휠이다. 휠은 그 장 안에서 읽을 게
+       남아 있으면 먼저 그걸 굴리고, 끝에 닿았을 때만 다음 장으로 넘어간다 */
+    const CINE_WHEEL_LOCK = 620;   /* 휠 한 번에 한 장. 관성으로 여러 장 넘어가는 걸 막는다(ms) */
+
+    /* 선으로 그린 아이콘 한 벌. 24 그리드, 굵기 1.75 로 통일해서 어디에 놓아도 같은 무게로 보인다 */
+    function CineGlyph({ name, className }) {
+      const p = {
+        concept: "M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.5.4.8 1 .9 1.6l.1.6h5.2l.1-.6c.1-.6.4-1.2.9-1.6A6 6 0 0 0 12 3Z",
+        practice: "M5 3.5 18.5 11l-5.6 1.6L10.4 18 5 3.5Z",
+        project: "M5.5 21V4m0 0h11l-2.2 3.6L16.5 11h-11",
+        prev: "M14.5 6 8.5 12l6 6",
+        next: "M9.5 6l6 6-6 6",
+        check: "M4.5 12.5 9 17l10.5-10.5",
+        user: "M4.5 20a7.5 7.5 0 0 1 15 0M12 11.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+        note: "M6 3.5h7.5L18.5 8v12.5h-13V3.5Zm7 0V8h5m-9.5 4.5h7m-7 4h5",
+        grid: "M4 4.5h6.5V11H4V4.5Zm9.5 0H20V11h-6.5V4.5ZM4 14h6.5v6.5H4V14Zm9.5 0H20v6.5h-6.5V14Z",
+        arrow: "M4.5 12h14m-5.5-6 6 6-6 6",
+        expand: "M9 4.5H4.5V9m10.5-4.5h4.5V9M9 19.5H4.5V15m10.5 4.5h4.5V15",
+        play: "M8 5.5v13l11-6.5-11-6.5Z",
+        image: "M3.5 5.5h17v13h-17v-13Zm0 9.5 4.5-4 4 3.5 3.5-3 5 4.5M15.5 9.5h.01",
+      }[name] || "";
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true" className={className || "w-4 h-4"}
+          fill={name === "play" ? "currentColor" : "none"} stroke="currentColor"
+          strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d={p} />
+        </svg>
+      );
+    }
+
+    /* 이 레이아웃 전용 버튼. 학습자용 CTA 하나에 톤을 다 걸고, 나머지는 조용한 회색으로 둔다 */
+    function CineButton({ theme, onClick, disabled, tone, children }) {
+      const base = "group inline-flex items-center gap-2 rounded-full font-black transition-all duration-200 active:scale-[.97] disabled:pointer-events-none disabled:opacity-35";
+      if (tone === "cta") {
+        return (
+          <button onClick={onClick} disabled={disabled}
+            className={base + " px-6 py-3 text-[14.5px] text-white shadow-[0_10px_30px_-10px_rgba(31,41,55,.5)] hover:shadow-[0_14px_36px_-10px_rgba(31,41,55,.55)] hover:-translate-y-[1px] " + theme.solid + " " + theme.solidHover}>
+            {children}
+            <CineGlyph name="arrow" className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-[3px]" />
+          </button>
+        );
+      }
+      return (
+        <button onClick={onClick} disabled={disabled}
+          className={base + " h-10 w-10 justify-center bg-white text-gray-500 ring-1 ring-ink/[.08] shadow-[0_2px_10px_-4px_rgba(31,41,55,.25)] hover:text-ink hover:ring-ink/20 hover:-translate-y-[1px]"}>
+          {children}
+        </button>
+      );
+    }
+
+    /* 한 장. 바깥은 자리만 잡고, 안쪽 요소들이 각자 차례로 들어온다 */
+    function CineSlide({ slide, name, theme, n, total, dayNum, active, dir, onOpenMedia, narrow }) {
+      const paras = parasOf(slide, name);
+      const hasImg = !!(slide.img && DATA.SHOTS[slide.img]);
+      const aside = !!(slide.visual || slide.video || hasImg);
+      const split = aside && !narrow;
+      const scrollRef = useRef(null);
+      const [more, setMore] = useState(false);
+      const videoRef = useRef(null);
+
+      /* 화면에 올라와 있는 장만 영상을 튼다. 모든 장이 미리 그려져 있어서 autoPlay 만으로는
+         안 보이는 곳에서 혼자 다 돌아버린다 */
+      useEffect(() => {
+        const v = videoRef.current;
+        if (!v) return;
+        if (active) { v.currentTime = 0; v.play().catch(() => {}); }
+        else v.pause();
+      }, [active, slide.video]);
+
+      /* 한 장에 다 안 들어가면 안에서 굴려 읽는다. 활자를 줄이는 선택지는 없다 */
+      const syncMore = useCallback(() => {
+        const el = scrollRef.current;
+        setMore(!!el && el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+      }, []);
+      useEffect(() => {
+        if (!active) return;
+        const el = scrollRef.current;
+        if (el) el.scrollTop = 0;
+        const t = setTimeout(syncMore, 420);
+        window.addEventListener("resize", syncMore);
+        return () => { clearTimeout(t); window.removeEventListener("resize", syncMore); };
+      }, [active, syncMore]);
+
+      const D = { eye: 0, title: 1, rule: 2, media: 3, body: aside ? 4 : 3 };
+      const at = (k) => ({ animationDelay: (.06 + k * .07).toFixed(2) + "s" });
+      const body = (
+        <div className="space-y-4">
+          {paras.map((p, i) => (
+            <div key={i} className="cine-el" style={at(D.body + i)}>
+              <ParaBlock html={p} big />
+            </div>
+          ))}
+        </div>
+      );
+
+      return (
+        <div className={"relative h-full min-h-0 " + (active ? (dir > 0 ? "cine-in-r" : "cine-in-l") : "cine-out pointer-events-none")}
+          aria-hidden={!active}>
+          {/* 번호를 달아둔다. 모든 장이 같은 칸에 겹쳐 쌓여 있어서, 휠을 처리할 때
+              "지금 장의" 스크롤 상태를 집으려면 첫 번째가 아니라 이 번호로 찾아야 한다 */}
+          <div ref={scrollRef} onScroll={syncMore} data-cine={n}
+            className="h-full overflow-y-auto overscroll-contain no-scrollbar flex flex-col">
+            <div className="my-auto w-full max-w-[1120px] mx-auto px-6 sm:px-10 py-8">
+              <div className="cine-el flex items-center gap-3" style={at(D.eye)}>
+                <span className={"text-[12px] font-black tabular-nums " + theme.text}>{pad2(n + 1)}</span>
+                <span className="text-[12px] font-black tabular-nums text-gray-300">/ {pad2(total)}</span>
+                <span className="h-px w-8 bg-gray-200" />
+                {/* 대화로 이 대목을 짚을 때 쓰는 참조 태그. 덱에 있던 것과 같은 규칙(Day.장) */}
+                <span className="text-[10px] font-mono font-bold text-gray-300 tabular-nums">{dayNum}.{n + 1}</span>
+              </div>
+              <h2 className={"cine-el-wipe mt-4 font-black tracking-[-.022em] text-ink " +
+                (aside ? "text-[25px] sm:text-[31px] leading-[1.32]" : "text-[27px] sm:text-[38px] leading-[1.28] max-w-[900px]")}
+                style={at(D.title)}>
+                <RichInline text={slide.title} name={name} />
+              </h2>
+              <div className={"cine-rule mt-4 h-[3px] w-14 rounded-full " + theme.bar} style={at(D.rule)} />
+
+              {aside ? (
+                <div className={"mt-8 grid items-center gap-8 " + (split ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12" : "")}>
+                  <div className="cine-el-pop min-w-0" style={at(D.media)}>
+                    {slide.visual ? (
+                      <div className={split ? "cine-visual" : ""}><SlideVisual kind={slide.visual} /></div>
+                    ) : (
+                      <button type="button"
+                        onClick={() => onOpenMedia(slide.video
+                          ? { type: "video", src: slide.video, loop: slide.videoLoop !== false }
+                          : { type: "img", src: DATA.SHOTS[slide.img], cap: slide.imgCap })}
+                        className="group relative block w-full cursor-zoom-in">
+                        {slide.video
+                          ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
+                              className={"mx-auto w-auto max-w-full rounded-2xl shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />
+                          : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
+                              className={"mx-auto w-auto max-w-full object-contain rounded-2xl ring-1 ring-ink/[.08] shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />}
+                        {/* 이모지 배지 대신 선 아이콘 + 라벨. 열어볼 수 있다는 신호는 유지한다 */}
+                        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-ink/75 px-2.5 py-1 text-[10.5px] font-black text-white backdrop-blur">
+                          <CineGlyph name={slide.video ? "play" : "image"} className="w-3 h-3" />
+                          {slide.video ? "영상" : "화면"}
+                        </span>
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10.5px] font-black text-gray-600 opacity-0 ring-1 ring-ink/[.06] backdrop-blur transition group-hover:opacity-100">
+                          <CineGlyph name="expand" className="w-3 h-3" /> 크게 보기
+                        </span>
+                      </button>
+                    )}
+                    {slide.imgCap && !slide.visual && (
+                      <p className="mt-2.5 text-center text-[12.5px] text-gray-400">{slide.imgCap}</p>
+                    )}
+                  </div>
+                  <div className="min-w-0">{body}</div>
+                </div>
+              ) : (
+                <div className="mt-7 max-w-[800px]">{body}</div>
+              )}
+
+              {PLAN_NOTES && slide.note && (
+                <div className="mt-6 rounded-xl border border-dashed border-gray-300 bg-gray-50/80 p-3.5 text-[13px] leading-relaxed text-gray-500">
+                  <b className="text-gray-600">기획 노트</b> : {slide.note}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* 아직 아래에 더 있다는 신호. 컨트롤 바에 가려지지 않게 살짝 띄운다 */}
+          {active && more && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cream via-cream/80 to-transparent" />
+          )}
+        </div>
+      );
+    }
+
+    function CineStage({ slides, theme, name, dayNum, meta, onFinish, finishLabel, pointerOn, chrome, isConceptLabel, narrow }) {
+      const [i, setI] = useState(0);
+      const [dir, setDir] = useState(1);
+      const [lightbox, setLightbox] = useState(null);
+      const total = slides.length;
+      const wheelLock = useRef(0);
+      const scroller = useRef(null);
+      const last = i === total - 1;
+
+      useEffect(() => { setI(0); setDir(1); }, [dayNum]);
+
+      const go = useCallback((n) => {
+        const t = Math.min(total - 1, Math.max(0, n));
+        setDir(t >= i ? 1 : -1);
+        setI(t);
+      }, [i, total]);
+      const next = useCallback(() => go(i + 1), [go, i]);
+      const prev = useCallback(() => go(i - 1), [go, i]);
+
+      useEffect(() => {
+        const on = (e) => {
+          if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+          if (lightbox) return;
+          const k = e.key;
+          if (k === "ArrowRight" || k === " " || k === "PageDown") { e.preventDefault(); next(); }
+          else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); prev(); }
+          else if (k === "Home") { e.preventDefault(); go(0); }
+          else if (k === "End") { e.preventDefault(); go(total - 1); }
+        };
+        window.addEventListener("keydown", on);
+        return () => window.removeEventListener("keydown", on);
+      }, [next, prev, go, total, lightbox]);
+
+      /* 휠은 그 장 안에서 먼저 쓰인다. 안에 읽을 게 남아 있는데 장을 넘겨버리면 글을 건너뛰는
+         것이고, 다 읽고 났는데 아무 일도 안 일어나면 막힌 것처럼 느껴진다 */
+      const onWheel = useCallback((e) => {
+        if (lightbox || Math.abs(e.deltaY) < 6) return;
+        const down = e.deltaY > 0;
+        const el = scroller.current && scroller.current.querySelector('[data-cine="' + i + '"]');
+        if (el) {
+          const room = down
+            ? el.scrollHeight - el.scrollTop - el.clientHeight > 2
+            : el.scrollTop > 2;
+          if (room) return;
+        }
+        if (Date.now() < wheelLock.current) return;
+        wheelLock.current = Date.now() + CINE_WHEEL_LOCK;
+        if (down) next(); else prev();
+      }, [next, prev, lightbox, i]);
+
+      return (
+        <div className="relative flex-1 min-h-0 flex flex-col">
+          {lightbox && <MediaLightbox media={lightbox} onClose={() => setLightbox(null)} />}
+          {pointerOn && !lightbox && slides[i].point &&
+            <ClaudeSpotPointer key={"pt-" + i} point={slides[i].point} />}
+
+          {/* 아주 느리게 도는 색 얼룩 두 덩이. 화면이 완전히 죽어 있지 않게만 한다 */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <span className={"cine-blob absolute -left-32 -top-24 h-[420px] w-[420px] rounded-full blur-3xl " + theme.solid} />
+            <span className={"cine-blob cine-blob-b absolute -right-40 bottom-[-10%] h-[460px] w-[460px] rounded-full blur-3xl " + theme.solid} />
+          </div>
+
+          {/* 무대 */}
+          <div ref={scroller} onWheel={onWheel} className="cine-deck relative flex-1 min-h-0">
+            {slides.map((s, n) => (
+              <CineSlide key={n} slide={s} name={name} theme={theme} n={n} total={total} dayNum={dayNum}
+                active={n === i} dir={dir} onOpenMedia={setLightbox} narrow={narrow} />
+            ))}
+          </div>
+
+          {/* 컨트롤 바. 떠 있는 유리판 하나에 이동, 진행, 다음 단계를 다 모았다 */}
+          <div className="relative z-20 shrink-0 px-4 pb-4 pt-1 flex justify-center">
+            <div className="flex max-w-full items-center gap-3 rounded-full bg-white/80 px-3 py-2.5 ring-1 ring-ink/[.07] backdrop-blur-xl shadow-[0_10px_44px_-14px_rgba(31,41,55,.34)]">
+              <CineButton onClick={prev} disabled={i === 0}><CineGlyph name="prev" className="w-[18px] h-[18px]" /></CineButton>
+              <div className="flex min-w-0 items-center gap-1.5">
+                {slides.map((s, n) => (
+                  <button key={n} onClick={() => go(n)} title={strip(fill(s.title, name))}
+                    aria-label={pad2(n + 1) + ". " + strip(fill(s.title, name))}
+                    aria-current={n === i ? "true" : undefined}
+                    className={"h-1.5 rounded-full transition-all duration-300 ease-out " +
+                      (n === i ? "w-8 " + theme.bar : n < i ? "w-1.5 bg-ink/25 hover:bg-ink/40" : "w-1.5 bg-ink/[.12] hover:bg-ink/25")} />
+                ))}
+              </div>
+              <CineButton onClick={next} disabled={last}><CineGlyph name="next" className="w-[18px] h-[18px]" /></CineButton>
+              <span className="shrink-0 pl-1 pr-1 text-[11.5px] font-black tabular-nums text-gray-400">
+                <span className={theme.text}>{pad2(i + 1)}</span> / {pad2(total)}
+              </span>
+              {last && (
+                <div className="cine-cta shrink-0 pl-1">
+                  <CineButton theme={theme} tone="cta" onClick={onFinish}>{finishLabel}</CineButton>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       );
     }
 
@@ -5190,8 +5517,11 @@
       const layout = labOn ? labMode : "deck";
       const readerMode = layout === "reader";
       const focusMode = layout === "focus";
-      /* 페이지 자체가 스크롤되는 레이아웃에서는 위아래 키가 곧 스크롤이라 Day 이동을 걸지 않는다 */
-      const pageScroll = readerMode || focusMode;
+      const cineMode = layout === "cine";
+      /* 위아래 키로 Day 를 옮기는 건 기본 덱에서만 쓴다. 나머지 레이아웃에서는 그 키가 곧
+         스크롤이라, 한 줄 내리려다 다음 Day 로 튀면 읽던 자리를 잃는다. 시네마는 한 장 안에서
+         넘치는 글을 위아래 키로 굴려 읽으므로 여기 포함된다 */
+      const pageScroll = readerMode || focusMode || cineMode;
 
       useEffect(() => {
         if (pageScroll) return;
@@ -5256,6 +5586,57 @@
         </button>
       );
 
+      /* 시네마용 크롬. 같은 정보를 이모지 없이, 선으로 그린 아이콘과 활자만으로 다시 짰다.
+         나머지 레이아웃의 크롬은 건드리지 않는다 - 기준선이 흔들리면 비교가 안 된다 */
+      const cineBadge = (
+        <>
+          {meta.milestone && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-2.5 py-1 text-[11px] font-black text-white">
+              <CineGlyph name="project" className="w-3.5 h-3.5" /> 프로젝트
+            </span>
+          )}
+          <span className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-black " + theme.badge}>
+            <CineGlyph name={meta.type} className="w-3.5 h-3.5" /> {theme.label}
+          </span>
+          <span className="text-[13px] font-black tabular-nums text-gray-400 whitespace-nowrap">
+            Day {dayNum}<span className="text-gray-300"> / {DATA.product.totalDays}</span>
+          </span>
+        </>
+      );
+
+      const CineChips = () => (
+        <div className="flex items-center gap-1.5">
+          {stages.map((st, i) => {
+            const active = i === stageIdx, passed = i < stageIdx;
+            const reachable = i <= 1 || (i === 2 && missionReady) || i <= stageIdx;
+            return (
+              <React.Fragment key={st.key}>
+                {i > 0 && <span className={"h-px w-3 rounded transition-colors duration-500 " + (i <= stageIdx ? theme.bar : "bg-ink/15")} />}
+                <button onClick={() => reachable && setStage(st.key)} disabled={!reachable}
+                  className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-black whitespace-nowrap transition ring-1 " +
+                    (active ? theme.chip + " ring-transparent"
+                      : passed ? "bg-white " + theme.text + " ring-ink/[.08]"
+                      : reachable ? "bg-white text-gray-400 ring-ink/[.08] hover:text-ink"
+                      : "bg-white/60 text-gray-300 ring-ink/[.05] cursor-not-allowed")}>
+                  {passed ? <CineGlyph name="check" className="w-3 h-3" /> : <span className="tabular-nums">{i + 1}</span>}
+                  {st.label}
+                </button>
+              </React.Fragment>
+            );
+          })}
+          <button onClick={openName} title="내 이름 설정"
+            className="ml-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-gray-400 ring-1 ring-ink/[.08] transition hover:text-ink">
+            <CineGlyph name="user" className="w-[15px] h-[15px]" />
+          </button>
+          <button onClick={() => setNoteOpen((v) => !v)} title="내 노트. 자동 저장되고 .txt 로 내려받을 수 있어요"
+            className={"relative grid h-7 w-7 shrink-0 place-items-center rounded-full ring-1 transition " +
+              (noteOpen ? "bg-ink text-white ring-ink" : "bg-white text-gray-400 ring-ink/[.08] hover:text-ink")}>
+            <CineGlyph name="note" className="w-[15px] h-[15px]" />
+            {hasNote && !noteOpen && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-cream" />}
+          </button>
+        </div>
+      );
+
       const overlays = (
         <>
           {showHint && <SplitScreenHint onDismiss={() => setHintOff(true)} />}
@@ -5264,6 +5645,32 @@
           {labOn && learnMode && <LayoutLabBar mode={labMode} onPick={setLabMode} dayNum={dayNum} />}
         </>
       );
+
+      /* 시네마로 보는 Day 의 학습 화면. 덱과 같이 화면에 가둬두고 좌우로 넘긴다 -
+         페이지가 스크롤되면 안 되므로 뷰포트 높이에 맞춰 잠근다 */
+      if (learnMode && cineMode) {
+        return (
+          <div className="h-[100svh] flex flex-col bg-cream text-ink overflow-hidden">
+            {overlays}
+            <div className={"flex flex-col h-full min-h-0 " + (showHint ? "lg:pr-[50vw]" : "")}>
+              <TopHeader subtitle={meta.chapter + ", " + meta.chapterTitle} badge={cineBadge}
+                progress={dayNum / DATA.product.totalDays} />
+              <div className="shrink-0 mx-auto w-full max-w-[1120px] px-6 sm:px-10 pt-3 flex items-center gap-3">
+                <h1 className="min-w-0 flex-1 truncate text-[15px] font-black">{meta.name}</h1>
+                <CineChips />
+              </div>
+              <CineStage key={"cine-" + dayNum} slides={content.slides} theme={theme} name={name}
+                dayNum={dayNum} meta={meta} pointerOn={!showHint} narrow={showHint}
+                isConceptLabel={isConcept}
+                finishLabel={isConcept ? "퀴즈 풀기" : "미션 확인"} onFinish={() => setStage("act")} />
+              {/* 실험 바가 화면 아래에 떠 있으니 그만큼 자리를 비운다 */}
+              <div className={"shrink-0 mx-auto w-full max-w-[1120px] px-6 sm:px-10 " + (labOn ? "pb-14" : "pb-3")}>
+                <DayFooterNav prev={prev} next={next} compact />
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       /* 포커스로 읽는 Day 의 학습 화면. 리더와 마찬가지로 페이지가 스크롤되지만, 한 섹션이
          화면 하나를 통째로 갖는다. 왼쪽 척추는 옆 창 안내가 떠 있으면 접는다 - 화면 절반이
