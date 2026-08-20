@@ -212,10 +212,43 @@
     /* 마지막 장에서만 나타나는 다음 단계 버튼 */
     @keyframes cineCta  { from { opacity:0; transform: translateX(-8px) scale(.94); } to { opacity:1; transform:none; } }
     .cine-cta { animation: cineCta .38s cubic-bezier(.2,.9,.3,1.1) both; }
-    /* 비주얼은 옛 덱의 반쪽 칸(약 330px)에 맞춰 그려져 있어서 넓은 무대에서는 헐렁해 보인다.
-       폭이 넉넉한 화면에서만 통째로 키운다 - zoom 은 레이아웃 높이도 같이 커져서 옆 글과
-       겹치지 않고, 지원하지 않는 브라우저에서는 원래 크기 그대로 남는다 */
-    @media (min-width: 1024px) { .cine-visual { zoom: 1.2; } }
+    /* ── 무대 활자와 여백 ───────────────────────────────────────
+       한 장은 화면 안에서 끝나야 한다. 그런데 활자와 여백을 px 로 못박아두면 화면 높이가
+       바뀌어도 그대로라, 노트북(1536x730 언저리)에서는 그 고정값이 한 장을 넘겨버린다 -
+       옛 덱이 scale() 로 통째로 줄이던 문제를 크기만 바꿔 되풀이하는 셈이다.
+
+       그래서 vh 로 재고 clamp 로 위아래를 묶는다. 큰 화면에서는 최대값(본문 17.5px)에 붙어
+       예전과 같은 크기로 읽히고, 낮은 화면에서는 알아서 한 단계 내려앉아 한 장 안에 들어온다.
+       vw 도 같이 보는 건 스플릿스크린처럼 폭이 반으로 준 판에서 글줄이 길어져 세로가 늘어나기
+       때문이다. 이건 슬라이드마다 재서 줄이는 게 아니라 화면에 한 번 걸리는 규칙이라,
+       같은 화면에서는 어느 장을 봐도 활자 크기가 같다 */
+    .cine-title { font-size: clamp(19px, min(2.30vw, 4.30vh), 31px); line-height: 1.28; }
+    .cine-title-wide { font-size: clamp(21px, min(2.85vw, 5.10vh), 38px); line-height: 1.24; }
+    .cine-body  { font-size: clamp(13.5px, min(1.16vw, 2.26vh), 17.5px); line-height: 1.68; }
+    .cine-card  { font-size: clamp(12px,   min(1.03vw, 2.00vh), 15.5px); line-height: 1.56; }
+    .cine-sub   { font-size: clamp(11px,   min(.94vw, 1.82vh), 14px);   line-height: 1.54; }
+    /* 세로 여백도 같은 규칙을 따른다. 낮은 화면에서 제일 먼저 양보하는 게 빈 공간이라야
+       활자를 마지막까지 지킬 수 있다 */
+    .cine-pad   { padding-top: clamp(10px, 2.6vh, 32px); padding-bottom: clamp(10px, 2.6vh, 32px); }
+    .cine-mt-sm { margin-top: clamp(9px,  1.9vh, 16px); }
+    .cine-mt-lg { margin-top: clamp(13px, 3.1vh, 32px); }
+    .cine-stack > * + * { margin-top: clamp(8px, 1.72vh, 16px); }
+    .cine-card-pad { padding: clamp(7px, 1.5vh, 12px) clamp(11px, 1.3vw, 16px); }
+    /* 비주얼은 옛 덱의 반쪽 칸(약 330px)에 맞춰 그려져 있고, 세로로 350px 언저리를 잡아먹는다.
+       그래서 화면 높이에 따라 사다리를 태운다 - 예전엔 폭만 보고 무조건 1.2배로 키웠는데,
+       그러면 그림이 세로 440px 까지 부풀어 옆의 글 두 줄보다 여섯 배 높아지는 장이 나왔고,
+       낮은 노트북에서는 그림 하나가 한 장을 통째로 넘겼다.
+       zoom 은 레이아웃 높이도 같이 바뀌므로 옆 글과 겹치지 않고, 지원하지 않는 브라우저에서는
+       원래 크기 그대로 남는다 - 그 경우 그림이 조금 클 뿐 깨지지는 않는다 */
+    @media (min-width: 1024px) and (min-height: 960px) { .cine-visual { zoom: 1.2; } }
+    @media (min-width: 1024px) and (min-height: 840px) and (max-height: 959px) { .cine-visual { zoom: 1.1; } }
+    @media (max-height: 700px) { .cine-visual { zoom: .92; } }
+    @media (max-height: 660px) { .cine-visual { zoom: .82; } }
+    @media (max-height: 620px) { .cine-visual { zoom: .74; } }
+    /* 캡처와 영상도 같은 이유로 높이를 묶는다. 42vh/52vh 처럼 vh 한 값으로 두면 큰 화면에서는
+       괜찮다가 낮은 화면에서 그림 한 장이 무대를 다 먹는다 - clamp 로 위아래를 잡아두면
+       낮은 데서는 알아서 내려앉고 큰 화면에서도 무한정 커지지 않는다 */
+    .cine-media { max-height: clamp(170px, 44vh, 440px); }
     @media (prefers-reduced-motion: reduce) {
       /* 지연이 남으면 요소가 잠깐씩 빈 채로 뜬다. 끝난 모습에서 바로 시작하게 한다 */
       .cine-el, .cine-el-wipe, .cine-el-pop, .cine-rule { animation-delay: 0s !important; }
@@ -3438,38 +3471,38 @@
       return { head: head.join("<br/>"), items };
     }
 
-    /* 활자 크기는 하나다. 예전 덱은 한 화면에 다 욱여넣느라 14px 에서 시작해 필요하면 scale 로
-       더 줄였는데, 시네마는 넘치면 그 장 안에서 굴려 읽으면 되니 줄여야 할 이유가 없다.
-       그래서 처음부터 읽기 편한 크기로 두고 어디서도 깎지 않는다 */
+    /* 크기는 한 벌이고, 그 한 벌이 화면 높이를 따라간다(.cine-body / .cine-card / .cine-sub).
+       큰 화면에서는 예전과 같은 17.5px 로 읽히고 낮은 화면에서는 한 단계 내려앉는다 -
+       옛 덱처럼 슬라이드마다 재서 scale 로 깎는 게 아니라, 화면에 한 번 걸리는 규칙이다 */
     function ParaBlock({ html }) {
       const parsed = useMemo(() => parseBlocks(html), [html]);
-      const plain = "rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]";
+      const plain = "rich cine-body text-gray-700";
       if (!parsed.items.length) {
         return <p className={plain} dangerouslySetInnerHTML={{ __html: html.split("\n").join("<br/>") }} />;
       }
       return (
-        <div className="space-y-2.5">
+        <div className="cine-stack">
           {parsed.head && <p className={plain} dangerouslySetInnerHTML={{ __html: parsed.head }} />}
           {/* 항목이 둘 이상이면 2열로 흘려 세로 길이를 절반으로 줄인다.
               비교(일반 대화 vs 연구 모드)나 목록(켜세요/안 켜도 돼요) 모두 나란히 놓는 게 읽기도 낫다 */}
           <div className={"grid gap-1.5 " + (parsed.items.length >= 2 ? "sm:grid-cols-2" : "")}>
             {parsed.items.map((it, i) => it.bullet ? (
-              <div key={i} className="flex items-start gap-2 rounded-xl bg-white border border-gray-100 px-4 py-2.5">
+              <div key={i} className="cine-card-pad flex items-start gap-2 rounded-xl bg-white border border-gray-100">
                 <span className="mt-[9px] w-1.5 h-1.5 rounded-full bg-brand-400 shrink-0" />
-                <span className="rich flex-1 min-w-0 text-[15px] sm:text-[15.5px] text-gray-700 leading-[1.7]"
+                <span className="rich cine-card flex-1 min-w-0 text-gray-700"
                       dangerouslySetInnerHTML={{ __html: it.text }} />
               </div>
             ) : (
-              <div key={i} className="flex items-start gap-2.5 rounded-2xl bg-white border border-gray-100 px-4 py-3">
-                <span className="shrink-0 w-6 text-center text-[17px] leading-[1.45]">{it.icon}</span>
+              <div key={i} className="cine-card-pad flex items-start gap-2.5 rounded-2xl bg-white border border-gray-100">
+                <span className="cine-card shrink-0 w-6 text-center">{it.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <div className="rich text-[15px] sm:text-[15.5px] text-gray-700 leading-[1.7]" dangerouslySetInnerHTML={{ __html: it.text }} />
+                  <div className="rich cine-card text-gray-700" dangerouslySetInnerHTML={{ __html: it.text }} />
                   {it.subs.length > 0 && (
                     <div className="mt-1.5 space-y-1">
                       {it.subs.map((s, j) => (
                         <div key={j} className="flex items-start gap-1.5">
                           {s.dot && <span className="mt-[8px] w-1 h-1 rounded-full bg-brand-300 shrink-0" />}
-                          <span className="rich flex-1 min-w-0 text-[14px] text-gray-500 leading-[1.65]"
+                          <span className="rich cine-sub flex-1 min-w-0 text-gray-500"
                                 dangerouslySetInnerHTML={{ __html: s.t }} />
                         </div>
                       ))}
@@ -3544,16 +3577,16 @@
        요소(button, 화살표 회전)는 전부 뺐다 */
     function FeatureCard({ icon, tone, title, desc, delay }) {
       return (
-        <div className="rounded-2xl border border-gray-100 bg-white px-3.5 py-3"
+        <div className="cine-card-pad rounded-2xl border border-gray-100 bg-white"
           style={{ animation: "revealUp .4s " + delay + "s both" }}>
           <div className="flex items-center gap-2.5">
             <span className={"shrink-0 w-9 h-9 rounded-xl p-2 " + (FEATURE_TONE[tone] || FEATURE_TONE.sky)}>
               <FeatureIcon kind={icon} />
             </span>
-            <span className="rich flex-1 min-w-0 text-[15px] sm:text-[15.5px] font-black text-ink leading-snug"
+            <span className="rich cine-card flex-1 min-w-0 font-black text-ink"
               dangerouslySetInnerHTML={{ __html: title }} />
           </div>
-          <p className="rich mt-2 text-[14px] sm:text-[14.5px] text-gray-600 leading-[1.65] pl-[46px]"
+          <p className="rich cine-sub mt-2 text-gray-600 pl-[46px]"
             dangerouslySetInnerHTML={{ __html: desc }} />
         </div>
       );
@@ -3562,16 +3595,16 @@
       return (
         <div key={active ? "feat-on" : "feat-off"}>
           {intro && (
-            <p className="rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
+            <p className="rich cine-body text-gray-700"
               dangerouslySetInnerHTML={{ __html: intro.split("\n").join("<br/>") }} />
           )}
-          <div className="mt-4 grid sm:grid-cols-2 gap-2.5 sm:gap-3">
+          <div className="cine-mt-sm grid sm:grid-cols-2 gap-2.5 sm:gap-3">
             {cards.map((c, i) => (
               <FeatureCard key={i} icon={c.icon} tone={c.tone} title={c.title} desc={c.desc} delay={i * 0.07} />
             ))}
           </div>
           {outro && (
-            <div className="rich mt-3 rounded-xl bg-ink px-4 py-3 text-[13.5px] text-white/80 text-center"
+            <div className="rich cine-sub cine-card-pad cine-mt-sm rounded-xl bg-ink text-white/80 text-center"
               style={{ animation: "revealUp .4s .3s both" }} dangerouslySetInnerHTML={{ __html: outro }} />
           )}
         </div>
@@ -3715,7 +3748,7 @@
       const D = { eye: 0, title: 1, rule: 2, media: 3, body: aside ? 4 : 3 };
       const at = (k) => ({ animationDelay: (.06 + k * .07).toFixed(2) + "s" });
       const body = (
-        <div className="space-y-4">
+        <div className="cine-stack">
           {paras.map((p, i) => (
             <div key={i} className="cine-el" style={at(D.body + i)}>
               <ParaBlock html={p} />
@@ -3731,7 +3764,7 @@
               집으려면 첫 번째가 아니라 이 번호로 찾아야 한다 */}
           <div ref={scrollRef} onScroll={syncMore} data-cine={n}
             className="h-full overflow-y-auto overscroll-contain no-scrollbar flex flex-col">
-            <div className="my-auto w-full max-w-[1120px] mx-auto px-6 sm:px-10 py-8">
+            <div className="cine-pad my-auto w-full max-w-[1120px] mx-auto px-6 sm:px-10">
               <div className="cine-el flex items-center gap-3" style={at(D.eye)}>
                 <span className={"text-[12px] font-black tabular-nums " + theme.text}>{pad2(n + 1)}</span>
                 <span className="text-[12px] font-black tabular-nums text-gray-300">/ {pad2(total)}</span>
@@ -3739,42 +3772,47 @@
                 {/* 대화로 이 대목을 짚을 때 쓰는 참조 태그. 덱에 있던 것과 같은 규칙(Day.장) */}
                 <span className="text-[10px] font-mono font-bold text-gray-300 tabular-nums">{dayNum}.{n + 1}</span>
               </div>
-              <h2 className={"cine-el-wipe mt-4 font-black tracking-[-.022em] text-ink " +
-                (aside ? "text-[25px] sm:text-[31px] leading-[1.32]" : "text-[27px] sm:text-[38px] leading-[1.28] max-w-[900px]")}
+              <h2 className={"cine-el-wipe cine-mt-sm font-black tracking-[-.022em] text-ink " +
+                (aside ? "cine-title" : "cine-title-wide max-w-[900px]")}
                 style={at(D.title)}>
                 <RichInline text={slide.title} name={name} />
               </h2>
-              <div className={"cine-rule mt-4 h-[3px] w-14 rounded-full " + theme.bar} style={at(D.rule)} />
+              <div className={"cine-rule cine-mt-sm h-[3px] w-14 rounded-full " + theme.bar} style={at(D.rule)} />
 
               {cards ? (
                 /* 기능 카드. paras[0] 이 인트로 문장이고, 카드는 처음부터 다 펼쳐진 채로 뜬다 */
-                <div className="cine-el-pop mt-7 max-w-[900px]" style={at(D.body)}>
+                <div className="cine-el-pop cine-mt-lg max-w-[900px]" style={at(D.body)}>
                   <FeatureCardsGrid intro={paras[0]} cards={cards} outro={slide.featureNote} active={active} />
                 </div>
               ) : quad ? (
                 /* 2x2 사분면. 캡션은 문단이 아니라 별도 필드(quadCaps)라 본문 순서와 따로 논다.
                    active 가 바뀔 때마다 key 로 리마운트해 아이콘 애니메이션을 처음부터 다시 재생시킨다 */
-                <div key={active ? "quad-on" : "quad-off"} className="mt-7">
+                <div key={active ? "quad-on" : "quad-off"} className="cine-mt-lg">
                   <div className="cine-el" style={at(D.body)}>
-                    <p className="rich text-[16.5px] sm:text-[17.5px] text-gray-700 leading-[1.85]"
+                    <p className="rich cine-body text-gray-700"
                       dangerouslySetInnerHTML={{ __html: (paras[0] || "").split("\n").join("<br/>") }} />
                   </div>
-                  <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="cine-mt-sm grid grid-cols-2 gap-3 sm:gap-4">
                     {quad.map((kind, i) => (
                       <div key={i} style={at(D.body + 1 + i)}
-                        className="cine-el-pop rounded-2xl border border-brand-100 bg-brand-50/40 p-4 flex flex-col items-center justify-center text-center gap-2.5">
+                        className="cine-el-pop cine-card-pad rounded-2xl border border-brand-100 bg-brand-50/40 flex flex-col items-center justify-center text-center gap-2.5">
                         <RoadmapVisual kind={kind} />
-                        <p className="rich text-[14px] sm:text-[14.5px] text-gray-700 leading-[1.6]"
+                        <p className="rich cine-sub text-gray-700"
                           dangerouslySetInnerHTML={{ __html: ((slide.quadCaps && slide.quadCaps[i]) || "").split("\n").join("<br/>") }} />
                       </div>
                     ))}
                   </div>
                 </div>
               ) : aside ? (
-                <div className={"mt-8 grid items-center gap-8 " + (split ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12" : "")}>
+                /* 그림과 글은 640px 위에서는 늘 나란히 선다. 예전엔 옆 창 안내가 떠 있을 때
+                   (narrow) 위아래로 쌓았는데, 그러면 두 높이가 더해져서 노트북 화면 하나에
+                   안 들어갔다 - 반쪽 폭이어도 한 칸이 370px 언저리라, 원래 이 그림들이
+                   그려진 폭(약 330px)보다 넓다. 무대를 다 쓰는 판만 왼쪽을 조금 더 준다 */
+                <div className={"cine-mt-lg grid items-center gap-5 sm:grid-cols-2 sm:gap-6 " +
+                  (split ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10" : "")}>
                   <div className="cine-el-pop min-w-0" style={at(D.media)}>
                     {slide.visual ? (
-                      <div className={split ? "cine-visual" : ""}><SlideVisual kind={slide.visual} /></div>
+                      <div className="cine-visual"><SlideVisual kind={slide.visual} /></div>
                     ) : (
                       <button type="button"
                         onClick={() => onOpenMedia(slide.video
@@ -3783,9 +3821,9 @@
                         className="group relative block w-full cursor-zoom-in">
                         {slide.video
                           ? <video ref={videoRef} src={slide.video} muted playsInline loop={slide.videoLoop !== false}
-                              className={"mx-auto w-auto max-w-full rounded-2xl shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />
+                              className="cine-media mx-auto w-auto max-w-full rounded-2xl shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)]" />
                           : <img src={DATA.SHOTS[slide.img]} alt={slide.imgCap || ""}
-                              className={"mx-auto w-auto max-w-full object-contain rounded-2xl ring-1 ring-ink/[.08] shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)] " + (split ? "max-h-[42vh] lg:max-h-[52vh]" : "max-h-[34vh]")} />}
+                              className="cine-media mx-auto w-auto max-w-full object-contain rounded-2xl ring-1 ring-ink/[.08] shadow-[0_18px_50px_-24px_rgba(31,41,55,.5)]" />}
                         {/* 이모지 배지 대신 선 아이콘 + 라벨. 열어볼 수 있다는 신호는 유지한다 */}
                         <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-ink/75 px-2.5 py-1 text-[10.5px] font-black text-white backdrop-blur">
                           <CineGlyph name={slide.video ? "play" : "image"} className="w-3 h-3" />
@@ -3797,13 +3835,13 @@
                       </button>
                     )}
                     {slide.imgCap && !slide.visual && (
-                      <p className="mt-2.5 text-center text-[12.5px] text-gray-400">{slide.imgCap}</p>
+                      <p className="cine-sub mt-2 text-center text-gray-400">{slide.imgCap}</p>
                     )}
                   </div>
                   <div className="min-w-0">{body}</div>
                 </div>
               ) : (
-                <div className="mt-7 max-w-[800px]">{body}</div>
+                <div className="cine-mt-lg max-w-[800px]">{body}</div>
               )}
 
               {PLAN_NOTES && slide.note && (
