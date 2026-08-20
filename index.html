@@ -56,7 +56,11 @@
 
   <style>
     html { scroll-behavior: smooth; }
-    body { background: #FAF8F5; -webkit-font-smoothing: antialiased; }
+    /* word-break 를 안 정해두면 브라우저가 한글 음절 블록을 한자처럼 다뤄서, 단어 중간
+       아무 글자에서나 줄을 끊는다("스플릿스크\n린을" 처럼). keep-all 은 띄어쓰기에서만
+       끊게 한다 - 대신 공백 없이 긴 토큰(URL 등)이 넘칠 수 있어 break-word 로 그 경우만
+       받아준다. word-break 는 상속되는 속성이라 body 에 한 번만 걸면 전체에 적용된다 */
+    body { background: #FAF8F5; -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: break-word; }
     ::selection { background: #FFD9C2; }
 
     /* 슬라이드 전환 (방향 인식) */
@@ -245,6 +249,10 @@
     @media (max-height: 700px) { .cine-visual { zoom: .92; } }
     @media (max-height: 660px) { .cine-visual { zoom: .82; } }
     @media (max-height: 620px) { .cine-visual { zoom: .74; } }
+    /* 이 언저리(1366x768 노트북, 배율 반영 시 626px 안팎)에서 마지막 몇 px 가 아슬아슬하게
+       넘쳤다 - 활자·그림을 더 줄이는 대신, 제목 블록과 본문 사이 여백만 살짝 접는다.
+       tall 화면의 리듬(cine-mt-lg 의 기본 vh 계수)은 그대로 두고 이 구간에서만 덮어쓴다 */
+    @media (max-height: 660px) { .cine-mt-lg { margin-top: clamp(9px, 2vh, 20px); } }
     /* 캡처와 영상도 같은 이유로 높이를 묶는다. 42vh/52vh 처럼 vh 한 값으로 두면 큰 화면에서는
        괜찮다가 낮은 화면에서 그림 한 장이 무대를 다 먹는다 - clamp 로 위아래를 잡아두면
        낮은 데서는 알아서 내려앉고 큰 화면에서도 무한정 커지지 않는다 */
@@ -3717,7 +3725,6 @@
       const quad = slide.quadVisuals || null;
       const wide = !!(cards || quad);
       const aside = !wide && !!(slide.visual || slide.video || hasImg);
-      const split = aside && !narrow;
       const scrollRef = useRef(null);
       const [more, setMore] = useState(false);
       const videoRef = useRef(null);
@@ -3804,13 +3811,16 @@
                   </div>
                 </div>
               ) : aside ? (
-                /* 그림과 글은 640px 위에서는 늘 나란히 선다. 예전엔 옆 창 안내가 떠 있을 때
-                   (narrow) 위아래로 쌓았는데, 그러면 두 높이가 더해져서 노트북 화면 하나에
-                   안 들어갔다 - 반쪽 폭이어도 한 칸이 370px 언저리라, 원래 이 그림들이
-                   그려진 폭(약 330px)보다 넓다. 무대를 다 쓰는 판만 왼쪽을 조금 더 준다 */
-                <div className={"cine-mt-lg grid items-center gap-5 sm:grid-cols-2 sm:gap-6 " +
-                  (split ? "lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10" : "")}>
-                  <div className="cine-el-pop min-w-0" style={at(D.media)}>
+                /* 그림과 글은 640px 위에서는 늘 나란히, 정확히 반씩 선다. 예전 덱에서 3:2였던
+                   비율을 50:50 으로 고친 적이 있다 - 그림 칸이 더 넓으면 시각적으로 경계를
+                   넘어서는 것처럼 보인다는 지적이 있었기 때문이다. 시네마로 옮기며 무대가
+                   넓을 때 그림 쪽에 10% 를 더 준 적이 있는데, 그게 같은 문제를 되풀이했다 -
+                   반반으로 되돌리고, 가운데에 실제 경계선(divide-x)을 다시 그린다.
+                   예전엔 옆 창 안내가 떠 있을 때(narrow) 위아래로 쌓았는데, 그러면 두 높이가
+                   더해져서 노트북 화면 하나에 안 들어갔다 - 반쪽 폭이어도 한 칸이 370px
+                   언저리라, 원래 이 그림들이 그려진 폭(약 330px)보다 넓다 */
+                <div className="cine-mt-lg grid items-center gap-5 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-gray-200">
+                  <div className="cine-el-pop min-w-0 sm:pr-5" style={at(D.media)}>
                     {slide.visual ? (
                       <div className="cine-visual"><SlideVisual kind={slide.visual} /></div>
                     ) : (
@@ -3838,10 +3848,13 @@
                       <p className="cine-sub mt-2 text-center text-gray-400">{slide.imgCap}</p>
                     )}
                   </div>
-                  <div className="min-w-0">{body}</div>
+                  <div className="min-w-0 sm:pl-5">{body}</div>
                 </div>
               ) : (
-                <div className="cine-mt-lg max-w-[800px]">{body}</div>
+                /* 800px 이던 폭을 좁혔다 - 한 줄이 40자를 넘어가면 눈이 줄 끝에서 다음 줄
+                   시작을 다시 찾는 데 힘이 든다. 옆 칸을 낀 aside 배치는 어차피 반쪽 폭이라
+                   이미 짧아서 건드리지 않는다 */
+                <div className="cine-mt-lg max-w-[640px]">{body}</div>
               )}
 
               {PLAN_NOTES && slide.note && (
